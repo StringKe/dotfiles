@@ -1,0 +1,5 @@
+# ripgrep 全局配置
+
+# OSC 8 超链接输出（终端 Cmd+Click 直接打开文件）
+--hyperlink-format
+file://{host}{path}:{line}

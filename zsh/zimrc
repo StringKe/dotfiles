@@ -1,0 +1,18 @@
+# ~/.zimrc - zimfw 模块配置
+
+# 核心行为（setopt auto_cd, pushd, extended_glob 等）
+zmodule environment
+# 键绑定（Home/End/Delete/Ctrl+Arrow 等）
+zmodule input
+
+# 补全系统（顺序重要：completions fpath → compinit → fzf-tab → 高亮 → 建议）
+zmodule zsh-users/zsh-completions --fpath src
+zmodule completion
+
+# fzf-tab：Tab 补全使用 fzf 交互（必须在 compinit 之后、高亮之前）
+zmodule Aloxaf/fzf-tab
+
+# 语法高亮（必须在 completion 之后）
+zmodule zsh-users/zsh-syntax-highlighting
+# 自动建议（必须在高亮之后）
+zmodule zsh-users/zsh-autosuggestions

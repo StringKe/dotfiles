@@ -1,0 +1,19 @@
+[tools]
+node = "lts"
+rust = "latest"
+go = "latest"
+uv = "0.9.27"
+
+[env]
+# Go 统一存储目录
+GOPATH = "{{env.HOME}}/Code/Languages/go"
+GOMODCACHE = "{{env.HOME}}/Code/Languages/go/mod"
+GOCACHE = "{{env.HOME}}/Code/Languages/go/cache"
+GOBIN = "{{env.HOME}}/Code/Languages/go/bin"
+
+# Rust 统一存储目录 (mise 专用变量)
+MISE_CARGO_HOME = "{{env.HOME}}/Code/Languages/rust/cargo"
+MISE_RUSTUP_HOME = "{{env.HOME}}/Code/Languages/rust/rustup"
+# 标准 Rust 环境变量 (供其他工具识别)
+CARGO_HOME = "{{env.HOME}}/Code/Languages/rust/cargo"
+RUSTUP_HOME = "{{env.HOME}}/Code/Languages/rust/rustup"

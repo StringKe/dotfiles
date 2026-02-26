@@ -1,0 +1,267 @@
+"$schema" = 'https://starship.rs/config-schema.json'
+
+add_newline        = false
+command_timeout    = 10000
+continuation_prompt = "[.](bright-black) "
+
+# ── 提示符 ──────────────────────────────────────────────────
+[character]
+success_symbol          = "[>](bold green)"
+error_symbol            = "[x](bold red)"
+vimcmd_symbol           = "[<](bold green)"
+vimcmd_visual_symbol    = "[<](bold yellow)"
+vimcmd_replace_symbol   = "[<](bold purple)"
+vimcmd_replace_one_symbol = "[<](bold purple)"
+
+# ── 目录 ────────────────────────────────────────────────────
+[directory]
+truncate_to_repo = true
+truncation_length = 3
+read_only = " ro"
+
+# ── Git ─────────────────────────────────────────────────────
+[git_branch]
+symbol           = "git "
+truncation_symbol = "..."
+
+[git_commit]
+tag_symbol = " tag "
+
+[git_status]
+ahead   = ">"
+behind  = "<"
+diverged = "<>"
+renamed = "r"
+deleted = "x"
+
+# ── 耗时（超过 2s 才显示）────────────────────────────────────
+[cmd_duration]
+min_time = 2000
+
+# ── 语言版本：按项目文件条件激活，无需改动 ──────────────────
+# Starship 只在检测到对应文件时才展示（go.mod / package.json / Cargo.toml 等）
+
+[bun]
+symbol = "bun "
+
+[c]
+symbol = "C "
+
+[cpp]
+symbol = "C++ "
+
+[crystal]
+symbol = "cr "
+
+[cmake]
+symbol = "cmake "
+
+[dart]
+symbol = "dart "
+
+[deno]
+symbol = "deno "
+
+[dotnet]
+symbol = "dotnet "
+format = "via [$symbol($version )(target $tfm )]($style)"
+
+[elixir]
+symbol = "exs "
+
+[elm]
+symbol = "elm "
+
+[erlang]
+symbol = "erl "
+
+[golang]
+symbol = "go "
+
+[gradle]
+symbol = "gradle "
+
+[haskell]
+symbol = "haskell "
+
+[helm]
+symbol = "helm "
+
+[java]
+symbol = "java "
+
+[julia]
+symbol = "jl "
+
+[kotlin]
+symbol = "kt "
+
+[lua]
+symbol = "lua "
+
+[nim]
+symbol = "nim "
+
+[nodejs]
+symbol = "nodejs "
+
+[ocaml]
+symbol = "ml "
+
+[perl]
+symbol = "pl "
+
+[php]
+symbol = "php "
+
+[python]
+symbol = "py "
+
+[ruby]
+symbol = "rb "
+
+[rust]
+symbol = "rs "
+
+[scala]
+symbol = "scala "
+
+[swift]
+symbol = "swift "
+
+[zig]
+symbol = "zig "
+
+# ── 禁用：云平台（检测全局凭证，到处出没）──────────────────
+[aws]
+disabled = true
+
+[azure]
+disabled = true
+
+[gcloud]
+disabled = true
+
+[openstack]
+disabled = true
+
+# ── 禁用：容器 / 基础设施（全局 context，非项目级）─────────
+[kubernetes]
+disabled = true
+
+[docker_context]
+disabled = true
+
+[terraform]
+disabled = true
+
+[vagrant]
+disabled = true
+
+[pulumi]
+disabled = true
+
+[container]
+disabled = true
+
+# ── 禁用：包版本（通常噪音大于信号）────────────────────────
+[package]
+disabled = true
+
+# ── 禁用：系统级信息（终端里通常不需要）────────────────────
+[battery]
+disabled = true
+
+[memory_usage]
+disabled = true
+
+[status]
+disabled = true
+
+[sudo]
+disabled = true
+
+[shlvl]
+disabled = true
+
+# ── 禁用：小众语言 / 工具（按需自行启用）───────────────────
+[buf]
+disabled = true
+
+[cobol]
+disabled = true
+
+[conda]
+disabled = true
+
+[daml]
+disabled = true
+
+[fennel]
+disabled = true
+
+[fortran]
+disabled = true
+
+[gleam]
+disabled = true
+
+[guix_shell]
+disabled = true
+
+[haxe]
+disabled = true
+
+[meson]
+disabled = true
+
+[mojo]
+disabled = true
+
+[nats]
+disabled = true
+
+[netns]
+disabled = true
+
+[nix_shell]
+disabled = true
+
+[odin]
+disabled = true
+
+[opa]
+disabled = true
+
+[pixi]
+disabled = true
+
+[pijul_channel]
+disabled = true
+
+[purescript]
+disabled = true
+
+[quarto]
+disabled = true
+
+[raku]
+disabled = true
+
+[red]
+disabled = true
+
+[rlang]
+disabled = true
+
+[solidity]
+disabled = true
+
+[spack]
+disabled = true
+
+[typst]
+disabled = true
+
+[xmake]
+disabled = true

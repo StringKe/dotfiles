@@ -1,0 +1,12 @@
+# ═══════════════════════════════════════════════════════════════
+# Yazi Keymap Configuration
+# ═══════════════════════════════════════════════════════════════
+
+[mgr]
+prepend_keymap = [
+    # Enter 只用于进入目录，不打开文件
+    { on = ["<Enter>"], run = "enter", desc = "Enter directory" },
+
+    # o 键用于打开文件/文件夹（原 Enter 的行为）
+    { on = ["o"], run = "open", desc = "Open file or directory" },
+]

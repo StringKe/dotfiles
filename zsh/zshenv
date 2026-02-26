@@ -1,0 +1,200 @@
+# ~/.zshenv - 环境变量配置（所有 shell 加载）
+
+# ============================================================
+# Locale
+# ============================================================
+export LANG="zh_CN.UTF-8"
+export LC_ALL="zh_CN.UTF-8"
+export LC_MESSAGES="en_US.UTF-8"
+export LC_CTYPE="zh_CN.UTF-8"
+
+# ============================================================
+# ripgrep 配置（OSC 8 超链接等）
+# ============================================================
+export RIPGREP_CONFIG_PATH="$HOME/.config/ripgrep/config"
+
+# ============================================================
+# 语言环境缓存目录
+# ============================================================
+export CODE_LANGUAGES_HOME="$HOME/Code/Languages"
+
+# ============================================================
+# Go
+# ============================================================
+export GOPATH="$CODE_LANGUAGES_HOME/go"
+export GOBIN="$GOPATH/bin"
+
+# ============================================================
+# Rust
+# ============================================================
+export RUSTUP_HOME="$CODE_LANGUAGES_HOME/rust/rustup"
+export CARGO_HOME="$CODE_LANGUAGES_HOME/rust/cargo"
+
+# ============================================================
+# Node.js
+# ============================================================
+export NPM_CONFIG_CACHE="$CODE_LANGUAGES_HOME/nodejs/npm-cache"
+export NPM_CONFIG_PREFIX="$CODE_LANGUAGES_HOME/nodejs/npm-global"
+export PNPM_HOME="$CODE_LANGUAGES_HOME/nodejs/pnpm-global"
+export YARN_GLOBAL_FOLDER="$CODE_LANGUAGES_HOME/nodejs/yarn-global"
+
+# ============================================================
+# Bun
+# ============================================================
+export BUN_INSTALL="$CODE_LANGUAGES_HOME/bun"
+
+# ============================================================
+# Deno
+# ============================================================
+export DENO_INSTALL="$CODE_LANGUAGES_HOME/deno"
+
+# ============================================================
+# Java
+# ============================================================
+export JAVA_HOME="/opt/homebrew/opt/openjdk/libexec/openjdk.jdk/Contents/Home"
+export GRADLE_USER_HOME="$CODE_LANGUAGES_HOME/java/gradle"
+export MAVEN_OPTS="-Dmaven.repo.local=$CODE_LANGUAGES_HOME/java/maven-repo"
+
+# ============================================================
+# Python
+# ============================================================
+export PIP_CACHE_DIR="$CODE_LANGUAGES_HOME/python/pip-cache"
+export PIPX_HOME="$CODE_LANGUAGES_HOME/python/pipx"
+export PIPX_BIN_DIR="$CODE_LANGUAGES_HOME/python/pipx/bin"
+
+# ============================================================
+# PHP
+# ============================================================
+export COMPOSER_HOME="$CODE_LANGUAGES_HOME/php/composer"
+
+# ============================================================
+# Homebrew keg-only 包路径
+# ============================================================
+HOMEBREW_PREFIX="/opt/homebrew"
+
+# keg-only bin 路径
+KEG_ONLY_PATHS=(
+    "$HOMEBREW_PREFIX/opt/postgresql@18/bin"
+    "$HOMEBREW_PREFIX/opt/libpq/bin"
+    "$HOMEBREW_PREFIX/opt/openjdk/bin"
+    "$HOMEBREW_PREFIX/opt/curl/bin"
+    "$HOMEBREW_PREFIX/opt/sqlite/bin"
+    "$HOMEBREW_PREFIX/opt/ncurses/bin"
+    "$HOMEBREW_PREFIX/opt/libiconv/bin"
+    "$HOMEBREW_PREFIX/opt/icu4c@78/bin"
+    "$HOMEBREW_PREFIX/opt/icu4c@78/sbin"
+)
+
+# ============================================================
+# 编译环境变量 (LDFLAGS / CPPFLAGS / PKG_CONFIG_PATH)
+# ============================================================
+# 需要配置的 keg-only 库
+KEG_ONLY_LIBS=(
+    "openssl@3"
+    "readline"
+    "sqlite"
+    "libpq"
+    "postgresql@18"
+    "ncurses"
+    "libiconv"
+    "icu4c@78"
+    "curl"
+    "krb5"
+    "openldap"
+    "zstd"
+    "libzip"
+)
+
+# 构建 LDFLAGS
+_ldflags=""
+for lib in "${KEG_ONLY_LIBS[@]}"; do
+    if [[ -d "$HOMEBREW_PREFIX/opt/$lib/lib" ]]; then
+        _ldflags="$_ldflags -L$HOMEBREW_PREFIX/opt/$lib/lib"
+    fi
+done
+export LDFLAGS="${_ldflags# }"
+
+# 构建 CPPFLAGS
+_cppflags=""
+for lib in "${KEG_ONLY_LIBS[@]}"; do
+    if [[ -d "$HOMEBREW_PREFIX/opt/$lib/include" ]]; then
+        _cppflags="$_cppflags -I$HOMEBREW_PREFIX/opt/$lib/include"
+    fi
+done
+export CPPFLAGS="${_cppflags# }"
+
+# 构建 PKG_CONFIG_PATH
+_pkg_config_path=""
+for lib in "${KEG_ONLY_LIBS[@]}"; do
+    if [[ -d "$HOMEBREW_PREFIX/opt/$lib/lib/pkgconfig" ]]; then
+        _pkg_config_path="$_pkg_config_path:$HOMEBREW_PREFIX/opt/$lib/lib/pkgconfig"
+    fi
+done
+export PKG_CONFIG_PATH="${_pkg_config_path#:}"
+
+# 清理临时变量
+unset _ldflags _cppflags _pkg_config_path
+
+# ============================================================
+# 语言编译选项 (mise 编译 Ruby/Python 时使用)
+# ============================================================
+export RUBY_CONFIGURE_OPTS="--with-openssl-dir=$HOMEBREW_PREFIX/opt/openssl@3 --with-readline-dir=$HOMEBREW_PREFIX/opt/readline"
+export PYTHON_CONFIGURE_OPTS="--with-openssl=$HOMEBREW_PREFIX/opt/openssl@3"
+
+# ============================================================
+# PATH 配置
+# ============================================================
+typeset -U path
+
+path=(
+    # 用户本地 bin
+    "$HOME/.local/bin"
+
+    # opencode
+    "$HOME/.opencode/bin"
+
+    # Rust
+    "$CARGO_HOME/bin"
+
+    # Go
+    "$GOBIN"
+
+    # Node.js 生态
+    "$NPM_CONFIG_PREFIX/bin"
+    "$PNPM_HOME"
+    "$YARN_GLOBAL_FOLDER/bin"
+
+    # Bun
+    "$BUN_INSTALL/bin"
+
+    # Deno
+    "$DENO_INSTALL/bin"
+
+    # Python
+    "$PIPX_BIN_DIR"
+
+    # PHP
+    "$COMPOSER_HOME/vendor/bin"
+
+    # Java
+    "$JAVA_HOME/bin"
+
+    # Homebrew keg-only
+    "${KEG_ONLY_PATHS[@]}"
+
+    # Homebrew
+    "$HOMEBREW_PREFIX/bin"
+    "$HOMEBREW_PREFIX/sbin"
+
+    # 系统路径
+    /usr/local/bin
+    /usr/bin
+    /bin
+    /usr/sbin
+    /sbin
+
+    # 保留现有 PATH
+    $path
+)
+
+export PATH

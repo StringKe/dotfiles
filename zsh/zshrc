@@ -1,0 +1,202 @@
+# ~/.zshrc - 交互式 shell 配置
+
+# ============================================================
+# zimfw - 插件管理器
+# ============================================================
+ZIM_HOME=~/.zim
+
+# 自动下载 zimfw
+if [[ ! -e ${ZIM_HOME}/zimfw.zsh ]]; then
+    curl -fsSL --create-dirs -o ${ZIM_HOME}/zimfw.zsh \
+        https://github.com/zimfw/zimfw/releases/latest/download/zimfw.zsh
+fi
+
+# 当 .zimrc 更新时自动重新安装模块
+if [[ ! ${ZIM_HOME}/init.zsh -nt ${ZDOTDIR:-${HOME}}/.zimrc ]]; then
+    source ${ZIM_HOME}/zimfw.zsh init -q
+fi
+
+# 性能优化：跳过 autosuggestions 的自动 widget rebind
+ZSH_AUTOSUGGEST_MANUAL_REBIND=1
+
+source ${ZIM_HOME}/init.zsh
+
+# ============================================================
+# OrbStack 初始化
+# ============================================================
+if [[ -f ~/.orbstack/shell/init.zsh ]]; then
+    source ~/.orbstack/shell/init.zsh 2>/dev/null || true
+fi
+
+# ============================================================
+# mise - 运行时版本管理器
+# ============================================================
+if command -v mise &>/dev/null; then
+    eval "$(mise activate zsh)"
+fi
+
+# ============================================================
+# fzf - 模糊搜索
+# ============================================================
+if command -v fzf &>/dev/null; then
+    source <(fzf --zsh)
+fi
+
+# ============================================================
+# Atuin - 历史搜索
+# ============================================================
+if command -v atuin &>/dev/null; then
+    eval "$(atuin init zsh)"
+fi
+
+# ============================================================
+# Zoxide - 智能目录跳转（替代 cd）
+# ============================================================
+if command -v zoxide &>/dev/null; then
+    eval "$(zoxide init zsh --cmd cd)"
+fi
+
+# ============================================================
+# direnv - 目录级环境变量管理
+# ============================================================
+if command -v direnv &>/dev/null; then
+    eval "$(direnv hook zsh)"
+fi
+
+# ============================================================
+# fzf-tab - Tab 补全使用 fzf 交互界面
+# ============================================================
+# 基础外观
+zstyle ':fzf-tab:*' fzf-flags '--height=50%' '--layout=reverse' '--border=rounded' '--info=inline'
+# 用 < > 切换分组（如 kubectl 的 resource-type 分组）
+zstyle ':fzf-tab:*' switch-group '<' '>'
+# 目录补全预览（cd / z）
+zstyle ':fzf-tab:complete:(cd|z|__zoxide_z):*' fzf-preview \
+    'eza --tree --level=2 --color=always $realpath 2>/dev/null || ls -la $realpath'
+# kubectl 补全：按 resource type 分组，预览资源详情
+zstyle ':fzf-tab:complete:(kubectl|k):*' fzf-flags \
+    '--height=60%' '--layout=reverse' '--border=rounded' '--info=inline'
+
+# ============================================================
+# kubectl - 补全 + 别名
+# ============================================================
+if command -v kubectl &>/dev/null; then
+    # k 继承 kubectl 全部补全
+    alias k='kubectl'
+    compdef k=kubectl
+
+    # context / namespace 切换（kubectx/kubens 有内置 fzf 交互）
+    if command -v kubectx &>/dev/null; then alias kctx='kubectx'; fi
+    if command -v kubens  &>/dev/null; then alias kns='kubens';   fi
+
+    # --- get ---
+    alias kg='kubectl get'
+    alias kgp='kubectl get pods -o wide'
+    alias kgn='kubectl get nodes -o wide'
+    alias kgs='kubectl get svc'
+    alias kgd='kubectl get deploy'
+    alias kging='kubectl get ingress'
+    alias kgcm='kubectl get cm'
+    alias kgsec='kubectl get secret'
+    alias kgns='kubectl get ns'
+    alias kgall='kubectl get all'
+    # 带 watch
+    alias kgpw='kubectl get pods -o wide -w'
+    alias kgdw='kubectl get deploy -w'
+
+    # --- describe ---
+    alias kd='kubectl describe'
+    alias kdp='kubectl describe pod'
+    alias kdn='kubectl describe node'
+
+    # --- logs ---
+    alias kl='kubectl logs'
+    alias klf='kubectl logs -f'
+    alias klfa='kubectl logs -f --all-containers=true'
+
+    # --- exec / run ---
+    alias ke='kubectl exec -it'
+
+    # --- apply / delete ---
+    alias kaf='kubectl apply -f'
+    alias kdf='kubectl delete -f'
+
+    # --- context / namespace 直接操作 ---
+    alias kgctx='kubectl config get-contexts'
+    alias kuse='kubectl config use-context'
+    alias kn='kubectl config set-context --current --namespace'
+fi
+
+# ============================================================
+# 别名（OSC 8 超链接已开启）
+# ============================================================
+# eza - 现代 ls 替代（--hyperlink 启用 OSC 8）
+if command -v eza &>/dev/null; then
+    alias ls='eza --hyperlink --icons --group-directories-first'
+    alias ll='eza -la --hyperlink --icons --group-directories-first'
+    alias lt='eza --tree --hyperlink --icons --group-directories-first'
+fi
+
+# fd - 文件搜索（--hyperlink 启用 OSC 8）
+if command -v fd &>/dev/null; then
+    alias fd='fd --hyperlink auto'
+fi
+
+# trash - 安全删除（函数包装，兼容 rm 参数）
+# 真正删除请用: command rm -rf xxx
+if command -v trash &>/dev/null; then
+    function rm() {
+        local paths=()
+        local dashdash=false
+        for arg in "$@"; do
+            if $dashdash; then
+                paths+=("$arg")
+            elif [[ "$arg" == "--" ]]; then
+                dashdash=true
+            elif [[ "$arg" != -* ]]; then
+                paths+=("$arg")
+            fi
+        done
+        (( ${#paths[@]} )) && command trash "${paths[@]}"
+    }
+fi
+
+# hh - Atuin 历史搜索快捷键
+alias hh='atuin search -i'
+
+# lg - lazygit
+alias lg='lazygit'
+
+# ============================================================
+# 函数
+# ============================================================
+# y - yazi 文件管理器（退出时切换到当前目录）
+function y() {
+    local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+    yazi "$@" --cwd-file="$tmp"
+    if cwd="$(command cat -- "$tmp")" && [[ -n "$cwd" ]] && [[ "$cwd" != "$PWD" ]]; then
+        builtin cd -- "$cwd"
+    fi
+    command rm -f -- "$tmp"
+}
+
+# ============================================================
+# 加载敏感信息
+# ============================================================
+if [[ -f ~/.zsh_secrets ]]; then
+    source ~/.zsh_secrets
+fi
+
+# ============================================================
+# Bun - 补全脚本
+# ============================================================
+if [[ -s "$BUN_INSTALL/_bun" ]]; then
+    source "$BUN_INSTALL/_bun"
+fi
+
+# ============================================================
+# Starship - 跨 shell 提示符（最后加载，接管 precmd）
+# ============================================================
+if command -v starship &>/dev/null; then
+    eval "$(starship init zsh)"
+fi
