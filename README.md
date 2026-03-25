@@ -2,6 +2,8 @@
 
 macOS 开发环境配置模板。文件首次复制到系统路径后本地独立，不使用 symlink。
 
+Brewfile 包含 Homebrew formulae、cask、VSCode 扩展和 Mac App Store 应用的声明式清单，通过 `brew bundle` 一键安装。
+
 ## 前置准备
 
 以下三步需手动完成（AI 运行环境本身的依赖）：
@@ -140,6 +142,8 @@ chsh -s /opt/homebrew/bin/zsh
 6. ~/.zim/zimfw.zsh 存在
 7. 当前默认 shell 为 /opt/homebrew/bin/zsh（dscl . -read ~/ UserShell）
 8. starship prompt 可用（command -v starship）
+9. infat 文件关联已应用（infat info --ext json 输出包含 Visual Studio Code）
+10. VSCode 扩展已安装（code --list-extensions | wc -l 大于 0）
 
 ## 7. 后续提醒
 
@@ -147,6 +151,7 @@ chsh -s /opt/homebrew/bin/zsh
 - 编辑 ~/.zsh_secrets 填入 API 密钥等敏感信息
 - 重启终端或执行 exec zsh 使配置生效
 - 运行 mise install 安装语言运行时（Node.js、Python 等）
+- 打开 VSCode 登录 GitHub 以激活 Copilot
 ````
 
 ## 目录结构
@@ -233,6 +238,9 @@ dotfiles/
 | 想修改什么 | 编辑哪个文件 |
 |---|---|
 | 添加/移除软件 | `Brewfile`，然后 `brew bundle install --file=~/Code/SelfCode/dotfiles/Brewfile` |
+| 清理系统中多余的软件 | `brew bundle cleanup --force --file=~/Code/SelfCode/dotfiles/Brewfile` |
+| VSCode 扩展 | `Brewfile` 的 `vscode` 段，然后 `brew bundle install` |
+| 文件关联 | `~/.config/infat/config.toml`，然后 `infat` 应用 |
 | 终端外观 | 在 iTerm2 GUI 中修改，退出时自动保存到仓库目录 |
 | Shell 别名/函数 | `~/.zshrc` |
 | 环境变量 | `~/.zshenv` |
