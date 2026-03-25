@@ -50,7 +50,7 @@ git clone https://github.com/StringKe/dotfiles.git ~/Code/SelfCode/dotfiles
 
 执行：
 ```bash
-brew bundle --file=~/Code/SelfCode/dotfiles/Brewfile --no-lock
+brew bundle install --file=~/Code/SelfCode/dotfiles/Brewfile
 ```
 
 如果部分 formula/cask 安装失败，解释失败原因，继续安装其余项目。
@@ -73,6 +73,7 @@ brew bundle --file=~/Code/SelfCode/dotfiles/Brewfile --no-lock
 | atuin/config.toml | ~/.config/atuin/config.toml |
 | mise/config.toml | ~/.config/mise/config.toml |
 | btop/btop.conf | ~/.config/btop/btop.conf |
+| infat/config.toml | ~/.config/infat/config.toml |
 
 规则：
 - 目标不存在：创建父目录，复制文件
@@ -111,7 +112,13 @@ curl -fsSL --create-dirs -o ~/.zim/zimfw.zsh https://github.com/zimfw/zimfw/rele
 zsh -c "source ~/.zim/zimfw.zsh install"
 ```
 
-### 5e. 默认 Shell
+### 5e. 文件关联
+
+```bash
+infat --config ~/.config/infat/config.toml
+```
+
+### 5f. 默认 Shell
 
 ```bash
 # 将 Homebrew zsh 加入合法 shell 列表（如果不在）
@@ -126,7 +133,7 @@ chsh -s /opt/homebrew/bin/zsh
 
 逐项检查并报告通过/失败：
 1. brew doctor 无严重警告
-2. 12 个配置文件全部存在于目标路径
+2. 13 个配置文件全部存在于目标路径
 3. iTerm2 偏好设置目录指向正确路径（defaults read com.googlecode.iterm2 PrefsCustomFolder）
 4. ~/.zsh_secrets 存在且权限为 600
 5. ~/Code/Languages/ 下目录结构完整
@@ -169,6 +176,8 @@ dotfiles/
 │   └── config.toml         # mise 运行时版本管理配置
 ├── btop/
 │   └── btop.conf           # btop 系统监控配置
+├── infat/
+│   └── config.toml         # macOS 文件关联配置
 └── templates/
     └── zsh_secrets.template # 敏感信息模板
 ```
@@ -191,6 +200,7 @@ dotfiles/
 | `atuin/config.toml` | `~/.config/atuin/config.toml` |
 | `mise/config.toml` | `~/.config/mise/config.toml` |
 | `btop/btop.conf` | `~/.config/btop/btop.conf` |
+| `infat/config.toml` | `~/.config/infat/config.toml` |
 
 ## iTerm2
 
@@ -222,7 +232,7 @@ dotfiles/
 
 | 想修改什么 | 编辑哪个文件 |
 |---|---|
-| 添加/移除软件 | `Brewfile`，然后 `brew bundle --file=~/Code/SelfCode/dotfiles/Brewfile --no-lock` |
+| 添加/移除软件 | `Brewfile`，然后 `brew bundle install --file=~/Code/SelfCode/dotfiles/Brewfile` |
 | 终端外观 | 在 iTerm2 GUI 中修改，退出时自动保存到仓库目录 |
 | Shell 别名/函数 | `~/.zshrc` |
 | 环境变量 | `~/.zshenv` |

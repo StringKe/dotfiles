@@ -14,6 +14,7 @@ tap "hashicorp/tap"
 # Shell
 brew "zsh"
 brew "starship"        # 跨 shell 提示符
+brew "pam-reattach"    # tmux 下 Touch ID sudo
 
 # 效率工具
 brew "atuin"           # 智能历史搜索
@@ -32,12 +33,9 @@ brew "yq"              # YAML 处理
 brew "lazygit"         # Git TUI
 
 # 文件工具
-brew "trash"           # 安全删除（命令行）
-brew "macos-trash"     # 安全删除（Finder 集成）
+brew "macos-trash"     # 安全删除（Finder 回收站）
 brew "coreutils"       # GNU 核心工具
 brew "sevenzip"        # 7z 压缩
-brew "zip"             # ZIP 压缩
-brew "unzip"           # ZIP 解压
 
 # Git
 brew "git"
@@ -50,7 +48,6 @@ brew "mise"            # 多语言版本管理
 # 网络工具
 brew "curl"
 brew "wget"
-brew "wrk"             # HTTP 压测
 brew "oha"             # HTTP 压测
 brew "iperf3"          # 网络带宽测试
 
@@ -84,12 +81,11 @@ brew "composer"
 # 多媒体
 brew "ffmpeg"
 brew "imagemagick"
-brew "librsvg"
-brew "resvg"
+brew "resvg"           # SVG 渲染
 brew "poppler"         # PDF 工具
 
 # 系统信息
-brew "neofetch"
+brew "fastfetch"       # 系统信息展示
 
 # Kubernetes Operator
 brew "operator-sdk"
@@ -105,6 +101,9 @@ brew "rabbitmq"
 
 # 验证工具
 brew "yamllint"
+
+# 文件关联
+brew "infat"           # 声明式文件类型关联
 
 # App Store
 brew "mas"
@@ -140,11 +139,69 @@ cask "cloudflare-warp"
 cask "mitmproxy"
 cask "ngrok"
 
-# 云工具
-cask "google-cloud-sdk"
-cask "codex"
+# SDK
+cask "flutter"
 cask "android-platform-tools"
+
+# 云工具
+cask "gcloud-cli"
+cask "codex"
 cask "consul"
+
+# ============================================================
+# VSCode 扩展
+# ============================================================
+vscode "yzhang.markdown-all-in-one"           # Markdown 编辑增强
+vscode "shd101wyy.markdown-preview-enhanced"  # Markdown 预览（支持 mermaid/LaTeX/流程图）
+vscode "bierner.markdown-mermaid"             # Mermaid 图表预览
+vscode "redhat.vscode-yaml"                   # YAML 智能提示 + 预览
+vscode "tamasfe.even-better-toml"             # TOML 语法高亮 + 验证
+vscode "zainchen.json"                        # JSON 预览 + 格式化
+vscode "hediet.vscode-drawio"                 # Draw.io 图表编辑
+vscode "jock.svg"                             # SVG 预览
+vscode "tomoki1207.pdf"                       # PDF 预览
+vscode "janisdd.vscode-edit-csv"              # CSV 编辑器
+
+# 语言支持
+vscode "rust-lang.rust-analyzer"              # Rust
+vscode "golang.go"                            # Go
+vscode "ms-python.python"                     # Python
+vscode "ms-python.vscode-pylance"             # Python 类型检查
+vscode "redhat.java"                          # Java
+vscode "vscjava.vscode-java-pack"             # Java 扩展包
+vscode "mathiasfrohlich.Kotlin"               # Kotlin
+vscode "scalameta.metals"                     # Scala
+vscode "dbaeumer.vscode-eslint"               # ESLint
+vscode "esbenp.prettier-vscode"               # Prettier 格式化
+vscode "bradlc.vscode-tailwindcss"            # Tailwind CSS
+vscode "Vue.volar"                            # Vue
+vscode "svelte.svelte-vscode"                 # Svelte
+vscode "astro-build.astro-vscode"             # Astro
+vscode "denoland.vscode-deno"                 # Deno
+vscode "oven.bun-vscode"                      # Bun
+vscode "Shopify.ruby-lsp"                     # Ruby
+vscode "swiftlang.swift-vscode"               # Swift
+vscode "ms-vscode.cpptools"                   # C/C++
+vscode "ziglang.vscode-zig"                   # Zig
+vscode "Dart-Code.dart-code"                  # Dart
+vscode "JakeBecker.elixir-ls"                 # Elixir
+
+# DevOps / IaC
+vscode "hashicorp.terraform"                  # Terraform
+vscode "ms-kubernetes-tools.vscode-kubernetes-tools" # Kubernetes
+vscode "ms-azuretools.vscode-docker"          # Docker
+vscode "redhat.vscode-xml"                    # XML
+
+# 工具
+vscode "editorconfig.editorconfig"            # EditorConfig
+vscode "eamodio.gitlens"                      # Git 增强
+vscode "github.copilot-chat"                  # GitHub Copilot
+vscode "ms-vscode-remote.remote-ssh"          # SSH 远程开发
+vscode "ms-vscode-remote.remote-containers"   # Dev Containers
+vscode "streetsidesoftware.code-spell-checker" # 拼写检查
+vscode "gruntfuggly.todo-tree"                # TODO 高亮
+vscode "usernamehw.errorlens"                 # 行内错误提示
+vscode "PKief.material-icon-theme"            # 文件图标主题
 
 # ============================================================
 # 字体
