@@ -67,6 +67,7 @@ brew bundle install --file=~/Code/SelfCode/dotfiles/Brewfile
 | zsh/zshrc | ~/.zshrc |
 | zsh/zprofile | ~/.zprofile |
 | zsh/zimrc | ~/.zimrc |
+| ghostty/config | ~/.config/ghostty/config |
 | starship/starship.toml | ~/.config/starship.toml |
 | ripgrep/config | ~/.config/ripgrep/config |
 | yazi/keymap.toml | ~/.config/yazi/keymap.toml |
@@ -84,16 +85,7 @@ brew bundle install --file=~/Code/SelfCode/dotfiles/Brewfile
 
 ## 5. 系统配置
 
-### 5a. iTerm2 偏好设置
-
-```bash
-defaults write com.googlecode.iterm2 PrefsCustomFolder -string "$HOME/Code/SelfCode/dotfiles/iterm2"
-defaults write com.googlecode.iterm2 LoadPrefsFromCustomFolder -bool true
-defaults write com.googlecode.iterm2 NoSyncNeverRemindPrefsChangesLostForFile -bool true
-defaults write com.googlecode.iterm2 NoSyncNeverRemindPrefsChangesLostForFile_selection -int 2
-```
-
-### 5b. Secrets 文件
+### 5a. Secrets 文件
 
 仅当 ~/.zsh_secrets 不存在时：
 ```bash
@@ -101,26 +93,26 @@ cp ~/Code/SelfCode/dotfiles/templates/zsh_secrets.template ~/.zsh_secrets
 chmod 600 ~/.zsh_secrets
 ```
 
-### 5c. 语言环境目录
+### 5b. 语言环境目录
 
 ```bash
 mkdir -p ~/Code/Languages/{go,rust/{rustup,cargo},nodejs/{npm-cache,npm-global,pnpm-global,yarn-global},bun,deno,java/{gradle,maven-repo},python/{pip-cache,pipx,pipx/bin},php/composer}
 ```
 
-### 5d. Zim 框架
+### 5c. Zim 框架
 
 ```bash
 curl -fsSL --create-dirs -o ~/.zim/zimfw.zsh https://github.com/zimfw/zimfw/releases/latest/download/zimfw.zsh
 zsh -c "source ~/.zim/zimfw.zsh install"
 ```
 
-### 5e. 文件关联
+### 5d. 文件关联
 
 ```bash
 infat --config ~/.config/infat/config.toml
 ```
 
-### 5f. 默认 Shell
+### 5e. 默认 Shell
 
 ```bash
 # 将 Homebrew zsh 加入合法 shell 列表（如果不在）
@@ -135,8 +127,8 @@ chsh -s /opt/homebrew/bin/zsh
 
 逐项检查并报告通过/失败：
 1. brew doctor 无严重警告
-2. 13 个配置文件全部存在于目标路径
-3. iTerm2 偏好设置目录指向正确路径（defaults read com.googlecode.iterm2 PrefsCustomFolder）
+2. 14 个配置文件全部存在于目标路径
+3. Ghostty 配置文件存在（~/.config/ghostty/config）
 4. ~/.zsh_secrets 存在且权限为 600
 5. ~/Code/Languages/ 下目录结构完整
 6. ~/.zim/zimfw.zsh 存在
@@ -164,8 +156,8 @@ dotfiles/
 │   ├── zshrc               # 交互式 shell 配置
 │   ├── zprofile            # 登录 shell 配置
 │   └── zimrc               # zimfw 插件列表
-├── iterm2/
-│   └── com.googlecode.iterm2.plist  # iTerm2 偏好设置
+├── ghostty/
+│   └── config                  # Ghostty 终端配置
 ├── starship/
 │   └── starship.toml       # Starship 提示符配置
 ├── ripgrep/
@@ -197,6 +189,7 @@ dotfiles/
 | `zsh/zshrc` | `~/.zshrc` |
 | `zsh/zprofile` | `~/.zprofile` |
 | `zsh/zimrc` | `~/.zimrc` |
+| `ghostty/config` | `~/.config/ghostty/config` |
 | `starship/starship.toml` | `~/.config/starship.toml` |
 | `ripgrep/config` | `~/.config/ripgrep/config` |
 | `yazi/keymap.toml` | `~/.config/yazi/keymap.toml` |
@@ -207,9 +200,9 @@ dotfiles/
 | `btop/btop.conf` | `~/.config/btop/btop.conf` |
 | `infat/config.toml` | `~/.config/infat/config.toml` |
 
-## iTerm2
+## Ghostty
 
-偏好设置通过 `defaults write` 指向 `iterm2/` 目录，iTerm2 直接读写该目录下的 plist 文件。在 iTerm2 GUI 中做的任何修改都会自动保存到仓库目录。
+Ghostty 使用纯文本配置文件 `~/.config/ghostty/config`，修改后通过 `ghostty +reload-config` 或快捷键即时生效，无需重启。
 
 ## Shell 别名
 
@@ -241,7 +234,7 @@ dotfiles/
 | 清理系统中多余的软件 | `brew bundle cleanup --force --file=~/Code/SelfCode/dotfiles/Brewfile` |
 | VSCode 扩展 | `Brewfile` 的 `vscode` 段，然后 `brew bundle install` |
 | 文件关联 | `~/.config/infat/config.toml`，然后 `infat` 应用 |
-| 终端外观 | 在 iTerm2 GUI 中修改，退出时自动保存到仓库目录 |
+| 终端外观 | `~/.config/ghostty/config`，修改后 `ghostty +reload-config` 生效 |
 | Shell 别名/函数 | `~/.zshrc` |
 | 环境变量 | `~/.zshenv` |
 | 提示符样式 | `~/.config/starship.toml` |

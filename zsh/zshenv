@@ -1,6 +1,28 @@
 # ~/.zshenv - 环境变量配置（所有 shell 加载）
 
 # ============================================================
+# CLI 工具数据（统一到 Languages/cli/）
+# zoxide _ZO_DOCTOR=0：Claude Code shell snapshot 下 chpwd_functions 为空，
+# __zoxide_doctor 会误报警告
+# ============================================================
+export _ZO_DOCTOR=0
+export _ZO_DATA_DIR="/Volumes/Storage/Languages/cli/zoxide"
+
+# atuin（shell 历史 db）
+export ATUIN_DB_PATH="/Volumes/Storage/Languages/cli/atuin/history.db"
+export ATUIN_KEY_PATH="/Volumes/Storage/Languages/cli/atuin/key"
+export ATUIN_SESSION_PATH="/Volumes/Storage/Languages/cli/atuin/session"
+export ATUIN_RECORD_STORE_PATH="/Volumes/Storage/Languages/cli/atuin/records.db"
+
+# helm（macOS 默认散到 ~/Library/Preferences）
+export HELM_CONFIG_HOME="/Volumes/Storage/Languages/cli/helm"
+export HELM_DATA_HOME="/Volumes/Storage/Languages/cli/helm/data"
+export HELM_CACHE_HOME="/Volumes/Storage/Languages/cli/helm/cache"
+
+# starship
+export STARSHIP_CACHE="/Volumes/Storage/Languages/cli/starship"
+
+# ============================================================
 # Locale
 # ============================================================
 export LANG="zh_CN.UTF-8"
@@ -16,13 +38,21 @@ export RIPGREP_CONFIG_PATH="$HOME/.config/ripgrep/config"
 # ============================================================
 # 语言环境缓存目录
 # ============================================================
-export CODE_LANGUAGES_HOME="$HOME/Code/Languages"
+export CODE_LANGUAGES_HOME="/Volumes/Storage/Languages"
+
+# ============================================================
+# mise（必须在 mise activate 之前 export）
+# ============================================================
+export MISE_DATA_DIR="$CODE_LANGUAGES_HOME/mise/data"
+export MISE_CACHE_DIR="$CODE_LANGUAGES_HOME/mise/cache"
 
 # ============================================================
 # Go
 # ============================================================
 export GOPATH="$CODE_LANGUAGES_HOME/go"
 export GOBIN="$GOPATH/bin"
+export GOMODCACHE="$CODE_LANGUAGES_HOME/go/mod"
+export GOCACHE="$CODE_LANGUAGES_HOME/go/cache"
 
 # ============================================================
 # Rust
@@ -36,7 +66,9 @@ export CARGO_HOME="$CODE_LANGUAGES_HOME/rust/cargo"
 export NPM_CONFIG_CACHE="$CODE_LANGUAGES_HOME/nodejs/npm-cache"
 export NPM_CONFIG_PREFIX="$CODE_LANGUAGES_HOME/nodejs/npm-global"
 export PNPM_HOME="$CODE_LANGUAGES_HOME/nodejs/pnpm-global"
+export NPM_CONFIG_STORE_DIR="$CODE_LANGUAGES_HOME/nodejs/pnpm-store"
 export YARN_GLOBAL_FOLDER="$CODE_LANGUAGES_HOME/nodejs/yarn-global"
+export npm_config_devdir="$CODE_LANGUAGES_HOME/nodejs/node-gyp"
 
 # ============================================================
 # Bun
@@ -53,7 +85,7 @@ export DENO_INSTALL="$CODE_LANGUAGES_HOME/deno"
 # ============================================================
 export JAVA_HOME="/opt/homebrew/opt/openjdk/libexec/openjdk.jdk/Contents/Home"
 export GRADLE_USER_HOME="$CODE_LANGUAGES_HOME/java/gradle"
-export MAVEN_OPTS="-Dmaven.repo.local=$CODE_LANGUAGES_HOME/java/maven-repo"
+export MAVEN_OPTS="-Dmaven.repo.local=$CODE_LANGUAGES_HOME/java/maven"
 
 # ============================================================
 # Python
@@ -61,11 +93,24 @@ export MAVEN_OPTS="-Dmaven.repo.local=$CODE_LANGUAGES_HOME/java/maven-repo"
 export PIP_CACHE_DIR="$CODE_LANGUAGES_HOME/python/pip-cache"
 export PIPX_HOME="$CODE_LANGUAGES_HOME/python/pipx"
 export PIPX_BIN_DIR="$CODE_LANGUAGES_HOME/python/pipx/bin"
+export UV_CACHE_DIR="$CODE_LANGUAGES_HOME/python/uv/cache"
+export UV_PYTHON_INSTALL_DIR="$CODE_LANGUAGES_HOME/python/uv/python"
+export UV_TOOL_DIR="$CODE_LANGUAGES_HOME/python/uv/tools"
+export UV_TOOL_BIN_DIR="$CODE_LANGUAGES_HOME/python/uv/bin"
+export HF_HOME="$CODE_LANGUAGES_HOME/python/huggingface"
+export HF_HUB_CACHE="$CODE_LANGUAGES_HOME/python/huggingface/hub"
 
 # ============================================================
 # PHP
 # ============================================================
 export COMPOSER_HOME="$CODE_LANGUAGES_HOME/php/composer"
+
+# ============================================================
+# Ollama
+# ============================================================
+export OLLAMA_MODELS="/Volumes/Storage/ollama/models"
+export OLLAMA_HOST="0.0.0.0:11434"
+export OLLAMA_KEEP_ALIVE="24h"
 
 # ============================================================
 # Homebrew keg-only 包路径
@@ -172,6 +217,7 @@ path=(
 
     # Python
     "$PIPX_BIN_DIR"
+    "$UV_TOOL_BIN_DIR"
 
     # PHP
     "$COMPOSER_HOME/vendor/bin"

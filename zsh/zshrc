@@ -16,6 +16,9 @@ if [[ ! ${ZIM_HOME}/init.zsh -nt ${ZDOTDIR:-${HOME}}/.zimrc ]]; then
     source ${ZIM_HOME}/zimfw.zsh init -q
 fi
 
+# 自定义补全函数（在 zimfw init 之前加入 fpath，确保优先于系统补全）
+fpath=(~/.zsh/completions $fpath)
+
 # 性能优化：跳过 autosuggestions 的自动 widget rebind
 ZSH_AUTOSUGGEST_MANUAL_REBIND=1
 
@@ -124,7 +127,7 @@ if command -v kubectl &>/dev/null; then
     # --- context / namespace 直接操作 ---
     alias kgctx='kubectl config get-contexts'
     alias kuse='kubectl config use-context'
-    alias kn='kubectl config set-context --current --namespace'
+    alias kbn='kubectl config set-context --current --namespace'
 fi
 
 # ============================================================

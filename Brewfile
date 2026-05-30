@@ -113,7 +113,7 @@ brew "mas"
 # ============================================================
 
 # 终端
-cask "iterm2"
+cask "ghostty"
 
 # 开发
 cask "visual-studio-code"

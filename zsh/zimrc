@@ -13,6 +13,9 @@ zmodule completion
 zmodule Aloxaf/fzf-tab
 
 # 语法高亮（必须在 completion 之后）
+# fzf-tab-source：fzf-tab 预览增强（make recipe、git log、kill 进程等）
+zmodule Freed-Wu/fzf-tab-source
+
 zmodule zsh-users/zsh-syntax-highlighting
 # 自动建议（必须在高亮之后）
 zmodule zsh-users/zsh-autosuggestions
