@@ -3,6 +3,8 @@ font-size = 15
 
 theme = dark:Catppuccin Mocha,light:Catppuccin Latte
 
+window-height = 48
+window-width = 160
 window-padding-x = 4
 window-padding-y = 4
 scrollback-limit = 50000
