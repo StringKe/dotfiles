@@ -48,7 +48,7 @@ mise install
 
 ### Ghostty 终端配置
 
-纯文本配置文件 `ghostty/config`，部署到 `~/.config/ghostty/config`。修改后通过 `ghostty +reload-config` 即时生效。
+纯文本配置文件 `ghostty/config`，部署到 `~/Library/Application Support/com.mitchellh.ghostty/config`。修改后通过 `ghostty +reload-config` 即时生效。
 
 ### 敏感信息
 

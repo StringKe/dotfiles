@@ -67,7 +67,7 @@ brew bundle install --file=~/Code/SelfCode/dotfiles/Brewfile
 | zsh/zshrc | ~/.zshrc |
 | zsh/zprofile | ~/.zprofile |
 | zsh/zimrc | ~/.zimrc |
-| ghostty/config | ~/.config/ghostty/config |
+| ghostty/config | ~/Library/Application Support/com.mitchellh.ghostty/config |
 | starship/starship.toml | ~/.config/starship.toml |
 | ripgrep/config | ~/.config/ripgrep/config |
 | yazi/keymap.toml | ~/.config/yazi/keymap.toml |
@@ -128,7 +128,7 @@ chsh -s /opt/homebrew/bin/zsh
 逐项检查并报告通过/失败：
 1. brew doctor 无严重警告
 2. 14 个配置文件全部存在于目标路径
-3. Ghostty 配置文件存在（~/.config/ghostty/config）
+3. Ghostty 配置文件存在（~/Library/Application Support/com.mitchellh.ghostty/config）
 4. ~/.zsh_secrets 存在且权限为 600
 5. ~/Code/Languages/ 下目录结构完整
 6. ~/.zim/zimfw.zsh 存在
@@ -202,7 +202,7 @@ dotfiles/
 
 ## Ghostty
 
-Ghostty 使用纯文本配置文件 `~/.config/ghostty/config`，修改后通过 `ghostty +reload-config` 或快捷键即时生效，无需重启。
+Ghostty 使用纯文本配置文件 `~/Library/Application Support/com.mitchellh.ghostty/config`，修改后通过 `ghostty +reload-config` 或快捷键（Cmd+Shift+,）即时生效，无需重启。
 
 ## Shell 别名
 
@@ -234,7 +234,7 @@ Ghostty 使用纯文本配置文件 `~/.config/ghostty/config`，修改后通过
 | 清理系统中多余的软件 | `brew bundle cleanup --force --file=~/Code/SelfCode/dotfiles/Brewfile` |
 | VSCode 扩展 | `Brewfile` 的 `vscode` 段，然后 `brew bundle install` |
 | 文件关联 | `~/.config/infat/config.toml`，然后 `infat` 应用 |
-| 终端外观 | `~/.config/ghostty/config`，修改后 `ghostty +reload-config` 生效 |
+| 终端外观 | `~/Library/Application Support/com.mitchellh.ghostty/config`，修改后 Cmd+Shift+, 生效 |
 | Shell 别名/函数 | `~/.zshrc` |
 | 环境变量 | `~/.zshenv` |
 | 提示符样式 | `~/.config/starship.toml` |
