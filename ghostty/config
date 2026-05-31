@@ -1,11 +1,9 @@
-# 字体：主字体 Maple Mono NF CN（内置中文 + Nerd Font 图标）
-# 追加 PingFang SC 作为 CJK fallback，避免 macOS 自动选择出错
+# 字体：Maple Mono NF CN 内置完整中文 + Nerd Font 图标，无需额外 CJK fallback
 font-family = Maple Mono NF CN
-font-family = PingFang SC
 font-size = 15
 
 # 主题
-theme = Xcode WWDC
+theme = GitHub Dark Default
 
 # 窗口
 window-height = 48
