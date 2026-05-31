@@ -4,8 +4,8 @@ font-family = Maple Mono NF CN
 font-family = PingFang SC
 font-size = 15
 
-# 纯黑主题
-theme = Builtin Dark
+# 主题
+theme = Xcode WWDC
 
 # 窗口
 window-height = 48
