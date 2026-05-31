@@ -1,22 +1,35 @@
+# 字体：主字体 Maple Mono NF CN（内置中文 + Nerd Font 图标）
+# 追加 PingFang SC 作为 CJK fallback，避免 macOS 自动选择出错
 font-family = Maple Mono NF CN
+font-family = PingFang SC
 font-size = 15
 
-theme = dark:Catppuccin Mocha,light:Catppuccin Latte
+# 纯黑主题
+theme = Builtin Dark
 
+# 窗口
 window-height = 48
 window-width = 160
 window-padding-x = 4
 window-padding-y = 4
-scrollback-limit = 50000
 
-copy-on-select = clipboard
-confirm-close-surface = false
+# 滚动
+scrollback-limit = 50000
 mouse-scroll-multiplier = precision:0.5
 
+# 剪贴板
+copy-on-select = clipboard
+clipboard-read = allow
+clipboard-write = allow
+
+# 行为
+confirm-close-surface = false
+quit-after-last-window-closed = true
+quit-after-last-window-closed-delay = 1m
+
+# macOS
 macos-titlebar-style = tabs
 macos-option-as-alt = true
 
+# Shell
 shell-integration = zsh
-
-quit-after-last-window-closed = true
-quit-after-last-window-closed-delay = 1m
