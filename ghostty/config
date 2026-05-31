@@ -1,24 +1,43 @@
-# 字体：Maple Mono NF CN 内置完整中文 + Nerd Font 图标，无需额外 CJK fallback
-font-family = Maple Mono NF CN
+# 字体
+font-family = JetBrainsMonoNL Nerd Font Mono
 font-size = 15
+font-thicken = true
 
 # 主题
-theme = GitHub Dark Default
+theme = GitHub Dark Colorblind
 
 # 窗口
 window-height = 48
 window-width = 160
 window-padding-x = 4
 window-padding-y = 4
+window-save-state = always
+window-inherit-working-directory = true
+window-vsync = true
+
+# 标签页和分屏继承工作目录
+tab-inherit-working-directory = true
+split-inherit-working-directory = true
 
 # 滚动
-scrollback-limit = 50000
+scrollback-limit = 10000000
+scrollbar = system
 mouse-scroll-multiplier = precision:0.5
+mouse-hide-while-typing = true
 
 # 剪贴板
 copy-on-select = clipboard
 clipboard-read = allow
 clipboard-write = allow
+
+# 渲染
+background-opacity = 1
+alpha-blending = native
+minimum-contrast = 1.1
+
+# 分屏
+unfocused-split-opacity = 0.85
+split-preserve-zoom = navigation
 
 # 行为
 confirm-close-surface = false
