@@ -4,7 +4,7 @@ font-size = 15
 font-thicken = true
 
 # 主题
-theme = GitHub Dark Colorblind
+theme = Ultra Dark
 
 # 窗口
 window-height = 48
@@ -20,7 +20,7 @@ tab-inherit-working-directory = true
 split-inherit-working-directory = true
 
 # 滚动
-scrollback-limit = 10000000
+scrollback-limit = 524288000
 scrollbar = system
 mouse-scroll-multiplier = precision:0.5
 mouse-hide-while-typing = true
@@ -44,9 +44,15 @@ confirm-close-surface = false
 quit-after-last-window-closed = true
 quit-after-last-window-closed-delay = 1m
 
-# macOS
+# macOS：自绘 tabs 标题栏（避开 Tahoe 液态玻璃），减少动画
 macos-titlebar-style = tabs
+macos-titlebar-proxy-icon = hidden
 macos-option-as-alt = true
+macos-window-shadow = false
+window-theme = ghostty
+window-padding-balance = true
+resize-overlay = never
+quick-terminal-animation-duration = 0
 
 # Shell
 shell-integration = zsh
