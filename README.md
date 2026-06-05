@@ -31,6 +31,8 @@ git clone https://github.com/StringKe/dotfiles.git ~/Code/SelfCode/dotfiles
 
 将以下提示词发送给 AI 助手（Claude Code、Cursor 等），它会读取仓库内容并智能执行全部初始化步骤。遇到冲突或错误时 AI 可自行判断处理，无需静态脚本的局限性。
 
+**新机器与已部署机器均适用**：已配置过的用户重新发送同一段 prompt，会先检测当前存储根，再按首次部署 / 重配（不换位置）/ 迁移（换位置）分流。
+
 ````
 ## 1. 角色与上下文
 
@@ -54,9 +56,14 @@ git clone https://github.com/StringKe/dotfiles.git ~/Code/SelfCode/dotfiles
 
 ### 3a. 检测当前状态
 
-读取 `~/.zshenv`，匹配 `STORAGE_ROOT=` 或 `CODE_LANGUAGES_HOME=` 的实际值：
-- 匹配到 -> 记为 CURRENT_ROOT，判定为"已部署"
-- 未匹配 -> 判定为"首次部署"
+读取 `~/.zshenv`（不存在则判定为"首次部署"）。按优先级解析 CURRENT_ROOT（必须是存储根本身，不含 `/Languages` 后缀）：
+1. `export STORAGE_ROOT="..."` 存在且值不是 `__STORAGE_ROOT__` -> CURRENT_ROOT = 该值
+2. 否则 `export CODE_LANGUAGES_HOME=".../Languages"` -> CURRENT_ROOT = 去掉末尾 `/Languages` 后的路径
+3. 否则旧版仅硬编码 `*/Languages/` 路径（如 `export CODE_LANGUAGES_HOME="/Volumes/Storage/Languages"` 无 STORAGE_ROOT）-> 从首个 `*/Languages` 路径推导 CURRENT_ROOT
+4. 否则 `OLLAMA_MODELS=".../ollama/models"` -> CURRENT_ROOT = 去掉末尾 `/ollama/models`
+5. 以上均未匹配 -> 判定为"首次部署"
+
+解析到 CURRENT_ROOT 则判定为"已部署"，并向用户报告当前存储根。
 
 ### 3b. 询问目标存储根
 
@@ -115,8 +122,8 @@ brew bundle install --file=~/Code/SelfCode/dotfiles/Brewfile
 
 规则：
 - 目标不存在：创建父目录，复制文件
-- 目标已存在：`zsh/zshenv`、`mise/config.toml` 在重配/迁移模式下直接覆盖（已替换占位符）；其余文件跳过并询问用户是否 diff 对比差异
-- `zsh/zshenv`、`mise/config.toml` 写入前把 `__STORAGE_ROOT__` 替换为 NEW_ROOT
+- `zsh/zshenv`、`mise/config.toml`：写入前把 `__STORAGE_ROOT__` 全部替换为 NEW_ROOT，然后**无论目标是否存在一律覆盖**（首次部署、重配、迁移均如此）
+- 其余文件：目标已存在则跳过并询问用户是否 diff 对比差异
 - 仓库路径相对于 ~/Code/SelfCode/dotfiles
 
 ## 6. 系统配置
@@ -134,7 +141,7 @@ chmod 600 ~/.zsh_secrets
 在 Section 3 的 NEW_ROOT 下创建（替换 NEW_ROOT 为实际绝对路径）：
 
 ```bash
-mkdir -p NEW_ROOT/Languages/{cli/{zoxide,atuin,helm,starship},go,rust/{rustup,cargo},nodejs/{npm-cache,npm-global,pnpm-global,pnpm-store,yarn-global,node-gyp},bun,deno,java/{gradle,maven},python/{pip-cache,pipx/bin,uv/{cache,python,tools,bin},huggingface},php/composer}
+mkdir -p NEW_ROOT/Languages/{cli/{zoxide,atuin,helm,starship},mise/{data,cache},go,rust/{rustup,cargo},nodejs/{npm-cache,npm-global,pnpm-global,pnpm-store,yarn-global,node-gyp},bun,deno,java/{gradle,maven},python/{pip-cache,pipx/bin,uv/{cache,python,tools,bin},huggingface},php/composer}
 mkdir -p NEW_ROOT/ollama/models
 ```
 
@@ -228,7 +235,7 @@ dotfiles/
 | `zsh/zshrc` | `~/.zshrc` |
 | `zsh/zprofile` | `~/.zprofile` |
 | `zsh/zimrc` | `~/.zimrc` |
-| `ghostty/config` | `~/.config/ghostty/config` |
+| `ghostty/config` | `~/Library/Application Support/com.mitchellh.ghostty/config` |
 | `starship/starship.toml` | `~/.config/starship.toml` |
 | `ripgrep/config` | `~/.config/ripgrep/config` |
 | `yazi/keymap.toml` | `~/.config/yazi/keymap.toml` |

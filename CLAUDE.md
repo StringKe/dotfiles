@@ -46,7 +46,9 @@ mise install
 
 `zsh/zshenv` 顶部的 `STORAGE_ROOT` 与 `mise/config.toml` 中的语言缓存路径在仓库内是占位符 `__STORAGE_ROOT__`，初始化时由 README 的 AI prompt 替换为用户选择的绝对路径。`STORAGE_ROOT` 下固定三个子目录：`Code/`（代码仓库）、`Languages/`（语言工具链与缓存）、`ollama/`（模型）。
 
-**同步回仓库须反替换**：把本地 `~/.zshenv`、`~/.config/mise/config.toml` 复制回仓库前，必须将真实存储根（如 `/Volumes/Storage`）改回 `__STORAGE_ROOT__`，否则会把本机路径污染进模板。`~/.zshenv` 仅顶部 `STORAGE_ROOT` 一处需改。
+**同步回仓库须反替换**：把本地 `~/.zshenv`、`~/.config/mise/config.toml` 复制回仓库前，必须将真实存储根（如 `/Volumes/Storage`）改回 `__STORAGE_ROOT__`，否则会把本机路径污染进模板。新版 `~/.zshenv` 仅顶部 `STORAGE_ROOT` 一处需改（其余路径经 `$CODE_LANGUAGES_HOME` 派生）；`mise/config.toml` 改 `[env]` 段各路径。
+
+**已部署旧机识别**：README Section 3a 会从 `STORAGE_ROOT`、`CODE_LANGUAGES_HOME`（去 `/Languages` 后缀）或 `OLLAMA_MODELS` 推导 CURRENT_ROOT，支持无 `STORAGE_ROOT` 的旧版 `~/.zshenv`。
 
 ### Git 签名
 

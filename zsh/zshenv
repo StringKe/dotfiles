@@ -3,7 +3,7 @@
 # ============================================================
 # 存储根（部署时由初始化 prompt 将 __STORAGE_ROOT__ 替换为实际绝对路径）
 # 其下固定子目录：Code/ 代码仓库、Languages/ 语言工具链与缓存、ollama/ 模型
-# 换位置见 README "迁移存储位置"
+# 换位置见 README「存储位置与迁移」
 # ============================================================
 export STORAGE_ROOT="__STORAGE_ROOT__"
 export CODE_LANGUAGES_HOME="$STORAGE_ROOT/Languages"
