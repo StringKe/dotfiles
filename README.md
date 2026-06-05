@@ -21,9 +21,15 @@ xcode-select --install
 eval "$(/opt/homebrew/bin/brew shellenv)"
 ```
 
-3. 克隆仓库：
+3. 克隆仓库（推荐放在存储根下的 `Code/`，与 `Languages/` 布局一致；亦可先克隆到 `$HOME/Code/SelfCode/dotfiles`，初始化时再迁到 `NEW_ROOT/Code/SelfCode/dotfiles`）：
 
 ```bash
+# 推荐（外置卷示例，路径按实际存储根修改）
+mkdir -p /Volumes/Storage/Code/SelfCode
+git clone https://github.com/StringKe/dotfiles.git /Volumes/Storage/Code/SelfCode/dotfiles
+
+# 或家目录
+mkdir -p ~/Code/SelfCode
 git clone https://github.com/StringKe/dotfiles.git ~/Code/SelfCode/dotfiles
 ```
 
@@ -36,7 +42,7 @@ git clone https://github.com/StringKe/dotfiles.git ~/Code/SelfCode/dotfiles
 ````
 ## 1. 角色与上下文
 
-你正在初始化一台 macOS 开发机。dotfiles 仓库已克隆到 ~/Code/SelfCode/dotfiles。
+你正在初始化一台 macOS 开发机。dotfiles 仓库已克隆到某处，记为 DOTFILES_ROOT（见 Section 2）。
 所有配置文件是复制到目标路径，不是 symlink，复制后本地独立于仓库。
 按以下 Section 2-8 顺序执行，每步完成后报告状态。
 
@@ -46,7 +52,7 @@ git clone https://github.com/StringKe/dotfiles.git ~/Code/SelfCode/dotfiles
 - uname -s 为 Darwin
 - xcode-select -p 成功
 - command -v brew 成功
-- ~/Code/SelfCode/dotfiles 目录存在且包含 Brewfile
+- 解析 DOTFILES_ROOT：按顺序检测首个含 Brewfile 的目录——`$HOME/Code/SelfCode/dotfiles`、`/Volumes/Storage/Code/SelfCode/dotfiles`；若仍无，在 `$HOME/Code` 与 `/Volumes/*/Code/SelfCode/dotfiles` 下查找。记下绝对路径供后续使用。
 
 任一失败则告知用户回到 README 的"前置准备"章节。
 
@@ -80,6 +86,8 @@ git clone https://github.com/StringKe/dotfiles.git ~/Code/SelfCode/dotfiles
 | 重配不换位置 | NEW_ROOT == CURRENT_ROOT | 继续后续 Section，覆盖部署配置文件，数据目录不动 |
 | 迁移换位置 | NEW_ROOT != CURRENT_ROOT | 先执行 3d 迁移数据，再继续后续 Section |
 
+确定 NEW_ROOT 后：建议 dotfiles 位于 `NEW_ROOT/Code/SelfCode/dotfiles`。若 DOTFILES_ROOT 不在该路径，询问用户是否将仓库 `mv` 过去（可选）；不迁移则继续用原 DOTFILES_ROOT。
+
 ### 3d. 迁移数据（仅 NEW_ROOT != CURRENT_ROOT）
 
 1. 先输出迁移分析表再动手，列出每个待移动目录的源、目标、当前大小（`du -sh`）、是否跨卷：
@@ -94,14 +102,20 @@ git clone https://github.com/StringKe/dotfiles.git ~/Code/SelfCode/dotfiles
 
 执行：
 ```bash
-brew bundle install --file=~/Code/SelfCode/dotfiles/Brewfile
+brew bundle install --file=$DOTFILES_ROOT/Brewfile
 ```
 
 如果部分 formula/cask 安装失败，解释失败原因，继续安装其余项目。
 
 ## 5. 配置文件部署
 
-复制下列文件到目标路径。其中 `zsh/zshenv`、`mise/config.toml` 含占位符 `__STORAGE_ROOT__`，写入目标前必须替换为 Section 3 的 NEW_ROOT（绝对路径）；重配/迁移模式下这两个文件直接覆盖。映射表：
+复制下列文件到目标路径。
+
+**含 `__STORAGE_ROOT__` 占位符的仓库文件（写入系统前全文替换为 NEW_ROOT，禁止保留占位符、禁止 export STORAGE_ROOT）：**
+- `zsh/zshenv`（`CODE_LANGUAGES_HOME`、`OLLAMA_MODELS` 两处字面量；其余经 `$CODE_LANGUAGES_HOME` 派生）
+- `mise/config.toml`（`[env]` 段全部路径）
+
+其余配置文件无存储根占位符，路径在运行时由 `~/.zshenv` 环境变量提供（atuin/zoxide/starship/helm 等）。映射表：
 
 | 仓库文件 | 目标路径 |
 |---|---|
@@ -124,7 +138,7 @@ brew bundle install --file=~/Code/SelfCode/dotfiles/Brewfile
 - 目标不存在：创建父目录，复制文件
 - `zsh/zshenv`、`mise/config.toml`：写入前把 `__STORAGE_ROOT__` 全部替换为 NEW_ROOT，然后**无论目标是否存在一律覆盖**（首次部署、重配、迁移均如此）
 - 其余文件：目标已存在则跳过并询问用户是否 diff 对比差异
-- 仓库路径相对于 ~/Code/SelfCode/dotfiles
+- 仓库路径相对于 DOTFILES_ROOT
 
 ## 6. 系统配置
 
@@ -132,7 +146,7 @@ brew bundle install --file=~/Code/SelfCode/dotfiles/Brewfile
 
 仅当 ~/.zsh_secrets 不存在时：
 ```bash
-cp ~/Code/SelfCode/dotfiles/templates/zsh_secrets.template ~/.zsh_secrets
+cp $DOTFILES_ROOT/templates/zsh_secrets.template ~/.zsh_secrets
 chmod 600 ~/.zsh_secrets
 ```
 
@@ -141,6 +155,7 @@ chmod 600 ~/.zsh_secrets
 在 Section 3 的 NEW_ROOT 下创建（替换 NEW_ROOT 为实际绝对路径）：
 
 ```bash
+mkdir -p NEW_ROOT/Code/SelfCode
 mkdir -p NEW_ROOT/Languages/{cli/{zoxide,atuin,helm,starship},mise/{data,cache},go,rust/{rustup,cargo},nodejs/{npm-cache,npm-global,pnpm-global,pnpm-store,yarn-global,node-gyp},bun,deno,java/{gradle,maven},python/{pip-cache,pipx/bin,uv/{cache,python,tools,bin},huggingface},php/composer}
 mkdir -p NEW_ROOT/ollama/models
 ```
@@ -173,7 +188,7 @@ chsh -s /opt/homebrew/bin/zsh
 
 逐项检查并报告通过/失败：
 1. brew doctor 无严重警告
-2. 14 个配置文件全部存在；~/.zshenv 与 ~/.config/mise/config.toml 中无 `__STORAGE_ROOT__` 残留、无 `export STORAGE_ROOT`；`CODE_LANGUAGES_HOME` 为 `NEW_ROOT/Languages`
+2. 14 个配置文件全部存在；`rg __STORAGE_ROOT__ $DOTFILES_ROOT` 仅命中仓库模板（已部署的 `~/.zshenv`、`~/.config/mise/config.toml` 无占位符）；无 `export STORAGE_ROOT`；`CODE_LANGUAGES_HOME` 为 `NEW_ROOT/Languages`
 3. Ghostty 配置文件存在（~/Library/Application Support/com.mitchellh.ghostty/config）
 4. ~/.zsh_secrets 存在且权限为 600
 5. NEW_ROOT/Languages/ 下目录结构完整，NEW_ROOT/ollama/models 存在
@@ -276,8 +291,8 @@ Ghostty 使用纯文本配置文件 `~/Library/Application Support/com.mitchellh
 
 | 想修改什么 | 编辑哪个文件 |
 |---|---|
-| 添加/移除软件 | `Brewfile`，然后 `brew bundle install --file=~/Code/SelfCode/dotfiles/Brewfile` |
-| 清理系统中多余的软件 | `brew bundle cleanup --force --file=~/Code/SelfCode/dotfiles/Brewfile` |
+| 添加/移除软件 | `Brewfile`，然后 `brew bundle install --file=<dotfiles>/Brewfile` |
+| 清理系统中多余的软件 | `brew bundle cleanup --force --file=<dotfiles>/Brewfile` |
 | VSCode 扩展 | `Brewfile` 的 `vscode` 段，然后 `brew bundle install` |
 | 文件关联 | `~/.config/infat/config.toml`，然后 `infat` 应用 |
 | 终端外观 | `~/Library/Application Support/com.mitchellh.ghostty/config`，修改后 Cmd+Shift+, 生效 |
@@ -286,9 +301,19 @@ Ghostty 使用纯文本配置文件 `~/Library/Application Support/com.mitchellh
 | 提示符样式 | `~/.config/starship.toml` |
 | API 密钥等敏感信息 | `~/.zsh_secrets` |
 
-如需将本地改动同步回仓库模板，手动将修改后的文件复制回 `~/Code/SelfCode/dotfiles/` 对应路径，然后 commit push。
+如需将本地改动同步回仓库模板，手动将修改后的文件复制回 dotfiles 仓库对应路径，然后 commit push。
 
-**同步 `~/.zshenv`、`~/.config/mise/config.toml` 回仓库前**：将文件中出现的存储根绝对路径（如 `/Volumes/Storage`）**全部**改回占位符 `__STORAGE_ROOT__`（含 `CODE_LANGUAGES_HOME`、`OLLAMA_MODELS` 与 `mise` 的 `[env]` 路径），勿引入 `export STORAGE_ROOT`。
+**同步回仓库前（必做）**：在 dotfiles 仓库内执行 `rg '__STORAGE_ROOT__|/Volumes/Storage'`，除 README/CLAUDE 示例外不得出现本机绝对路径。将 `~/.zshenv`、`~/.config/mise/config.toml` 中的存储根绝对路径**全部**改回 `__STORAGE_ROOT__`（`zshenv` 的 `CODE_LANGUAGES_HOME`、`OLLAMA_MODELS`；`mise` 的 `[env]` 全文），勿引入 `export STORAGE_ROOT`。
+
+## 占位符与路径职责
+
+| 范围 | 说明 |
+|---|---|
+| 仓库模板 | 仅 `zsh/zshenv`、`mise/config.toml` 含 `__STORAGE_ROOT__` |
+| 部署后 `~/.zshenv` | `CODE_LANGUAGES_HOME`、`OLLAMA_MODELS` 为绝对路径；其余语言/CLI 变量经 `$CODE_LANGUAGES_HOME` 派生 |
+| 部署后 `~/.config/mise/config.toml` | `[env]` 为绝对路径（供 shims/IDE）；`[tools]` 无存储路径 |
+| 不写入存储根的文件 | `zshrc`、`zprofile`、`zimrc`、`ghostty`、`starship`、`atuin`、`git/*`、`infat`、`btop`、`ripgrep`、`yazi` 等——依赖 shell 环境变量或固定系统路径 |
+| 存储根布局 | `NEW_ROOT/Code/`（代码仓库）、`NEW_ROOT/Languages/`（工具链）、`NEW_ROOT/ollama/`（模型） |
 
 ## 存储位置与迁移
 

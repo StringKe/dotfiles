@@ -9,11 +9,11 @@ macOS 开发环境 dotfiles 模板仓库。配置文件是**复制到系统路�
 ## 常用命令
 
 ```bash
-# 安装/同步所有软件（Homebrew formulae + cask + VSCode 扩展 + MAS 应用）
-brew bundle install --file=~/Code/SelfCode/dotfiles/Brewfile
+# 安装/同步所有软件（dotfiles 路径按本机实际位置，常见为 $STORAGE/Code/SelfCode/dotfiles）
+brew bundle install --file=/path/to/dotfiles/Brewfile
 
 # 清理系统中 Brewfile 未声明的软件
-brew bundle cleanup --force --file=~/Code/SelfCode/dotfiles/Brewfile
+brew bundle cleanup --force --file=/path/to/dotfiles/Brewfile
 
 # 应用文件关联配置
 infat --config ~/.config/infat/config.toml
@@ -44,13 +44,20 @@ mise install
 
 ### 存储根占位符 `__STORAGE_ROOT__`
 
-**仅存在于仓库模板**（`zsh/zshenv`、`mise/config.toml`），不是运行时环境变量。初始化时由 README 的 AI prompt 在写入系统路径前，将文件中全部 `__STORAGE_ROOT__` 替换为用户选择的绝对路径。存储根下固定三个子目录：`Code/`、`Languages/`、`ollama/`。
+**仅存在于仓库模板**（`zsh/zshenv`、`mise/config.toml`），是 AI 部署时全文替换为绝对路径的标记，**不是**运行时环境变量，**禁止** `export STORAGE_ROOT`。
 
-**禁止**在已部署的 `~/.zshenv` 中 `export STORAGE_ROOT`。
+| 文件 | 占位符位置 | 部署后 |
+|---|---|---|
+| `zsh/zshenv` | `CODE_LANGUAGES_HOME`、`OLLAMA_MODELS` 字面量 | 绝对路径；其余变量用 `$CODE_LANGUAGES_HOME` |
+| `mise/config.toml` | `[env]` 全部路径 | 绝对路径；`[tools]` 无存储路径 |
 
-**同步回仓库须反替换**：复制 `~/.zshenv`、`~/.config/mise/config.toml` 回仓库前，将存储根绝对路径（如 `/Volumes/Storage`）全部改回 `__STORAGE_ROOT__`。
+**不含占位符的配置**（依赖 `~/.zshenv` 或系统路径）：`zshrc`、`zprofile`、`zimrc`、`ghostty`、`starship`、`atuin`、`git/*`、`infat`、`btop`、`ripgrep`、`yazi`。
 
-**已部署机器识别**：README Section 3a 从 `CODE_LANGUAGES_HOME`（去 `/Languages`）或 `OLLAMA_MODELS`（去 `/ollama/models`）推导 CURRENT_ROOT。
+存储根下固定：`Code/`（含 `Code/SelfCode/dotfiles`）、`Languages/`、`ollama/`。
+
+**同步回仓库**：`~/.zshenv`、`mise/config.toml` 中存储根绝对路径全部改回 `__STORAGE_ROOT__`；`rg` 扫描仓库确保无本机路径泄漏。
+
+**已部署机器识别**：README Section 3a 从 `CODE_LANGUAGES_HOME` 或 `OLLAMA_MODELS` 推导 CURRENT_ROOT。
 
 ### Git 签名
 

@@ -4,16 +4,58 @@ rust = "latest"
 go = "latest"
 uv = "0.9.27"
 
+# 与 ~/.zshenv 语言路径对齐；供 mise shims / IDE 读取（GUI 可能不加载 zshenv）。
+# MISE_DATA_DIR / MISE_CACHE_DIR / JAVA_HOME 不在此定义：MISE_* 须由 zshenv 在 mise 启动前 export；JAVA_HOME 由 mise java 工具管理。
 [env]
-# Go 统一存储目录
+# Go
 GOPATH = "__STORAGE_ROOT__/Languages/go"
+GOBIN = "__STORAGE_ROOT__/Languages/go/bin"
 GOMODCACHE = "__STORAGE_ROOT__/Languages/go/mod"
 GOCACHE = "__STORAGE_ROOT__/Languages/go/cache"
-GOBIN = "__STORAGE_ROOT__/Languages/go/bin"
 
-# Rust 统一存储目录 (mise 专用变量)
+# Rust
 MISE_CARGO_HOME = "__STORAGE_ROOT__/Languages/rust/cargo"
 MISE_RUSTUP_HOME = "__STORAGE_ROOT__/Languages/rust/rustup"
-# 标准 Rust 环境变量 (供其他工具识别)
 CARGO_HOME = "__STORAGE_ROOT__/Languages/rust/cargo"
 RUSTUP_HOME = "__STORAGE_ROOT__/Languages/rust/rustup"
+
+# Node.js
+NPM_CONFIG_CACHE = "__STORAGE_ROOT__/Languages/nodejs/npm-cache"
+NPM_CONFIG_PREFIX = "__STORAGE_ROOT__/Languages/nodejs/npm-global"
+PNPM_HOME = "__STORAGE_ROOT__/Languages/nodejs/pnpm-global"
+NPM_CONFIG_STORE_DIR = "__STORAGE_ROOT__/Languages/nodejs/pnpm-store"
+YARN_GLOBAL_FOLDER = "__STORAGE_ROOT__/Languages/nodejs/yarn-global"
+npm_config_devdir = "__STORAGE_ROOT__/Languages/nodejs/node-gyp"
+
+# Bun / Deno
+BUN_INSTALL = "__STORAGE_ROOT__/Languages/bun"
+DENO_INSTALL = "__STORAGE_ROOT__/Languages/deno"
+
+# Java 构建工具
+GRADLE_USER_HOME = "__STORAGE_ROOT__/Languages/java/gradle"
+MAVEN_OPTS = "-Dmaven.repo.local=__STORAGE_ROOT__/Languages/java/maven"
+
+# Python
+PIP_CACHE_DIR = "__STORAGE_ROOT__/Languages/python/pip-cache"
+PIPX_HOME = "__STORAGE_ROOT__/Languages/python/pipx"
+PIPX_BIN_DIR = "__STORAGE_ROOT__/Languages/python/pipx/bin"
+UV_CACHE_DIR = "__STORAGE_ROOT__/Languages/python/uv/cache"
+UV_PYTHON_INSTALL_DIR = "__STORAGE_ROOT__/Languages/python/uv/python"
+UV_TOOL_DIR = "__STORAGE_ROOT__/Languages/python/uv/tools"
+UV_TOOL_BIN_DIR = "__STORAGE_ROOT__/Languages/python/uv/bin"
+HF_HOME = "__STORAGE_ROOT__/Languages/python/huggingface"
+HF_HUB_CACHE = "__STORAGE_ROOT__/Languages/python/huggingface/hub"
+
+# PHP
+COMPOSER_HOME = "__STORAGE_ROOT__/Languages/php/composer"
+
+# CLI 工具数据（与 zshenv 一致，供不加载 shell 的进程使用）
+_ZO_DATA_DIR = "__STORAGE_ROOT__/Languages/cli/zoxide"
+ATUIN_DB_PATH = "__STORAGE_ROOT__/Languages/cli/atuin/history.db"
+ATUIN_KEY_PATH = "__STORAGE_ROOT__/Languages/cli/atuin/key"
+ATUIN_SESSION_PATH = "__STORAGE_ROOT__/Languages/cli/atuin/session"
+ATUIN_RECORD_STORE_PATH = "__STORAGE_ROOT__/Languages/cli/atuin/records.db"
+HELM_CONFIG_HOME = "__STORAGE_ROOT__/Languages/cli/helm"
+HELM_DATA_HOME = "__STORAGE_ROOT__/Languages/cli/helm/data"
+HELM_CACHE_HOME = "__STORAGE_ROOT__/Languages/cli/helm/cache"
+STARSHIP_CACHE = "__STORAGE_ROOT__/Languages/cli/starship"
