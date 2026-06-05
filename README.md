@@ -52,15 +52,15 @@ git clone https://github.com/StringKe/dotfiles.git ~/Code/SelfCode/dotfiles
 
 ## 3. 存储根选择与迁移
 
-存储路径不写死。`zsh/zshenv` 与 `mise/config.toml` 在仓库内用占位符 `__STORAGE_ROOT__` 表示存储根，其下固定子目录 `Code/`（代码仓库）、`Languages/`（语言工具链与缓存）、`ollama/`（模型）。本节确定存储根并处理已部署机器的迁移。
+存储路径不写死。`__STORAGE_ROOT__` **仅是仓库模板中的替换标记**，部署时由 AI 在 `zsh/zshenv`、`mise/config.toml` 内全文替换为用户选择的绝对路径（NEW_ROOT）；**不要**在已部署文件中保留 `__STORAGE_ROOT__`，也**不要** `export STORAGE_ROOT` 环境变量。存储根下固定子目录：`Code/`（代码仓库）、`Languages/`（语言工具链与缓存）、`ollama/`（模型）。本节确定存储根并处理已部署机器的迁移。
 
 ### 3a. 检测当前状态
 
-读取 `~/.zshenv`（不存在则判定为"首次部署"）。按优先级解析 CURRENT_ROOT（必须是存储根本身，不含 `/Languages` 后缀）：
-1. `export STORAGE_ROOT="..."` 存在且值不是 `__STORAGE_ROOT__` -> CURRENT_ROOT = 该值
-2. 否则 `export CODE_LANGUAGES_HOME=".../Languages"` -> CURRENT_ROOT = 去掉末尾 `/Languages` 后的路径
-3. 否则旧版仅硬编码 `*/Languages/` 路径（如 `export CODE_LANGUAGES_HOME="/Volumes/Storage/Languages"` 无 STORAGE_ROOT）-> 从首个 `*/Languages` 路径推导 CURRENT_ROOT
-4. 否则 `OLLAMA_MODELS=".../ollama/models"` -> CURRENT_ROOT = 去掉末尾 `/ollama/models`
+读取 `~/.zshenv`（不存在则判定为"首次部署"）。按优先级解析 CURRENT_ROOT（存储根本身，不含 `/Languages` 后缀）：
+1. `export CODE_LANGUAGES_HOME=".../Languages"`（绝对路径）-> CURRENT_ROOT = 去掉末尾 `/Languages`
+2. 否则 `export OLLAMA_MODELS=".../ollama/models"` -> CURRENT_ROOT = 去掉末尾 `/ollama/models`
+3. 否则误留的 `export STORAGE_ROOT="..."`（旧流程）-> CURRENT_ROOT = 该值
+4. 若文件中仍含 `__STORAGE_ROOT__` -> 部署未完成，按首次部署处理或提示先完成占位符替换
 5. 以上均未匹配 -> 判定为"首次部署"
 
 解析到 CURRENT_ROOT 则判定为"已部署"，并向用户报告当前存储根。
@@ -173,7 +173,7 @@ chsh -s /opt/homebrew/bin/zsh
 
 逐项检查并报告通过/失败：
 1. brew doctor 无严重警告
-2. 14 个配置文件全部存在于目标路径；~/.zshenv 与 ~/.config/mise/config.toml 中 grep 无 __STORAGE_ROOT__ 残留，STORAGE_ROOT 等于 NEW_ROOT
+2. 14 个配置文件全部存在；~/.zshenv 与 ~/.config/mise/config.toml 中无 `__STORAGE_ROOT__` 残留、无 `export STORAGE_ROOT`；`CODE_LANGUAGES_HOME` 为 `NEW_ROOT/Languages`
 3. Ghostty 配置文件存在（~/Library/Application Support/com.mitchellh.ghostty/config）
 4. ~/.zsh_secrets 存在且权限为 600
 5. NEW_ROOT/Languages/ 下目录结构完整，NEW_ROOT/ollama/models 存在
@@ -288,10 +288,10 @@ Ghostty 使用纯文本配置文件 `~/Library/Application Support/com.mitchellh
 
 如需将本地改动同步回仓库模板，手动将修改后的文件复制回 `~/Code/SelfCode/dotfiles/` 对应路径，然后 commit push。
 
-**同步 `~/.zshenv`、`~/.config/mise/config.toml` 回仓库前**：先把文件里的真实存储根（如 `/Volumes/Storage`）改回占位符 `__STORAGE_ROOT__`，否则会把本机路径污染进模板。`~/.zshenv` 仅顶部 `STORAGE_ROOT` 一处需改，`mise/config.toml` 改 `[env]` 段各路径。
+**同步 `~/.zshenv`、`~/.config/mise/config.toml` 回仓库前**：将文件中出现的存储根绝对路径（如 `/Volumes/Storage`）**全部**改回占位符 `__STORAGE_ROOT__`（含 `CODE_LANGUAGES_HOME`、`OLLAMA_MODELS` 与 `mise` 的 `[env]` 路径），勿引入 `export STORAGE_ROOT`。
 
 ## 存储位置与迁移
 
-存储根（语言工具链缓存 `Languages/`、Ollama 模型 `ollama/`）由初始化时选择，写入 `~/.zshenv` 的 `STORAGE_ROOT` 与 `~/.config/mise/config.toml`。无外置磁盘用家目录绝对路径；有独立卷可用 `/Volumes/Storage` 等。
+存储根（`Languages/`、`ollama/`）由初始化时选择；部署后路径以 `~/.zshenv` 的 `CODE_LANGUAGES_HOME`、`OLLAMA_MODELS` 及 `~/.config/mise/config.toml` 中的绝对路径为准。无外置磁盘用家目录绝对路径；有独立卷可用 `/Volumes/Storage` 等。
 
-迁移到新位置：重新对 AI 发送初始化 prompt 即可，它会检测当前 `STORAGE_ROOT`、询问新位置、搬移数据目录、覆盖更新配置文件。手动迁移则：`mv` 旧 `Languages/`、`ollama/` 到新根，改 `~/.zshenv` 的 `STORAGE_ROOT` 与 `~/.config/mise/config.toml` 的路径，`exec zsh` 生效。跨卷移动（外置磁盘与家目录之间）会复制+删除，注意目标卷空间。
+迁移到新位置：重新对 AI 发送初始化 prompt，它会从 `CODE_LANGUAGES_HOME` 等推导当前根、询问新位置、搬移数据并覆盖配置文件。手动迁移：`mv` 旧 `Languages/`、`ollama/` 到新根，把上述文件中的旧绝对路径改为新根，`exec zsh` 生效。跨卷移动会复制+删除，注意目标卷空间。

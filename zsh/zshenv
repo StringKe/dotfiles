@@ -1,12 +1,11 @@
 # ~/.zshenv - 环境变量配置（所有 shell 加载）
 
 # ============================================================
-# 存储根（部署时由初始化 prompt 将 __STORAGE_ROOT__ 替换为实际绝对路径）
-# 其下固定子目录：Code/ 代码仓库、Languages/ 语言工具链与缓存、ollama/ 模型
+# 存储根占位符 __STORAGE_ROOT__：仅存在于仓库模板；部署时由 AI 全文替换为绝对路径。
+# 不 export STORAGE_ROOT 环境变量。其下固定子目录：Code/、Languages/、ollama/
 # 换位置见 README「存储位置与迁移」
 # ============================================================
-export STORAGE_ROOT="__STORAGE_ROOT__"
-export CODE_LANGUAGES_HOME="$STORAGE_ROOT/Languages"
+export CODE_LANGUAGES_HOME="__STORAGE_ROOT__/Languages"
 
 # ============================================================
 # CLI 工具数据（统一到 Languages/cli/）
@@ -111,7 +110,7 @@ export COMPOSER_HOME="$CODE_LANGUAGES_HOME/php/composer"
 # ============================================================
 # Ollama
 # ============================================================
-export OLLAMA_MODELS="$STORAGE_ROOT/ollama/models"
+export OLLAMA_MODELS="__STORAGE_ROOT__/ollama/models"
 export OLLAMA_HOST="0.0.0.0:11434"
 export OLLAMA_KEEP_ALIVE="24h"
 

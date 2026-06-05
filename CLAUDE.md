@@ -33,22 +33,24 @@ mise install
 
 ### Shell 加载顺序
 
-1. `zsh/zshenv` -> `~/.zshenv`：环境变量（所有 shell 都加载）。顶部定义 `STORAGE_ROOT`（部署时替换占位符 `__STORAGE_ROOT__`）及派生的 `CODE_LANGUAGES_HOME`（`$STORAGE_ROOT/Languages`），以及 CLI 工具数据路径、各语言路径、Ollama、keg-only 编译标志、PATH
+1. `zsh/zshenv` -> `~/.zshenv`：环境变量（所有 shell 都加载）。`CODE_LANGUAGES_HOME`（`{存储根}/Languages`）与 `OLLAMA_MODELS`（`{存储根}/ollama/models`）在部署后为绝对路径；其余语言/CLI 路径经 `$CODE_LANGUAGES_HOME` 派生，以及 keg-only 编译标志、PATH
 2. `zsh/zprofile` -> `~/.zprofile`：登录 shell。Homebrew shellenv、mise shims 模式（供 IDE/GUI 访问）
 3. `zsh/zshrc` -> `~/.zshrc`：交互式 shell。Zim 插件管理器 -> OrbStack -> mise activate -> fzf -> Atuin -> zoxide -> direnv -> fzf-tab 样式 -> kubectl 别名 -> eza/fd 别名 -> Starship prompt
 4. `zsh/zimrc` -> `~/.zimrc`：Zim 模块声明。加载顺序有约束：completions fpath -> compinit -> fzf-tab -> syntax-highlighting -> autosuggestions
 
 ### 语言环境路径
 
-所有语言工具链统一存放在 `$STORAGE_ROOT/Languages/` 下（通过 `$CODE_LANGUAGES_HOME` 引用）。CLI 工具数据（zoxide/atuin/helm/starship）存放在 `$CODE_LANGUAGES_HOME/cli/`。`$STORAGE_ROOT` 由部署时替换占位符 `__STORAGE_ROOT__` 确定（本机为 `/Volumes/Storage`）。
+所有语言工具链统一存放在 `{存储根}/Languages/`（`$CODE_LANGUAGES_HOME`）。CLI 工具数据（zoxide/atuin/helm/starship）在 `$CODE_LANGUAGES_HOME/cli/`。Ollama 模型在 `{存储根}/ollama/models`（`$OLLAMA_MODELS`）。
 
-### 存储根占位符
+### 存储根占位符 `__STORAGE_ROOT__`
 
-`zsh/zshenv` 顶部的 `STORAGE_ROOT` 与 `mise/config.toml` 中的语言缓存路径在仓库内是占位符 `__STORAGE_ROOT__`，初始化时由 README 的 AI prompt 替换为用户选择的绝对路径。`STORAGE_ROOT` 下固定三个子目录：`Code/`（代码仓库）、`Languages/`（语言工具链与缓存）、`ollama/`（模型）。
+**仅存在于仓库模板**（`zsh/zshenv`、`mise/config.toml`），不是运行时环境变量。初始化时由 README 的 AI prompt 在写入系统路径前，将文件中全部 `__STORAGE_ROOT__` 替换为用户选择的绝对路径。存储根下固定三个子目录：`Code/`、`Languages/`、`ollama/`。
 
-**同步回仓库须反替换**：把本地 `~/.zshenv`、`~/.config/mise/config.toml` 复制回仓库前，必须将真实存储根（如 `/Volumes/Storage`）改回 `__STORAGE_ROOT__`，否则会把本机路径污染进模板。新版 `~/.zshenv` 仅顶部 `STORAGE_ROOT` 一处需改（其余路径经 `$CODE_LANGUAGES_HOME` 派生）；`mise/config.toml` 改 `[env]` 段各路径。
+**禁止**在已部署的 `~/.zshenv` 中 `export STORAGE_ROOT`。
 
-**已部署旧机识别**：README Section 3a 会从 `STORAGE_ROOT`、`CODE_LANGUAGES_HOME`（去 `/Languages` 后缀）或 `OLLAMA_MODELS` 推导 CURRENT_ROOT，支持无 `STORAGE_ROOT` 的旧版 `~/.zshenv`。
+**同步回仓库须反替换**：复制 `~/.zshenv`、`~/.config/mise/config.toml` 回仓库前，将存储根绝对路径（如 `/Volumes/Storage`）全部改回 `__STORAGE_ROOT__`。
+
+**已部署机器识别**：README Section 3a 从 `CODE_LANGUAGES_HOME`（去 `/Languages`）或 `OLLAMA_MODELS`（去 `/ollama/models`）推导 CURRENT_ROOT。
 
 ### Git 签名
 
