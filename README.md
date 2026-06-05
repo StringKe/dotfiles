@@ -36,7 +36,7 @@ git clone https://github.com/StringKe/dotfiles.git ~/Code/SelfCode/dotfiles
 
 你正在初始化一台 macOS 开发机。dotfiles 仓库已克隆到 ~/Code/SelfCode/dotfiles。
 所有配置文件是复制到目标路径，不是 symlink，复制后本地独立于仓库。
-按以下 Section 2-7 顺序执行，每步完成后报告状态。
+按以下 Section 2-8 顺序执行，每步完成后报告状态。
 
 ## 2. 预检
 
@@ -48,7 +48,42 @@ git clone https://github.com/StringKe/dotfiles.git ~/Code/SelfCode/dotfiles
 
 任一失败则告知用户回到 README 的"前置准备"章节。
 
-## 3. 软件安装
+## 3. 存储根选择与迁移
+
+存储路径不写死。`zsh/zshenv` 与 `mise/config.toml` 在仓库内用占位符 `__STORAGE_ROOT__` 表示存储根，其下固定子目录 `Code/`（代码仓库）、`Languages/`（语言工具链与缓存）、`ollama/`（模型）。本节确定存储根并处理已部署机器的迁移。
+
+### 3a. 检测当前状态
+
+读取 `~/.zshenv`，匹配 `STORAGE_ROOT=` 或 `CODE_LANGUAGES_HOME=` 的实际值：
+- 匹配到 -> 记为 CURRENT_ROOT，判定为"已部署"
+- 未匹配 -> 判定为"首次部署"
+
+### 3b. 询问目标存储根
+
+询问用户 NEW_ROOT，要求回答绝对路径（不接受 `~` / `$HOME`，因为 toml 无法展开），给出候选：
+- `/Volumes/Storage`（外置磁盘等独立卷）
+- 家目录绝对路径，执行 `echo $HOME` 取值（如 `/Users/用户名`）
+- 用户自定义的其他绝对路径
+
+### 3c. 按情形分流
+
+| 情形 | 判定 | 动作 |
+|---|---|---|
+| 首次部署 | 无 CURRENT_ROOT | 记下 NEW_ROOT，进入后续 Section（部署时替换占位符、按 NEW_ROOT 建目录） |
+| 重配不换位置 | NEW_ROOT == CURRENT_ROOT | 继续后续 Section，覆盖部署配置文件，数据目录不动 |
+| 迁移换位置 | NEW_ROOT != CURRENT_ROOT | 先执行 3d 迁移数据，再继续后续 Section |
+
+### 3d. 迁移数据（仅 NEW_ROOT != CURRENT_ROOT）
+
+1. 先输出迁移分析表再动手，列出每个待移动目录的源、目标、当前大小（`du -sh`）、是否跨卷：
+   - `CURRENT_ROOT/Languages` -> `NEW_ROOT/Languages`
+   - `CURRENT_ROOT/ollama` -> `NEW_ROOT/ollama`
+2. 跨卷提醒（`/Volumes/Storage` 与家目录通常不同文件系统）：`mv` 实为复制+删除，慢且需峰值双倍空间，先用 `df -h` 确认目标卷剩余空间足够。
+3. 用户确认后执行 `mkdir -p NEW_ROOT`，逐目录 `mv`。目标已存在同名目录则停下询问，不覆盖。
+4. `Languages/` 默认整体迁移（含各语言全局包、pnpm-store、ollama 模型、atuin 历史、zoxide 数据）。纯缓存子目录（`go/cache`、`python/pip-cache`、`nodejs/npm-cache`、`python/uv/cache`、`java/gradle`、`java/maven`）可由用户选择跳过让其自动重建，默认全搬保证零丢失。
+5. 迁移完成提示用户验证新路径生效后，再自行清理旧位置残留。
+
+## 4. 软件安装
 
 执行：
 ```bash
@@ -57,9 +92,9 @@ brew bundle install --file=~/Code/SelfCode/dotfiles/Brewfile
 
 如果部分 formula/cask 安装失败，解释失败原因，继续安装其余项目。
 
-## 4. 配置文件部署
+## 5. 配置文件部署
 
-按以下映射表复制文件：
+复制下列文件到目标路径。其中 `zsh/zshenv`、`mise/config.toml` 含占位符 `__STORAGE_ROOT__`，写入目标前必须替换为 Section 3 的 NEW_ROOT（绝对路径）；重配/迁移模式下这两个文件直接覆盖。映射表：
 
 | 仓库文件 | 目标路径 |
 |---|---|
@@ -80,12 +115,13 @@ brew bundle install --file=~/Code/SelfCode/dotfiles/Brewfile
 
 规则：
 - 目标不存在：创建父目录，复制文件
-- 目标已存在：跳过，询问用户是否要 diff 对比差异
+- 目标已存在：`zsh/zshenv`、`mise/config.toml` 在重配/迁移模式下直接覆盖（已替换占位符）；其余文件跳过并询问用户是否 diff 对比差异
+- `zsh/zshenv`、`mise/config.toml` 写入前把 `__STORAGE_ROOT__` 替换为 NEW_ROOT
 - 仓库路径相对于 ~/Code/SelfCode/dotfiles
 
-## 5. 系统配置
+## 6. 系统配置
 
-### 5a. Secrets 文件
+### 6a. Secrets 文件
 
 仅当 ~/.zsh_secrets 不存在时：
 ```bash
@@ -93,26 +129,29 @@ cp ~/Code/SelfCode/dotfiles/templates/zsh_secrets.template ~/.zsh_secrets
 chmod 600 ~/.zsh_secrets
 ```
 
-### 5b. 语言环境目录
+### 6b. 语言环境目录
+
+在 Section 3 的 NEW_ROOT 下创建（替换 NEW_ROOT 为实际绝对路径）：
 
 ```bash
-mkdir -p ~/Code/Languages/{go,rust/{rustup,cargo},nodejs/{npm-cache,npm-global,pnpm-global,yarn-global},bun,deno,java/{gradle,maven-repo},python/{pip-cache,pipx,pipx/bin},php/composer}
+mkdir -p NEW_ROOT/Languages/{cli/{zoxide,atuin,helm,starship},go,rust/{rustup,cargo},nodejs/{npm-cache,npm-global,pnpm-global,pnpm-store,yarn-global,node-gyp},bun,deno,java/{gradle,maven},python/{pip-cache,pipx/bin,uv/{cache,python,tools,bin},huggingface},php/composer}
+mkdir -p NEW_ROOT/ollama/models
 ```
 
-### 5c. Zim 框架
+### 6c. Zim 框架
 
 ```bash
 curl -fsSL --create-dirs -o ~/.zim/zimfw.zsh https://github.com/zimfw/zimfw/releases/latest/download/zimfw.zsh
 zsh -c "source ~/.zim/zimfw.zsh install"
 ```
 
-### 5d. 文件关联
+### 6d. 文件关联
 
 ```bash
 infat --config ~/.config/infat/config.toml
 ```
 
-### 5e. 默认 Shell
+### 6e. 默认 Shell
 
 ```bash
 # 将 Homebrew zsh 加入合法 shell 列表（如果不在）
@@ -123,21 +162,21 @@ chsh -s /opt/homebrew/bin/zsh
 
 提示用户这一步需要输入密码。
 
-## 6. 验证清单
+## 7. 验证清单
 
 逐项检查并报告通过/失败：
 1. brew doctor 无严重警告
-2. 14 个配置文件全部存在于目标路径
+2. 14 个配置文件全部存在于目标路径；~/.zshenv 与 ~/.config/mise/config.toml 中 grep 无 __STORAGE_ROOT__ 残留，STORAGE_ROOT 等于 NEW_ROOT
 3. Ghostty 配置文件存在（~/Library/Application Support/com.mitchellh.ghostty/config）
 4. ~/.zsh_secrets 存在且权限为 600
-5. ~/Code/Languages/ 下目录结构完整
+5. NEW_ROOT/Languages/ 下目录结构完整，NEW_ROOT/ollama/models 存在
 6. ~/.zim/zimfw.zsh 存在
 7. 当前默认 shell 为 /opt/homebrew/bin/zsh（dscl . -read ~/ UserShell）
 8. starship prompt 可用（command -v starship）
 9. infat 文件关联已应用（infat info --ext json 输出包含 Visual Studio Code）
 10. VSCode 扩展已安装（code --list-extensions | wc -l 大于 0）
 
-## 7. 后续提醒
+## 8. 后续提醒
 
 告知用户：
 - 编辑 ~/.zsh_secrets 填入 API 密钥等敏感信息
@@ -241,3 +280,11 @@ Ghostty 使用纯文本配置文件 `~/Library/Application Support/com.mitchellh
 | API 密钥等敏感信息 | `~/.zsh_secrets` |
 
 如需将本地改动同步回仓库模板，手动将修改后的文件复制回 `~/Code/SelfCode/dotfiles/` 对应路径，然后 commit push。
+
+**同步 `~/.zshenv`、`~/.config/mise/config.toml` 回仓库前**：先把文件里的真实存储根（如 `/Volumes/Storage`）改回占位符 `__STORAGE_ROOT__`，否则会把本机路径污染进模板。`~/.zshenv` 仅顶部 `STORAGE_ROOT` 一处需改，`mise/config.toml` 改 `[env]` 段各路径。
+
+## 存储位置与迁移
+
+存储根（语言工具链缓存 `Languages/`、Ollama 模型 `ollama/`）由初始化时选择，写入 `~/.zshenv` 的 `STORAGE_ROOT` 与 `~/.config/mise/config.toml`。无外置磁盘用家目录绝对路径；有独立卷可用 `/Volumes/Storage` 等。
+
+迁移到新位置：重新对 AI 发送初始化 prompt 即可，它会检测当前 `STORAGE_ROOT`、询问新位置、搬移数据目录、覆盖更新配置文件。手动迁移则：`mv` 旧 `Languages/`、`ollama/` 到新根，改 `~/.zshenv` 的 `STORAGE_ROOT` 与 `~/.config/mise/config.toml` 的路径，`exec zsh` 生效。跨卷移动（外置磁盘与家目录之间）会复制+删除，注意目标卷空间。

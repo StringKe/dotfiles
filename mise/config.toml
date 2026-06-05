@@ -6,14 +6,14 @@ uv = "0.9.27"
 
 [env]
 # Go 统一存储目录
-GOPATH = "/Volumes/Storage/Languages/go"
-GOMODCACHE = "/Volumes/Storage/Languages/go/mod"
-GOCACHE = "/Volumes/Storage/Languages/go/cache"
-GOBIN = "/Volumes/Storage/Languages/go/bin"
+GOPATH = "__STORAGE_ROOT__/Languages/go"
+GOMODCACHE = "__STORAGE_ROOT__/Languages/go/mod"
+GOCACHE = "__STORAGE_ROOT__/Languages/go/cache"
+GOBIN = "__STORAGE_ROOT__/Languages/go/bin"
 
 # Rust 统一存储目录 (mise 专用变量)
-MISE_CARGO_HOME = "/Volumes/Storage/Languages/rust/cargo"
-MISE_RUSTUP_HOME = "/Volumes/Storage/Languages/rust/rustup"
+MISE_CARGO_HOME = "__STORAGE_ROOT__/Languages/rust/cargo"
+MISE_RUSTUP_HOME = "__STORAGE_ROOT__/Languages/rust/rustup"
 # 标准 Rust 环境变量 (供其他工具识别)
-CARGO_HOME = "/Volumes/Storage/Languages/rust/cargo"
-RUSTUP_HOME = "/Volumes/Storage/Languages/rust/rustup"
+CARGO_HOME = "__STORAGE_ROOT__/Languages/rust/cargo"
+RUSTUP_HOME = "__STORAGE_ROOT__/Languages/rust/rustup"

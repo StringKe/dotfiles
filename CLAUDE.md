@@ -33,14 +33,20 @@ mise install
 
 ### Shell 加载顺序
 
-1. `zsh/zshenv` -> `~/.zshenv`：环境变量（所有 shell 都加载）。定义 CLI 工具数据路径、`CODE_LANGUAGES_HOME`（`/Volumes/Storage/Languages`）、各语言路径、Ollama、keg-only 编译标志、PATH
+1. `zsh/zshenv` -> `~/.zshenv`：环境变量（所有 shell 都加载）。顶部定义 `STORAGE_ROOT`（部署时替换占位符 `__STORAGE_ROOT__`）及派生的 `CODE_LANGUAGES_HOME`（`$STORAGE_ROOT/Languages`），以及 CLI 工具数据路径、各语言路径、Ollama、keg-only 编译标志、PATH
 2. `zsh/zprofile` -> `~/.zprofile`：登录 shell。Homebrew shellenv、mise shims 模式（供 IDE/GUI 访问）
 3. `zsh/zshrc` -> `~/.zshrc`：交互式 shell。Zim 插件管理器 -> OrbStack -> mise activate -> fzf -> Atuin -> zoxide -> direnv -> fzf-tab 样式 -> kubectl 别名 -> eza/fd 别名 -> Starship prompt
 4. `zsh/zimrc` -> `~/.zimrc`：Zim 模块声明。加载顺序有约束：completions fpath -> compinit -> fzf-tab -> syntax-highlighting -> autosuggestions
 
 ### 语言环境路径
 
-所有语言工具链统一存放在 `/Volumes/Storage/Languages/` 下（通过 `$CODE_LANGUAGES_HOME` 引用）。CLI 工具数据（zoxide/atuin/helm/starship）存放在 `/Volumes/Storage/Languages/cli/`。
+所有语言工具链统一存放在 `$STORAGE_ROOT/Languages/` 下（通过 `$CODE_LANGUAGES_HOME` 引用）。CLI 工具数据（zoxide/atuin/helm/starship）存放在 `$CODE_LANGUAGES_HOME/cli/`。`$STORAGE_ROOT` 由部署时替换占位符 `__STORAGE_ROOT__` 确定（本机为 `/Volumes/Storage`）。
+
+### 存储根占位符
+
+`zsh/zshenv` 顶部的 `STORAGE_ROOT` 与 `mise/config.toml` 中的语言缓存路径在仓库内是占位符 `__STORAGE_ROOT__`，初始化时由 README 的 AI prompt 替换为用户选择的绝对路径。`STORAGE_ROOT` 下固定三个子目录：`Code/`（代码仓库）、`Languages/`（语言工具链与缓存）、`ollama/`（模型）。
+
+**同步回仓库须反替换**：把本地 `~/.zshenv`、`~/.config/mise/config.toml` 复制回仓库前，必须将真实存储根（如 `/Volumes/Storage`）改回 `__STORAGE_ROOT__`，否则会把本机路径污染进模板。`~/.zshenv` 仅顶部 `STORAGE_ROOT` 一处需改。
 
 ### Git 签名
 

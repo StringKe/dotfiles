@@ -1,26 +1,34 @@
 # ~/.zshenv - 环境变量配置（所有 shell 加载）
 
 # ============================================================
+# 存储根（部署时由初始化 prompt 将 __STORAGE_ROOT__ 替换为实际绝对路径）
+# 其下固定子目录：Code/ 代码仓库、Languages/ 语言工具链与缓存、ollama/ 模型
+# 换位置见 README "迁移存储位置"
+# ============================================================
+export STORAGE_ROOT="__STORAGE_ROOT__"
+export CODE_LANGUAGES_HOME="$STORAGE_ROOT/Languages"
+
+# ============================================================
 # CLI 工具数据（统一到 Languages/cli/）
 # zoxide _ZO_DOCTOR=0：Claude Code shell snapshot 下 chpwd_functions 为空，
 # __zoxide_doctor 会误报警告
 # ============================================================
 export _ZO_DOCTOR=0
-export _ZO_DATA_DIR="/Volumes/Storage/Languages/cli/zoxide"
+export _ZO_DATA_DIR="$CODE_LANGUAGES_HOME/cli/zoxide"
 
 # atuin（shell 历史 db）
-export ATUIN_DB_PATH="/Volumes/Storage/Languages/cli/atuin/history.db"
-export ATUIN_KEY_PATH="/Volumes/Storage/Languages/cli/atuin/key"
-export ATUIN_SESSION_PATH="/Volumes/Storage/Languages/cli/atuin/session"
-export ATUIN_RECORD_STORE_PATH="/Volumes/Storage/Languages/cli/atuin/records.db"
+export ATUIN_DB_PATH="$CODE_LANGUAGES_HOME/cli/atuin/history.db"
+export ATUIN_KEY_PATH="$CODE_LANGUAGES_HOME/cli/atuin/key"
+export ATUIN_SESSION_PATH="$CODE_LANGUAGES_HOME/cli/atuin/session"
+export ATUIN_RECORD_STORE_PATH="$CODE_LANGUAGES_HOME/cli/atuin/records.db"
 
 # helm（macOS 默认散到 ~/Library/Preferences）
-export HELM_CONFIG_HOME="/Volumes/Storage/Languages/cli/helm"
-export HELM_DATA_HOME="/Volumes/Storage/Languages/cli/helm/data"
-export HELM_CACHE_HOME="/Volumes/Storage/Languages/cli/helm/cache"
+export HELM_CONFIG_HOME="$CODE_LANGUAGES_HOME/cli/helm"
+export HELM_DATA_HOME="$CODE_LANGUAGES_HOME/cli/helm/data"
+export HELM_CACHE_HOME="$CODE_LANGUAGES_HOME/cli/helm/cache"
 
 # starship
-export STARSHIP_CACHE="/Volumes/Storage/Languages/cli/starship"
+export STARSHIP_CACHE="$CODE_LANGUAGES_HOME/cli/starship"
 
 # ============================================================
 # Locale
@@ -34,11 +42,6 @@ export LC_CTYPE="zh_CN.UTF-8"
 # ripgrep 配置（OSC 8 超链接等）
 # ============================================================
 export RIPGREP_CONFIG_PATH="$HOME/.config/ripgrep/config"
-
-# ============================================================
-# 语言环境缓存目录
-# ============================================================
-export CODE_LANGUAGES_HOME="/Volumes/Storage/Languages"
 
 # ============================================================
 # mise（必须在 mise activate 之前 export）
@@ -108,7 +111,7 @@ export COMPOSER_HOME="$CODE_LANGUAGES_HOME/php/composer"
 # ============================================================
 # Ollama
 # ============================================================
-export OLLAMA_MODELS="/Volumes/Storage/ollama/models"
+export OLLAMA_MODELS="$STORAGE_ROOT/ollama/models"
 export OLLAMA_HOST="0.0.0.0:11434"
 export OLLAMA_KEEP_ALIVE="24h"
 
