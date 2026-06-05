@@ -140,6 +140,7 @@ brew bundle install --file=$DOTFILES_ROOT/Brewfile
   ```bash
   sed "s|__STORAGE_ROOT__|${NEW_ROOT}|g" "$DOTFILES_ROOT/zsh/zshenv" > ~/.zshenv
   sed "s|__STORAGE_ROOT__|${NEW_ROOT}|g" "$DOTFILES_ROOT/templates/mise_config.toml" > ~/.config/mise/config.toml
+  # 模板注释中不含 __STORAGE_ROOT__ 字样，避免 sed 误改注释
   ```
   若 `~/.config/mise/config.toml` 已有本机定制的 `[tools]`，重配时只替换 `[env]` 段中的存储路径，保留 `[tools]` 不动。
 - 其余文件：目标已存在则跳过并询问用户是否 diff 对比差异

@@ -1,8 +1,8 @@
 # ~/.zshenv - 环境变量配置（所有 shell 加载）
 
 # ============================================================
-# 存储根占位符 __STORAGE_ROOT__：仅存在于仓库模板；部署时由 AI 全文替换为绝对路径。
-# 不 export STORAGE_ROOT 环境变量。其下固定子目录：Code/、Languages/、ollama/
+# 存储根：以下两行 export 在仓库内为占位符，部署时由 AI 全文替换为绝对路径（见 README）。
+# 禁止 export STORAGE_ROOT 环境变量。固定子目录：Code/、Languages/、ollama/
 # 换位置见 README「存储位置与迁移」
 # ============================================================
 export CODE_LANGUAGES_HOME="__STORAGE_ROOT__/Languages"
