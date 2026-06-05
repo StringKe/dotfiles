@@ -44,18 +44,18 @@ mise install
 
 ### 存储根占位符 `__STORAGE_ROOT__`
 
-**仅存在于仓库模板**（`zsh/zshenv`、`mise/config.toml`），是 AI 部署时全文替换为绝对路径的标记，**不是**运行时环境变量，**禁止** `export STORAGE_ROOT`。
+**仅存在于仓库模板**（`zsh/zshenv`、`templates/mise_config.toml`），是 AI 部署时全文替换为绝对路径的标记，**不是**运行时环境变量，**禁止** `export STORAGE_ROOT`。模板不可置于 `mise/config.toml`（mise 会在仓库目录内自动加载）。
 
 | 文件 | 占位符位置 | 部署后 |
 |---|---|---|
 | `zsh/zshenv` | `CODE_LANGUAGES_HOME`、`OLLAMA_MODELS` 字面量 | 绝对路径；其余变量用 `$CODE_LANGUAGES_HOME` |
-| `mise/config.toml` | `[env]` 全部路径 | 绝对路径；`[tools]` 无存储路径 |
+| `templates/mise_config.toml` | `[env]` 全部路径 | 部署为 `~/.config/mise/config.toml`，绝对路径 |
 
 **不含占位符的配置**（依赖 `~/.zshenv` 或系统路径）：`zshrc`、`zprofile`、`zimrc`、`ghostty`、`starship`、`atuin`、`git/*`、`infat`、`btop`、`ripgrep`、`yazi`。
 
 存储根下固定：`Code/`（含 `Code/SelfCode/dotfiles`）、`Languages/`、`ollama/`。
 
-**同步回仓库**：`~/.zshenv`、`mise/config.toml` 中存储根绝对路径全部改回 `__STORAGE_ROOT__`；`rg` 扫描仓库确保无本机路径泄漏。
+**同步回仓库**：`~/.zshenv`、`templates/mise_config.toml`（勿写回带占位符的 `mise/config.toml`）中存储根绝对路径全部改回 `__STORAGE_ROOT__`；`rg` 扫描仓库确保无本机路径泄漏。
 
 **已部署机器识别**：README Section 3a 从 `CODE_LANGUAGES_HOME` 或 `OLLAMA_MODELS` 推导 CURRENT_ROOT。
 

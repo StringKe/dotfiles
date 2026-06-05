@@ -14,7 +14,7 @@ export PATH="$HOME/.moon/bin:$PATH"
 
 # ============================================================
 # mise - 运行时版本管理器 (shims 模式)
-# 语言路径由 ~/.zshenv 与 ~/.config/mise/config.toml 提供；shims 供 IDE/GUI
+# 语言路径由 ~/.zshenv 与 ~/.config/mise/config.toml 提供；shims 供 IDE/GUI（勿在 dotfiles 仓库内放 mise/config.toml 模板）
 # ============================================================
 if command -v mise &>/dev/null; then
     eval "$(mise activate zsh --shims)"

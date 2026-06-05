@@ -58,7 +58,7 @@ git clone https://github.com/StringKe/dotfiles.git ~/Code/SelfCode/dotfiles
 
 ## 3. 存储根选择与迁移
 
-存储路径不写死。`__STORAGE_ROOT__` **仅是仓库模板中的替换标记**，部署时由 AI 在 `zsh/zshenv`、`mise/config.toml` 内全文替换为用户选择的绝对路径（NEW_ROOT）；**不要**在已部署文件中保留 `__STORAGE_ROOT__`，也**不要** `export STORAGE_ROOT` 环境变量。存储根下固定子目录：`Code/`（代码仓库）、`Languages/`（语言工具链与缓存）、`ollama/`（模型）。本节确定存储根并处理已部署机器的迁移。
+存储路径不写死。`__STORAGE_ROOT__` **仅是仓库模板中的替换标记**，部署时由 AI 在 `zsh/zshenv`、`templates/mise_config.toml` 内全文替换为用户选择的绝对路径（NEW_ROOT）；**不要**在已部署文件中保留 `__STORAGE_ROOT__`，也**不要** `export STORAGE_ROOT` 环境变量。存储根下固定子目录：`Code/`（代码仓库）、`Languages/`（语言工具链与缓存）、`ollama/`（模型）。本节确定存储根并处理已部署机器的迁移。
 
 ### 3a. 检测当前状态
 
@@ -113,7 +113,7 @@ brew bundle install --file=$DOTFILES_ROOT/Brewfile
 
 **含 `__STORAGE_ROOT__` 占位符的仓库文件（写入系统前全文替换为 NEW_ROOT，禁止保留占位符、禁止 export STORAGE_ROOT）：**
 - `zsh/zshenv`（`CODE_LANGUAGES_HOME`、`OLLAMA_MODELS` 两处字面量；其余经 `$CODE_LANGUAGES_HOME` 派生）
-- `mise/config.toml`（`[env]` 段全部路径）
+- `templates/mise_config.toml`（`[env]` 段全部路径）
 
 其余配置文件无存储根占位符，路径在运行时由 `~/.zshenv` 环境变量提供（atuin/zoxide/starship/helm 等）。映射表：
 
@@ -130,13 +130,13 @@ brew bundle install --file=$DOTFILES_ROOT/Brewfile
 | git/ignore | ~/.config/git/ignore |
 | git/config | ~/.gitconfig |
 | atuin/config.toml | ~/.config/atuin/config.toml |
-| mise/config.toml | ~/.config/mise/config.toml |
+| templates/mise_config.toml | ~/.config/mise/config.toml |
 | btop/btop.conf | ~/.config/btop/btop.conf |
 | infat/config.toml | ~/.config/infat/config.toml |
 
 规则：
 - 目标不存在：创建父目录，复制文件
-- `zsh/zshenv`、`mise/config.toml`：写入前把 `__STORAGE_ROOT__` 全部替换为 NEW_ROOT，然后**无论目标是否存在一律覆盖**（首次部署、重配、迁移均如此）
+- `zsh/zshenv`、`templates/mise_config.toml`：写入前把 `__STORAGE_ROOT__` 全部替换为 NEW_ROOT，然后**无论目标是否存在一律覆盖**（首次部署、重配、迁移均如此）
 - 其余文件：目标已存在则跳过并询问用户是否 diff 对比差异
 - 仓库路径相对于 DOTFILES_ROOT
 
@@ -230,13 +230,12 @@ dotfiles/
 │   └── ignore              # 全局 gitignore
 ├── atuin/
 │   └── config.toml         # Atuin 历史搜索配置
-├── mise/
-│   └── config.toml         # mise 运行时版本管理配置
 ├── btop/
 │   └── btop.conf           # btop 系统监控配置
 ├── infat/
 │   └── config.toml         # macOS 文件关联配置
 └── templates/
+    ├── mise_config.toml     # mise 配置模板（部署到 ~/.config/mise/config.toml）
     └── zsh_secrets.template # 敏感信息模板
 ```
 
@@ -257,7 +256,7 @@ dotfiles/
 | `git/ignore` | `~/.config/git/ignore` |
 | `git/config` | `~/.gitconfig` |
 | `atuin/config.toml` | `~/.config/atuin/config.toml` |
-| `mise/config.toml` | `~/.config/mise/config.toml` |
+| `templates/mise_config.toml` | `~/.config/mise/config.toml` |
 | `btop/btop.conf` | `~/.config/btop/btop.conf` |
 | `infat/config.toml` | `~/.config/infat/config.toml` |
 
@@ -303,13 +302,13 @@ Ghostty 使用纯文本配置文件 `~/Library/Application Support/com.mitchellh
 
 如需将本地改动同步回仓库模板，手动将修改后的文件复制回 dotfiles 仓库对应路径，然后 commit push。
 
-**同步回仓库前（必做）**：在 dotfiles 仓库内执行 `rg '__STORAGE_ROOT__|/Volumes/Storage'`，除 README/CLAUDE 示例外不得出现本机绝对路径。将 `~/.zshenv`、`~/.config/mise/config.toml` 中的存储根绝对路径**全部**改回 `__STORAGE_ROOT__`（`zshenv` 的 `CODE_LANGUAGES_HOME`、`OLLAMA_MODELS`；`mise` 的 `[env]` 全文），勿引入 `export STORAGE_ROOT`。
+**同步回仓库前（必做）**：在 dotfiles 仓库内执行 `rg '__STORAGE_ROOT__|/Volumes/Storage'`，除 README/CLAUDE 示例外不得出现本机绝对路径。将 `~/.zshenv`、`~/.config/mise/config.toml` 复制到仓库的 `zsh/zshenv`、`templates/mise_config.toml`，并把存储根绝对路径**全部**改回 `__STORAGE_ROOT__`，勿引入 `export STORAGE_ROOT`。
 
 ## 占位符与路径职责
 
 | 范围 | 说明 |
 |---|---|
-| 仓库模板 | 仅 `zsh/zshenv`、`mise/config.toml` 含 `__STORAGE_ROOT__` |
+| 仓库模板 | 仅 `zsh/zshenv`、`templates/mise_config.toml` 含 `__STORAGE_ROOT__` |
 | 部署后 `~/.zshenv` | `CODE_LANGUAGES_HOME`、`OLLAMA_MODELS` 为绝对路径；其余语言/CLI 变量经 `$CODE_LANGUAGES_HOME` 派生 |
 | 部署后 `~/.config/mise/config.toml` | `[env]` 为绝对路径（供 shims/IDE）；`[tools]` 无存储路径 |
 | 不写入存储根的文件 | `zshrc`、`zprofile`、`zimrc`、`ghostty`、`starship`、`atuin`、`git/*`、`infat`、`btop`、`ripgrep`、`yazi` 等——依赖 shell 环境变量或固定系统路径 |
