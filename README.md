@@ -136,7 +136,12 @@ brew bundle install --file=$DOTFILES_ROOT/Brewfile
 
 规则：
 - 目标不存在：创建父目录，复制文件
-- `zsh/zshenv`、`templates/mise_config.toml`：写入前把 `__STORAGE_ROOT__` 全部替换为 NEW_ROOT，然后**无论目标是否存在一律覆盖**（首次部署、重配、迁移均如此）
+- `zsh/zshenv`、`templates/mise_config.toml`：写入前把 `__STORAGE_ROOT__` 全部替换为 NEW_ROOT，然后**无论目标是否存在一律覆盖**（首次部署、重配、迁移均如此）。示例：
+  ```bash
+  sed "s|__STORAGE_ROOT__|${NEW_ROOT}|g" "$DOTFILES_ROOT/zsh/zshenv" > ~/.zshenv
+  sed "s|__STORAGE_ROOT__|${NEW_ROOT}|g" "$DOTFILES_ROOT/templates/mise_config.toml" > ~/.config/mise/config.toml
+  ```
+  若 `~/.config/mise/config.toml` 已有本机定制的 `[tools]`，重配时只替换 `[env]` 段中的存储路径，保留 `[tools]` 不动。
 - 其余文件：目标已存在则跳过并询问用户是否 diff 对比差异
 - 仓库路径相对于 DOTFILES_ROOT
 
@@ -308,7 +313,7 @@ Ghostty 使用纯文本配置文件 `~/Library/Application Support/com.mitchellh
 
 | 范围 | 说明 |
 |---|---|
-| 仓库模板 | 仅 `zsh/zshenv`、`templates/mise_config.toml` 含 `__STORAGE_ROOT__` |
+| 仓库模板 | 仅 `zsh/zshenv`、`templates/mise_config.toml` 含 `__STORAGE_ROOT__`（禁止 `mise/config.toml`，否则在 dotfiles 目录内会被 mise 自动加载） |
 | 部署后 `~/.zshenv` | `CODE_LANGUAGES_HOME`、`OLLAMA_MODELS` 为绝对路径；其余语言/CLI 变量经 `$CODE_LANGUAGES_HOME` 派生 |
 | 部署后 `~/.config/mise/config.toml` | `[env]` 为绝对路径（供 shims/IDE）；`[tools]` 无存储路径 |
 | 不写入存储根的文件 | `zshrc`、`zprofile`、`zimrc`、`ghostty`、`starship`、`atuin`、`git/*`、`infat`、`btop`、`ripgrep`、`yazi` 等——依赖 shell 环境变量或固定系统路径 |

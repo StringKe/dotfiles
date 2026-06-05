@@ -1,3 +1,7 @@
+# 部署模板：复制到 ~/.config/mise/config.toml 前将 __STORAGE_ROOT__ 替换为绝对路径。
+# 勿放在仓库内 mise/config.toml —— mise 会在项目目录自动加载，导致占位符污染环境。
+# [tools] 可按本机需求定制；重配时通常只更新 [env] 段路径。
+
 [tools]
 node = "lts"
 rust = "latest"
