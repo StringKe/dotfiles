@@ -1,4 +1,19 @@
-# ~/.zshenv - 环境变量配置（所有 shell 加载）
+# ============================================================
+# ~/.zshenv - 环境变量配置（所有 shell 加载，含非交互式脚本）
+#
+# [AI 规则] 此文件由 dotfiles 模板部署，直接修改会被重配覆盖。
+#   - 仅放环境变量和 PATH，不放别名 / 函数 / prompt 初始化
+#   - 交互式 shell 配置（别名/函数/工具激活）-> DOTFILES_ROOT/init.zsh
+#   - __STORAGE_ROOT__ / __DOTFILES_ROOT__ 是模板占位符，部署后为绝对路径
+#   - 禁止 export STORAGE_ROOT
+#   - 模板路径：dotfiles/zsh/zshenv
+# ============================================================
+
+# ============================================================
+# 仓库路径（zimfw 用于加载 init.zsh 本地模块）
+# 部署时由 AI 将 __DOTFILES_ROOT__ 替换为 dotfiles 仓库绝对路径
+# ============================================================
+export DOTFILES_ROOT="__DOTFILES_ROOT__"
 
 # ============================================================
 # 存储根：以下两行 export 在仓库内为占位符，部署时由 AI 全文替换为绝对路径（见 README）。
@@ -135,7 +150,6 @@ KEG_ONLY_PATHS=(
 # ============================================================
 # 编译环境变量 (LDFLAGS / CPPFLAGS / PKG_CONFIG_PATH)
 # ============================================================
-# 需要配置的 keg-only 库
 KEG_ONLY_LIBS=(
     "openssl@3"
     "readline"
@@ -152,7 +166,6 @@ KEG_ONLY_LIBS=(
     "libzip"
 )
 
-# 构建 LDFLAGS
 _ldflags=""
 for lib in "${KEG_ONLY_LIBS[@]}"; do
     if [[ -d "$HOMEBREW_PREFIX/opt/$lib/lib" ]]; then
@@ -161,7 +174,6 @@ for lib in "${KEG_ONLY_LIBS[@]}"; do
 done
 export LDFLAGS="${_ldflags# }"
 
-# 构建 CPPFLAGS
 _cppflags=""
 for lib in "${KEG_ONLY_LIBS[@]}"; do
     if [[ -d "$HOMEBREW_PREFIX/opt/$lib/include" ]]; then
@@ -170,7 +182,6 @@ for lib in "${KEG_ONLY_LIBS[@]}"; do
 done
 export CPPFLAGS="${_cppflags# }"
 
-# 构建 PKG_CONFIG_PATH
 _pkg_config_path=""
 for lib in "${KEG_ONLY_LIBS[@]}"; do
     if [[ -d "$HOMEBREW_PREFIX/opt/$lib/lib/pkgconfig" ]]; then
@@ -179,7 +190,6 @@ for lib in "${KEG_ONLY_LIBS[@]}"; do
 done
 export PKG_CONFIG_PATH="${_pkg_config_path#:}"
 
-# 清理临时变量
 unset _ldflags _cppflags _pkg_config_path
 
 # ============================================================
@@ -199,6 +209,16 @@ path=(
 
     # opencode
     "$HOME/.opencode/bin"
+
+    # proto / moon（moonrepo 工具链管理器）
+    # proto/bin: proto CLI 本身
+    # proto/shims: proto 管理的工具（atlas/buf/cosign/sops 等 proto-only 工具）
+    #   shims 是智能 shim：无 .prototools 配置时自动回退到 PATH 其余位置的同名工具（即 mise 版本）
+    #   mise activate 的 precmd hook 在每次 prompt 前优先设置共享工具版本（node/go），
+    #   proto-only 工具（atlas/buf/cosign/sops 等）不受 mise 影响，直接由 proto shims 提供。
+    "$HOME/.proto/bin"
+    "$HOME/.proto/shims"
+    "$HOME/.moon/bin"
 
     # Rust
     "$CARGO_HOME/bin"

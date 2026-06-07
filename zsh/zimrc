@@ -1,21 +1,38 @@
+# ============================================================
 # ~/.zimrc - zimfw 模块配置
+#
+# [AI 规则] 在此添加 zsh 插件/模块，不要在 ~/.zshrc 中直接 source 插件。
+#   交互式 shell 配置（别名/函数/工具激活）-> DOTFILES_ROOT/init.zsh
+#   zmodule $DOTFILES_ROOT 是本仓库的 zim 本地模块，需要最后加载。
+#   模板路径：dotfiles/zsh/zimrc
+# ============================================================
 
 # 核心行为（setopt auto_cd, pushd, extended_glob 等）
 zmodule environment
 # 键绑定（Home/End/Delete/Ctrl+Arrow 等）
 zmodule input
 
-# 补全系统（顺序重要：completions fpath → compinit → fzf-tab → 高亮 → 建议）
+# 补全系统（顺序重要：completions fpath -> compinit -> fzf-tab -> 高亮 -> 建议）
 zmodule zsh-users/zsh-completions --fpath src
 zmodule completion
 
 # fzf-tab：Tab 补全使用 fzf 交互（必须在 compinit 之后、高亮之前）
 zmodule Aloxaf/fzf-tab
 
-# 语法高亮（必须在 completion 之后）
 # fzf-tab-source：fzf-tab 预览增强（make recipe、git log、kill 进程等）
 zmodule Freed-Wu/fzf-tab-source
 
+# direnv - 目录级环境变量管理（官方模块）
+zmodule zimfw/direnv
+
+# 语法高亮（必须在 completion 之后）
 zmodule zsh-users/zsh-syntax-highlighting
 # 自动建议（必须在高亮之后）
 zmodule zsh-users/zsh-autosuggestions
+
+# ============================================================
+# dotfiles 交互式 shell 配置（本仓库作为 zim 本地模块，最后加载）
+# $DOTFILES_ROOT 在 ~/.zshenv 中定义，部署时为仓库绝对路径
+# zimfw 不会 install/update 本地模块，由 git 自行管理
+# ============================================================
+zmodule $DOTFILES_ROOT

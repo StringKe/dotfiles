@@ -43,7 +43,11 @@ git clone https://github.com/StringKe/dotfiles.git ~/Code/SelfCode/dotfiles
 ## 1. 角色与上下文
 
 你正在初始化一台 macOS 开发机。dotfiles 仓库已克隆到某处，记为 DOTFILES_ROOT（见 Section 2）。
-所有配置文件是复制到目标路径，不是 symlink，复制后本地独立于仓库。
+
+**部署模型：**
+- 大部分配置文件复制到系统路径（不使用 symlink），复制后本地独立于仓库。
+- 例外：`init.zsh`（交互式 shell 全部配置）**不复制**，由 zimfw 作为本地模块从 DOTFILES_ROOT 直接加载。修改仓库中的 `init.zsh` 后重开终端立即生效。
+
 按以下 Section 2-8 顺序执行，每步完成后报告状态。
 
 ## 2. 预检
@@ -109,42 +113,59 @@ brew bundle install --file=$DOTFILES_ROOT/Brewfile
 
 ## 5. 配置文件部署
 
-复制下列文件到目标路径。
+### 5a. init.zsh（不复制）
 
-**含 `__STORAGE_ROOT__` 占位符的仓库文件（写入系统前全文替换为 NEW_ROOT，禁止保留占位符、禁止 export STORAGE_ROOT）：**
-- `zsh/zshenv`（`CODE_LANGUAGES_HOME`、`OLLAMA_MODELS` 两处字面量；其余经 `$CODE_LANGUAGES_HOME` 派生）
-- `templates/mise_config.toml`（`[env]` 段全部路径）
+`DOTFILES_ROOT/init.zsh` 包含交互式 shell 的全部配置。**不需要复制到系统路径**，由 zimfw 通过 `zmodule $DOTFILES_ROOT` 从仓库直接加载。修改后重开终端立即生效。
 
-其余配置文件无存储根占位符，路径在运行时由 `~/.zshenv` 环境变量提供（atuin/zoxide/starship/helm 等）。映射表：
+### 5b. 需要部署的文件
 
-| 仓库文件 | 目标路径 |
-|---|---|
-| zsh/zshenv | ~/.zshenv |
-| zsh/zshrc | ~/.zshrc |
-| zsh/zprofile | ~/.zprofile |
-| zsh/zimrc | ~/.zimrc |
-| ghostty/config | ~/Library/Application Support/com.mitchellh.ghostty/config |
-| starship/starship.toml | ~/.config/starship.toml |
-| ripgrep/config | ~/.config/ripgrep/config |
-| yazi/keymap.toml | ~/.config/yazi/keymap.toml |
-| git/ignore | ~/.config/git/ignore |
-| git/config | ~/.gitconfig |
-| atuin/config.toml | ~/.config/atuin/config.toml |
-| templates/mise_config.toml | ~/.config/mise/config.toml |
-| btop/btop.conf | ~/.config/btop/btop.conf |
-| infat/config.toml | ~/.config/infat/config.toml |
+| 仓库文件 | 目标路径 | 覆盖策略 |
+|---|---|---|
+| zsh/zshenv | ~/.zshenv | 无条件覆盖（双占位符替换） |
+| zsh/zshrc | ~/.zshrc | 无条件覆盖 |
+| zsh/zprofile | ~/.zprofile | 无条件覆盖 |
+| zsh/zimrc | ~/.zimrc | 无条件覆盖 |
+| templates/mise_config.toml | ~/.config/mise/config.toml | 无条件覆盖（占位符替换，保留 [tools]） |
+| ghostty/config | ~/Library/Application Support/com.mitchellh.ghostty/config | 跳过已存在（询问 diff） |
+| starship/starship.toml | ~/.config/starship.toml | 跳过已存在（询问 diff） |
+| ripgrep/config | ~/.config/ripgrep/config | 跳过已存在（询问 diff） |
+| yazi/keymap.toml | ~/.config/yazi/keymap.toml | 跳过已存在（询问 diff） |
+| git/ignore | ~/.config/git/ignore | 跳过已存在（询问 diff） |
+| git/config | ~/.gitconfig | 跳过已存在（询问 diff） |
+| atuin/config.toml | ~/.config/atuin/config.toml | 跳过已存在（询问 diff） |
+| btop/btop.conf | ~/.config/btop/btop.conf | 跳过已存在（询问 diff） |
+| infat/config.toml | ~/.config/infat/config.toml | 跳过已存在（询问 diff） |
 
-规则：
-- 目标不存在：创建父目录，复制文件
-- `zsh/zshenv`、`templates/mise_config.toml`：写入前把 `__STORAGE_ROOT__` 全部替换为 NEW_ROOT，然后**无论目标是否存在一律覆盖**（首次部署、重配、迁移均如此）。示例：
-  ```bash
-  sed "s|__STORAGE_ROOT__|${NEW_ROOT}|g" "$DOTFILES_ROOT/zsh/zshenv" > ~/.zshenv
-  sed "s|__STORAGE_ROOT__|${NEW_ROOT}|g" "$DOTFILES_ROOT/templates/mise_config.toml" > ~/.config/mise/config.toml
-  # 模板注释中不含 __STORAGE_ROOT__ 字样，避免 sed 误改注释
-  ```
-  若 `~/.config/mise/config.toml` 已有本机定制的 `[tools]`，重配时只替换 `[env]` 段中的存储路径，保留 `[tools]` 不动。
-- 其余文件：目标已存在则跳过并询问用户是否 diff 对比差异
-- 仓库路径相对于 DOTFILES_ROOT
+### 5c. 占位符替换
+
+`zsh/zshenv` 含两类占位符，写入 `~/.zshenv` 前全部替换：
+
+```bash
+sed -e "s|__STORAGE_ROOT__|${NEW_ROOT}|g" \
+    -e "s|__DOTFILES_ROOT__|${DOTFILES_ROOT}|g" \
+    "$DOTFILES_ROOT/zsh/zshenv" > ~/.zshenv
+```
+
+`templates/mise_config.toml` 只含 `__STORAGE_ROOT__`；若 `~/.config/mise/config.toml` 已有本机定制的 `[tools]`，重配时只替换 `[env]` 段路径，保留 `[tools]` 不动：
+
+```bash
+sed "s|__STORAGE_ROOT__|${NEW_ROOT}|g" \
+    "$DOTFILES_ROOT/templates/mise_config.toml" > ~/.config/mise/config.toml
+```
+
+禁止在已部署文件中保留任何占位符。禁止 `export STORAGE_ROOT`。
+
+### 5d. 升级检测（已部署旧版本）
+
+部署前检查以下旧版本特征，若命中则告知用户该文件将被更新：
+- `~/.zshenv` 不含 `export DOTFILES_ROOT=` -> 旧版无此变量，重配 zshenv 后自动加入；同时检查 `~/.zimrc` 是否含 `zmodule $DOTFILES_ROOT`，若无则追加到末尾
+- `~/.zshenv` 的 `path=()` 数组缺少 `$HOME/.proto/bin` 或 `$HOME/.proto/shims` -> 旧版无 proto PATH，重配 zshenv 后自动修复
+- `~/.zprofile` 含 `export PATH="$HOME/.moon/bin` -> 旧版 moon PATH 字符串拼接，已迁移到 zshenv
+- `~/.zprofile` 含 `mise activate zsh --shims` 但不含 `[[ ! -o interactive ]]` -> 缺少交互式 shell 判断
+- `~/.zshrc` 含 `eval "$(direnv hook zsh)"` -> 旧版手动 eval，已迁移到 zimrc 的 `zmodule zimfw/direnv`；重配后运行 `zimfw install`
+- `~/.zshrc` 含大量配置内容（别名/函数/工具激活）-> 旧版未拆分，新版 zshrc 仅 zimfw 引导，全部内容已迁移到 `DOTFILES_ROOT/init.zsh`
+
+仓库路径相对于 DOTFILES_ROOT
 
 ## 6. 系统配置
 
@@ -170,8 +191,15 @@ mkdir -p NEW_ROOT/ollama/models
 
 ```bash
 curl -fsSL --create-dirs -o ~/.zim/zimfw.zsh https://github.com/zimfw/zimfw/releases/latest/download/zimfw.zsh
+# 安装所有模块（含 zimfw/direnv、Aloxaf/fzf-tab 等，本地 $DOTFILES_ROOT 模块跳过）
 zsh -c "source ~/.zim/zimfw.zsh install"
 ```
+
+验证 `DOTFILES_ROOT/init.zsh` 被正确加载：
+```bash
+exec zsh -c 'echo $DOTFILES_ROOT'
+```
+若输出为空，检查 `~/.zshenv` 中 `DOTFILES_ROOT` 是否已替换为绝对路径。
 
 ### 6d. 文件关联
 
@@ -194,37 +222,42 @@ chsh -s /opt/homebrew/bin/zsh
 
 逐项检查并报告通过/失败：
 1. brew doctor 无严重警告
-2. 14 个配置文件全部存在；`rg __STORAGE_ROOT__ $DOTFILES_ROOT` 仅命中仓库模板（已部署的 `~/.zshenv`、`~/.config/mise/config.toml` 无占位符）；无 `export STORAGE_ROOT`；`CODE_LANGUAGES_HOME` 为 `NEW_ROOT/Languages`
+2. 配置文件全部存在；`rg '__STORAGE_ROOT__|__DOTFILES_ROOT__' ~/.zshenv ~/.config/mise/config.toml` 无输出（已部署文件无占位符）；`rg '__STORAGE_ROOT__|__DOTFILES_ROOT__' $DOTFILES_ROOT --include='*.zsh' --include='*.toml' -l` 仅命中仓库模板文件；无 `export STORAGE_ROOT`；`CODE_LANGUAGES_HOME` 为 `NEW_ROOT/Languages`；`DOTFILES_ROOT` 为仓库绝对路径
 3. Ghostty 配置文件存在（~/Library/Application Support/com.mitchellh.ghostty/config）
 4. ~/.zsh_secrets 存在且权限为 600
 5. NEW_ROOT/Languages/ 下目录结构完整，NEW_ROOT/ollama/models 存在
-6. ~/.zim/zimfw.zsh 存在
+6. ~/.zim/zimfw.zsh 存在；zimfw 模块已安装（ls ~/.zim/modules/ 列出 direnv、fzf-tab 等）
 7. 当前默认 shell 为 /opt/homebrew/bin/zsh（dscl . -read ~/ UserShell）
 8. starship prompt 可用（command -v starship）
 9. infat 文件关联已应用（infat info --ext json 输出包含 Visual Studio Code）
 10. VSCode 扩展已安装（code --list-extensions | wc -l 大于 0）
+11. `exec zsh` 后验证：`echo $DOTFILES_ROOT` 输出仓库路径；`which proto` 输出 ~/.proto/bin/proto；`echo $PATH | tr ':' '\n' | grep -E 'proto|moon'` 命中 proto/bin、proto/shims、moon/bin
+12. `~/.zshrc` 仅含 zimfw 引导（不含别名/函数/工具激活）；`~/.zimrc` 含 `zmodule zimfw/direnv` 和 `zmodule $DOTFILES_ROOT`
+13. `~/.zprofile` 不含旧版 `export PATH="$HOME/.moon/bin`；mise --shims 行含 `[[ ! -o interactive ]]` 判断
 
 ## 8. 后续提醒
 
 告知用户：
 - 编辑 ~/.zsh_secrets 填入 API 密钥等敏感信息
-- 重启终端或执行 exec zsh 使配置生效
-- 运行 mise install 安装语言运行时（Node.js、Python 等）
+- 执行 `exec zsh` 使新配置生效（或重开终端）
+- 运行 `mise install` 安装语言运行时（Node.js、Rust、Go、uv）
 - 打开 VSCode 登录 GitHub 以激活 Copilot
+- 修改交互式 shell 配置（别名/函数/工具激活）直接编辑 `DOTFILES_ROOT/init.zsh`，重开终端即生效，无需重新部署
 ````
 
 ## 目录结构
 
 ```
 dotfiles/
+├── init.zsh                # 交互式 shell 全部配置（由 zimfw 作为本地模块加载，无需复制）
 ├── Brewfile                # Homebrew 软件清单
 ├── zsh/
-│   ├── zshenv              # 环境变量（所有 shell）
-│   ├── zshrc               # 交互式 shell 配置
-│   ├── zprofile            # 登录 shell 配置
-│   └── zimrc               # zimfw 插件列表
+│   ├── zshenv              # 环境变量模板（含 __STORAGE_ROOT__ / __DOTFILES_ROOT__ 占位符）
+│   ├── zshrc               # 仅 zimfw 引导（10 行），无任何配置
+│   ├── zprofile            # 登录 shell（Homebrew env / mise --shims）
+│   └── zimrc               # zimfw 插件列表（末尾含 zmodule $DOTFILES_ROOT）
 ├── ghostty/
-│   └── config                  # Ghostty 终端配置
+│   └── config              # Ghostty 终端配置
 ├── starship/
 │   └── starship.toml       # Starship 提示符配置
 ├── ripgrep/
@@ -241,30 +274,29 @@ dotfiles/
 ├── infat/
 │   └── config.toml         # macOS 文件关联配置
 └── templates/
-    ├── mise_config.toml     # mise 配置模板（部署到 ~/.config/mise/config.toml）
+    ├── mise_config.toml     # mise 配置模板（含 __STORAGE_ROOT__ 占位符）
     └── zsh_secrets.template # 敏感信息模板
 ```
 
 ## 文件映射
 
-仓库文件作为初始模板复制到系统路径，首次安装后本地文件独立于仓库。
-
-| 仓库文件 | 系统路径 |
-|---|---|
-| `zsh/zshenv` | `~/.zshenv` |
-| `zsh/zshrc` | `~/.zshrc` |
-| `zsh/zprofile` | `~/.zprofile` |
-| `zsh/zimrc` | `~/.zimrc` |
-| `ghostty/config` | `~/Library/Application Support/com.mitchellh.ghostty/config` |
-| `starship/starship.toml` | `~/.config/starship.toml` |
-| `ripgrep/config` | `~/.config/ripgrep/config` |
-| `yazi/keymap.toml` | `~/.config/yazi/keymap.toml` |
-| `git/ignore` | `~/.config/git/ignore` |
-| `git/config` | `~/.gitconfig` |
-| `atuin/config.toml` | `~/.config/atuin/config.toml` |
-| `templates/mise_config.toml` | `~/.config/mise/config.toml` |
-| `btop/btop.conf` | `~/.config/btop/btop.conf` |
-| `infat/config.toml` | `~/.config/infat/config.toml` |
+| 仓库文件 | 系统路径 | 部署方式 |
+|---|---|---|
+| `init.zsh` | 无（直接从仓库加载） | zimfw 本地模块，修改立即生效 |
+| `zsh/zshenv` | `~/.zshenv` | 双占位符替换后复制，重配覆盖 |
+| `zsh/zshrc` | `~/.zshrc` | 复制，重配覆盖 |
+| `zsh/zprofile` | `~/.zprofile` | 复制，重配覆盖 |
+| `zsh/zimrc` | `~/.zimrc` | 复制，重配覆盖 |
+| `ghostty/config` | `~/Library/Application Support/com.mitchellh.ghostty/config` | 复制，已存在则跳过 |
+| `starship/starship.toml` | `~/.config/starship.toml` | 复制，已存在则跳过 |
+| `ripgrep/config` | `~/.config/ripgrep/config` | 复制，已存在则跳过 |
+| `yazi/keymap.toml` | `~/.config/yazi/keymap.toml` | 复制，已存在则跳过 |
+| `git/ignore` | `~/.config/git/ignore` | 复制，已存在则跳过 |
+| `git/config` | `~/.gitconfig` | 复制，已存在则跳过 |
+| `atuin/config.toml` | `~/.config/atuin/config.toml` | 复制，已存在则跳过 |
+| `templates/mise_config.toml` | `~/.config/mise/config.toml` | 占位符替换后复制，重配覆盖 |
+| `btop/btop.conf` | `~/.config/btop/btop.conf` | 复制，已存在则跳过 |
+| `infat/config.toml` | `~/.config/infat/config.toml` | 复制，已存在则跳过 |
 
 ## Ghostty
 
@@ -284,7 +316,7 @@ Ghostty 使用纯文本配置文件 `~/Library/Application Support/com.mitchellh
 | `kctx` | `kubectx` | 切换 context |
 | `kns` | `kubens` | 切换 namespace |
 
-完整 kubectl 别名见 `zsh/zshrc`。
+完整 kubectl 别名见 `init.zsh`。
 
 ## 敏感信息
 
@@ -292,32 +324,38 @@ Ghostty 使用纯文本配置文件 `~/Library/Application Support/com.mitchellh
 
 ## 定制指引
 
-配置文件复制到系统路径后即为本地独立副本，直接编辑系统路径下的文件即可。
+| 想修改什么 | 编辑哪里 | 生效方式 |
+|---|---|---|
+| Shell 别名/函数/工具激活/prompt | `DOTFILES_ROOT/init.zsh` | 重开终端自动生效 |
+| zim 插件列表 | `DOTFILES_ROOT/zsh/zimrc` -> 重配部署后 `zimfw install` | `exec zsh` |
+| 环境变量 | `~/.zshenv`（本机），同步回仓库时改回占位符 | `exec zsh` |
+| 添加/移除软件 | `DOTFILES_ROOT/Brewfile`，然后 `brew bundle install` | 立即生效 |
+| VSCode 扩展 | `DOTFILES_ROOT/Brewfile` 的 `vscode` 段，然后 `brew bundle install` | 立即生效 |
+| 文件关联 | `~/.config/infat/config.toml`，然后 `infat` | 立即生效 |
+| 终端外观 | `~/Library/Application Support/com.mitchellh.ghostty/config` | `ghostty +reload-config` |
+| 提示符样式 | `~/.config/starship.toml` | 重开终端 |
+| API 密钥等敏感信息 | `~/.zsh_secrets` | `exec zsh` |
 
-| 想修改什么 | 编辑哪个文件 |
-|---|---|
-| 添加/移除软件 | `Brewfile`，然后 `brew bundle install --file=<dotfiles>/Brewfile` |
-| 清理系统中多余的软件 | `brew bundle cleanup --force --file=<dotfiles>/Brewfile` |
-| VSCode 扩展 | `Brewfile` 的 `vscode` 段，然后 `brew bundle install` |
-| 文件关联 | `~/.config/infat/config.toml`，然后 `infat` 应用 |
-| 终端外观 | `~/Library/Application Support/com.mitchellh.ghostty/config`，修改后 Cmd+Shift+, 生效 |
-| Shell 别名/函数 | `~/.zshrc` |
-| 环境变量 | `~/.zshenv` |
-| 提示符样式 | `~/.config/starship.toml` |
-| API 密钥等敏感信息 | `~/.zsh_secrets` |
+## 同步回仓库
 
-如需将本地改动同步回仓库模板，手动将修改后的文件复制回 dotfiles 仓库对应路径，然后 commit push。
+`init.zsh` 直接 commit，无需复制。
 
-**同步回仓库前（必做）**：在 dotfiles 仓库内执行 `rg '__STORAGE_ROOT__|/Volumes/Storage'`，除 README/CLAUDE 示例外不得出现本机绝对路径。将 `~/.zshenv`、`~/.config/mise/config.toml` 复制到仓库的 `zsh/zshenv`、`templates/mise_config.toml`，并把存储根绝对路径**全部**改回 `__STORAGE_ROOT__`，勿引入 `export STORAGE_ROOT`。
+对于已部署后在本机修改的文件（如 `~/.zshenv`），同步回仓库前必须：
+1. 将 `CODE_LANGUAGES_HOME` 绝对路径改回 `__STORAGE_ROOT__/Languages`
+2. 将 `OLLAMA_MODELS` 绝对路径改回 `__STORAGE_ROOT__/ollama/models`
+3. 将 `DOTFILES_ROOT` 绝对路径改回 `__DOTFILES_ROOT__`
+4. 运行 `rg '__STORAGE_ROOT__|__DOTFILES_ROOT__' $DOTFILES_ROOT --include='*.zsh' --include='*.toml'`，确认仅命中模板文件（zsh/zshenv、templates/mise_config.toml）
+5. 禁止 `export STORAGE_ROOT` 出现在任何提交文件中
 
 ## 占位符与路径职责
 
 | 范围 | 说明 |
 |---|---|
-| 仓库模板 | 仅 `zsh/zshenv`、`templates/mise_config.toml` 含 `__STORAGE_ROOT__`（禁止 `mise/config.toml`，否则在 dotfiles 目录内会被 mise 自动加载） |
-| 部署后 `~/.zshenv` | `CODE_LANGUAGES_HOME`、`OLLAMA_MODELS` 为绝对路径；其余语言/CLI 变量经 `$CODE_LANGUAGES_HOME` 派生 |
-| 部署后 `~/.config/mise/config.toml` | `[env]` 为绝对路径（供 shims/IDE）；`[tools]` 无存储路径 |
-| 不写入存储根的文件 | `zshrc`、`zprofile`、`zimrc`、`ghostty`、`starship`、`atuin`、`git/*`、`infat`、`btop`、`ripgrep`、`yazi` 等——依赖 shell 环境变量或固定系统路径 |
+| 仓库模板（含占位符） | 仅 `zsh/zshenv`（`__STORAGE_ROOT__` + `__DOTFILES_ROOT__`）、`templates/mise_config.toml`（`__STORAGE_ROOT__`）。禁止 `mise/config.toml`，否则 mise 在 dotfiles 目录内会自动加载 |
+| 部署后 `~/.zshenv` | `CODE_LANGUAGES_HOME`、`OLLAMA_MODELS` 为绝对路径；`DOTFILES_ROOT` 为仓库绝对路径；其余变量经 `$CODE_LANGUAGES_HOME` 派生 |
+| 部署后 `~/.config/mise/config.toml` | `[env]` 为绝对路径（供 shims/IDE）；`[tools]` 无路径 |
+| 不含占位符的文件 | `zshrc`（仅引导）、`zprofile`、`zimrc`、`ghostty`、`starship`、`atuin`、`git/*`、`infat`、`btop`、`ripgrep`、`yazi`——依赖 shell 环境变量或固定系统路径 |
+| 不复制直接加载 | `init.zsh`——由 zimfw 通过 `$DOTFILES_ROOT` 路径加载，无需部署 |
 | 存储根布局 | `NEW_ROOT/Code/`（代码仓库）、`NEW_ROOT/Languages/`（工具链）、`NEW_ROOT/ollama/`（模型） |
 
 ## 存储位置与迁移

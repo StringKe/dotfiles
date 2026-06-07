@@ -1,4 +1,13 @@
-# ~/.zprofile - 登录 shell 配置
+# ============================================================
+# ~/.zprofile - 登录 shell 配置（在 ~/.zshrc 之前加载）
+#
+# [AI 规则] 此文件只放登录时执行一次的配置，不要添加交互式工具。
+#   - 仅放：Homebrew 环境变量、mise shims（非交互式登录 shell 用）
+#   - 别名 / 函数 / prompt 初始化 -> DOTFILES_ROOT/init.zsh
+#   - 环境变量 / PATH -> dotfiles/zsh/zshenv
+#   - 此文件由 dotfiles 模板部署，修改会被重配覆盖
+#   - 模板路径：dotfiles/zsh/zprofile
+# ============================================================
 
 # ============================================================
 # Homebrew 初始化
@@ -8,14 +17,10 @@ if [[ -f /opt/homebrew/bin/brew ]]; then
 fi
 
 # ============================================================
-# moon - 构建系统
-# ============================================================
-export PATH="$HOME/.moon/bin:$PATH"
-
-# ============================================================
 # mise - 运行时版本管理器 (shims 模式)
-# 语言路径由 ~/.zshenv 与 ~/.config/mise/config.toml 提供；shims 供 IDE/GUI（勿在 dotfiles 仓库内放 mise/config.toml 模板）
+# 交互式 shell 由 init.zsh 的 mise activate 接管；
+# 此处 --shims 仅用于 IDE/GUI 等非交互式登录 shell（不加载 ~/.zshrc 的进程）
 # ============================================================
-if command -v mise &>/dev/null; then
+if command -v mise &>/dev/null && [[ ! -o interactive ]]; then
     eval "$(mise activate zsh --shims)"
 fi
