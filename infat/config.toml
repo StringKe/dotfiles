@@ -1,191 +1,19 @@
 # infat - macOS 文件关联声明式配置
 # 使用方法: infat --config ~/.config/infat/config.toml
-# 文档: https://github.com/philocalyst/infat
+#
+# 注意：macOS 26 (Tahoe) 的 LaunchServices 仅允许为系统已注册 UTI 的扩展名设置
+# 默认应用，其他扩展名会报 error -50。此配置仅保留实际有效的项。
 
-# ============================================================
-# 文件扩展名关联
-# ============================================================
 [extensions]
+json  = "Visual Studio Code"
+yaml  = "Visual Studio Code"
+xml   = "Visual Studio Code"
+csv   = "Visual Studio Code"
+html  = "Visual Studio Code"
+svg   = "Visual Studio Code"
+ts    = "Visual Studio Code"
+md    = "Visual Studio Code"
 
-# --- 通用数据格式 ---
-json      = "Visual Studio Code"
-jsonc     = "Visual Studio Code"
-json5     = "Visual Studio Code"
-jsonl     = "Visual Studio Code"
-geojson   = "Visual Studio Code"
-yaml      = "Visual Studio Code"
-yml       = "Visual Studio Code"
-toml      = "Visual Studio Code"
-xml       = "Visual Studio Code"
-plist     = "Visual Studio Code"
-csv       = "Visual Studio Code"
-tsv       = "Visual Studio Code"
-ini       = "Visual Studio Code"
-cfg       = "Visual Studio Code"
-conf      = "Visual Studio Code"
-properties = "Visual Studio Code"
-env       = "Visual Studio Code"
-
-# --- Web 前端 ---
-html      = "Visual Studio Code"
-htm       = "Visual Studio Code"
-css       = "Visual Studio Code"
-scss      = "Visual Studio Code"
-sass      = "Visual Studio Code"
-less      = "Visual Studio Code"
-svg       = "Visual Studio Code"
-
-# --- JavaScript / TypeScript / Node.js / Bun / Deno ---
-js        = "Visual Studio Code"
-mjs       = "Visual Studio Code"
-cjs       = "Visual Studio Code"
-jsx       = "Visual Studio Code"
-ts        = "Visual Studio Code"
-mts       = "Visual Studio Code"
-cts       = "Visual Studio Code"
-tsx       = "Visual Studio Code"
-vue       = "Visual Studio Code"
-svelte    = "Visual Studio Code"
-astro     = "Visual Studio Code"
-
-# --- Python ---
-py        = "Visual Studio Code"
-pyi       = "Visual Studio Code"
-pyw       = "Visual Studio Code"
-pyx       = "Visual Studio Code"
-pxd       = "Visual Studio Code"
-ipynb     = "Visual Studio Code"
-
-# --- Rust ---
-rs        = "Visual Studio Code"
-
-# --- Go ---
-go        = "Visual Studio Code"
-mod       = "Visual Studio Code"
-sum       = "Visual Studio Code"
-work      = "Visual Studio Code"
-
-# --- Java / JVM / JDK ---
-java      = "Visual Studio Code"
-kt        = "Visual Studio Code"
-kts       = "Visual Studio Code"
-scala     = "Visual Studio Code"
-sc        = "Visual Studio Code"
-groovy    = "Visual Studio Code"
-gradle    = "Visual Studio Code"
-clj       = "Visual Studio Code"
-cljs      = "Visual Studio Code"
-
-# --- Ruby ---
-rb        = "Visual Studio Code"
-erb       = "Visual Studio Code"
-rake      = "Visual Studio Code"
-gemspec   = "Visual Studio Code"
-
-# --- PHP ---
-php       = "Visual Studio Code"
-blade     = "Visual Studio Code"
-
-# --- C / C++ / Objective-C ---
-c         = "Visual Studio Code"
-h         = "Visual Studio Code"
-cpp       = "Visual Studio Code"
-cxx       = "Visual Studio Code"
-cc        = "Visual Studio Code"
-hpp       = "Visual Studio Code"
-hxx       = "Visual Studio Code"
-m         = "Visual Studio Code"
-mm        = "Visual Studio Code"
-
-# --- Swift ---
-swift     = "Visual Studio Code"
-
-# --- Shell ---
-sh        = "Visual Studio Code"
-bash      = "Visual Studio Code"
-zsh       = "Visual Studio Code"
-fish      = "Visual Studio Code"
-
-# --- 其它语言 ---
-lua       = "Visual Studio Code"
-zig       = "Visual Studio Code"
-nim       = "Visual Studio Code"
-dart      = "Visual Studio Code"
-ex        = "Visual Studio Code"
-exs       = "Visual Studio Code"
-erl       = "Visual Studio Code"
-hrl       = "Visual Studio Code"
-hs        = "Visual Studio Code"
-ml        = "Visual Studio Code"
-mli       = "Visual Studio Code"
-r         = "Visual Studio Code"
-R         = "Visual Studio Code"
-pl        = "Visual Studio Code"
-pm        = "Visual Studio Code"
-v         = "Visual Studio Code"
-sol       = "Visual Studio Code"
-wasm      = "Visual Studio Code"
-
-# --- 标记 / 文档 ---
-md        = "Visual Studio Code"
-mdx       = "Visual Studio Code"
-rst       = "Visual Studio Code"
-adoc      = "Visual Studio Code"
-tex       = "Visual Studio Code"
-typ       = "Visual Studio Code"
-org       = "Visual Studio Code"
-
-# --- DevOps / IaC ---
-tf        = "Visual Studio Code"
-tfvars    = "Visual Studio Code"
-hcl       = "Visual Studio Code"
-nomad     = "Visual Studio Code"
-pkr       = "Visual Studio Code"
-vagrant   = "Visual Studio Code"
-
-# --- Docker / Container ---
-dockerfile = "Visual Studio Code"
-
-# --- CI/CD ---
-jenkinsfile = "Visual Studio Code"
-
-# --- 模板引擎 ---
-ejs       = "Visual Studio Code"
-hbs       = "Visual Studio Code"
-mustache  = "Visual Studio Code"
-njk       = "Visual Studio Code"
-pug       = "Visual Studio Code"
-j2        = "Visual Studio Code"
-jinja     = "Visual Studio Code"
-jinja2    = "Visual Studio Code"
-tmpl      = "Visual Studio Code"
-tpl       = "Visual Studio Code"
-
-# --- 数据库 ---
-sql       = "Visual Studio Code"
-prisma    = "Visual Studio Code"
-graphql   = "Visual Studio Code"
-gql       = "Visual Studio Code"
-
-# --- 构建 / 包管理配置 ---
-lock      = "Visual Studio Code"
-cmake     = "Visual Studio Code"
-
-# --- 日志 / 纯文本 ---
-log       = "Visual Studio Code"
-txt       = "Visual Studio Code"
-text      = "Visual Studio Code"
-diff      = "Visual Studio Code"
-patch     = "Visual Studio Code"
-
-# --- 协议 / 序列化 ---
-proto     = "Visual Studio Code"
-avro      = "Visual Studio Code"
-thrift    = "Visual Studio Code"
-
-# ============================================================
-# UTI 超类型关联（兜底）
-# ============================================================
 [types]
 sourcecode = "Visual Studio Code"
 plain-text = "Visual Studio Code"
@@ -193,9 +21,6 @@ json       = "Visual Studio Code"
 xml        = "Visual Studio Code"
 yaml       = "Visual Studio Code"
 
-# ============================================================
-# URL Scheme 关联
-# ============================================================
 [schemes]
-vscode     = "Visual Studio Code"
+vscode          = "Visual Studio Code"
 vscode-insiders = "Visual Studio Code"
