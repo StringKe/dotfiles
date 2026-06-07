@@ -266,3 +266,15 @@ path=(
 )
 
 export PATH
+
+# ============================================================
+# fpath 修复 - Homebrew zsh bottle relocation 缺陷
+# 部分 zsh bottle 编译进的默认 fpath 含带完整版本号的目录（如
+# share/zsh/5.9.1/functions），relocation 丢失 patch 号后指向不存在的路径，
+# 导致 is-at-least / compinit 等核心函数无法 autoload、zimfw 启动报版本错误。
+# prepend 版本无关的稳定 symlink 目录修复（目录不存在则跳过）。
+# ============================================================
+typeset -U fpath
+if [[ -d /opt/homebrew/share/zsh/functions ]]; then
+    fpath=(/opt/homebrew/share/zsh/functions $fpath)
+fi
