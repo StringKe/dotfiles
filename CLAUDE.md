@@ -43,6 +43,7 @@ mise install
 
 **直接从仓库加载（无需复制）的文件：**
 - `init.zsh` - zimfw 本地模块入口，包含全部交互式 shell 配置。通过 `~/.zimrc` 中的 `zmodule $DOTFILES_ROOT` 加载。**修改 `init.zsh` 立即生效，重开终端即可。**
+- `git/config` - 通用 Git 配置（gpg/commit/credential 等，无身份）。通过本机 `~/.gitconfig` 的 `[include] path` 引用，**不整体复制**。本机 `~/.gitconfig` 只放 `[user]`（身份/签名密钥）和 `[filter "lfs"]` 等机器特有字段。修改仓库 `git/config` 立即对所有 include 它的机器生效。
 
 ### Shell 加载顺序
 
@@ -99,6 +100,8 @@ mise install
 ### Git 签名
 
 使用 1Password SSH 签名（`gpg.format = ssh`，`gpg.ssh.program` 指向 1Password）。commit 默认启用 GPG 签名。GitHub credential 通过 `gh auth git-credential` 管理。
+
+签名机制和 credential 配置在仓库 `git/config`（通用），本机 `~/.gitconfig` 通过 `[include] path` 引用；`[user]` 身份和 `signingkey` 留在本机主文件，不进仓库。修改通用配置编辑 `git/config` 即对所有机器生效。
 
 ### Ghostty 终端配置
 

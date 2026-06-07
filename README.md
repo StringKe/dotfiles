@@ -110,7 +110,7 @@ brew bundle install --file=$DOTFILES_ROOT/Brewfile
 | ripgrep/config | ~/.config/ripgrep/config | 跳过已存在（询问 diff） |
 | yazi/keymap.toml | ~/.config/yazi/keymap.toml | 跳过已存在（询问 diff） |
 | git/ignore | ~/.config/git/ignore | 跳过已存在（询问 diff） |
-| git/config | ~/.gitconfig | 跳过已存在（询问 diff） |
+| git/config | ~/.gitconfig | 见 5e（[include] 引用，不整体复制） |
 | atuin/config.toml | ~/.config/atuin/config.toml | 跳过已存在（询问 diff） |
 | btop/btop.conf | ~/.config/btop/btop.conf | 跳过已存在（询问 diff） |
 | infat/config.toml | ~/.config/infat/config.toml | 跳过已存在（询问 diff） |
@@ -142,6 +142,35 @@ sed "s|__STORAGE_ROOT__|${NEW_ROOT}|g" \
 - `~/.zprofile` 含 `mise activate zsh --shims` 但不含 `[[ ! -o interactive ]]` -> 缺少交互式判断
 - `~/.zshrc` 含 `eval "$(direnv hook zsh)"` -> 已迁移到 `zmodule zimfw/direnv`；重配后运行 `zimfw install`
 - `~/.zshrc` 含大量别名/函数/工具激活 -> 旧版未拆分，新版已迁移到 `init.zsh`
+- `~/.gitconfig` 整体复制自仓库（含通用字段但无 `[include]`）-> 改为 include 引用（见 5e），本机身份/签名独立保留
+
+### 5e. git/config（include 引用，不整体复制）
+
+`git/config` 是通用 Git 配置（gpg/commit/credential 等），不含身份和签名密钥。不整体复制覆盖 `~/.gitconfig`，而由本机 `~/.gitconfig` 通过 `[include]` 引用：仓库改动 live 生效，本机 `[user]` 签名密钥独立保留，credential helper 多值（先空值重置再设 gh）原样生效。
+
+本机 `~/.gitconfig` 形态（只放机器特有字段 + include）：
+
+```ini
+[user]
+	name = ...
+	email = ...
+	signingkey = ssh-ed25519 ...
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+[include]
+	path = DOTFILES_ROOT/git/config
+```
+
+git 不展开环境变量，`path` 须为仓库 git/config 的绝对路径（用实际 DOTFILES_ROOT 替换）。
+
+部署逻辑：
+- 首次（无 `~/.gitconfig`）：从现有 `git config --global` 读 user.name/email/signingkey（无则询问），生成主文件含 `[user]` + `[include] path`
+- 已存在：保留本机所有字段，删除与仓库重复的通用字段段（gpg/commit/core/init/safe/credential），末尾确保 `[include] path` 指向仓库 git/config
+
+修改通用 Git 配置直接编辑仓库 `git/config`，对所有 include 它的机器立即生效。
 
 ## 6. 系统配置
 
