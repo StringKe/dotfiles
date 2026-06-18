@@ -10,10 +10,21 @@
 # ============================================================
 
 # ============================================================
-# Homebrew 初始化
+# Homebrew 初始化（带缓存）
+# Apple Silicon 上 `brew shellenv` 单次 fork 耗时 ~1.8s（Ruby 启动慢），
+# 每次新开 shell 都要等。其输出对同一 brew 版本是固定的（HOMEBREW_PREFIX
+# / HOMEBREW_CELLAR / PATH / MANPATH / INFOPATH），可安全缓存到
+# ~/.cache/brew-shellenv.zsh。brew 二进制更新（升级 / 重装）时缓存
+# 自动失效（mtime 比较），重生即可。
 # ============================================================
-if [[ -f /opt/homebrew/bin/brew ]]; then
-    eval "$(/opt/homebrew/bin/brew shellenv)"
+if [[ -x /opt/homebrew/bin/brew ]]; then
+    _brew_env_cache="${XDG_CACHE_HOME:-$HOME/.cache}/brew-shellenv.zsh"
+    if [[ ! -f $_brew_env_cache || /opt/homebrew/bin/brew -nt $_brew_env_cache ]]; then
+        mkdir -p "${_brew_env_cache:h}"
+        /opt/homebrew/bin/brew shellenv >| "$_brew_env_cache"
+    fi
+    source "$_brew_env_cache"
+    unset _brew_env_cache
 fi
 
 # ============================================================
