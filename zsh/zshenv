@@ -16,6 +16,15 @@
 export DOTFILES_ROOT="__DOTFILES_ROOT__"
 
 # ============================================================
+# Profile 调试（ZSH_PROFILE=1 启用，平时无任何开销）
+# 详见 debug/profile.zsh 顶部用法
+# ============================================================
+if [[ -n $ZSH_PROFILE && -f $DOTFILES_ROOT/debug/profile.zsh ]]; then
+    source $DOTFILES_ROOT/debug/profile.zsh
+    _prof "zshenv start (after DOTFILES_ROOT)"
+fi
+
+# ============================================================
 # 存储根：以下两行 export 在仓库内为占位符，部署时由 AI 全文替换为绝对路径（见 README）。
 # 禁止 export STORAGE_ROOT 环境变量。固定子目录：Code/、Languages/、ollama/
 # 换位置见 README「存储位置与迁移」
@@ -278,3 +287,5 @@ typeset -U fpath
 if [[ -d /opt/homebrew/share/zsh/functions ]]; then
     fpath=(/opt/homebrew/share/zsh/functions $fpath)
 fi
+
+(( $+functions[_prof] )) && _prof "zshenv DONE"

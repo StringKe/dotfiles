@@ -8,6 +8,8 @@
 #   模板路径：dotfiles/zsh/zshrc
 # ============================================================
 
+(( $+functions[_prof] )) && _prof "zshrc start"
+
 # 须在 zim 模块加载前设置
 ZSH_AUTOSUGGEST_MANUAL_REBIND=1
 fpath=(~/.zsh/completions $fpath)
@@ -24,4 +26,6 @@ if [[ ! ${ZIM_HOME}/init.zsh -nt ${ZDOTDIR:-${HOME}}/.zimrc ]]; then
     source ${ZIM_HOME}/zimfw.zsh init -q
 fi
 
+(( $+functions[_prof] )) && _prof "before zimfw init.zsh"
 source ${ZIM_HOME}/init.zsh
+(( $+functions[_prof] )) && _prof "zshrc DONE (all zim modules + init.zsh loaded)"
