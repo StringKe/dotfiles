@@ -37,9 +37,11 @@ install_btop() {
         [[ -e $f ]] || continue
         cp "$f" "$dst_dir/$(basename "$f")"
         log "installed btop -> $dst_dir/$(basename "$f")"
-        ((count++))
+        count=$((count + 1))
     done
-    (( count == 0 )) && log "no .theme files in $src_dir"
+    if (( count == 0 )); then
+        log "no .theme files in $src_dir"
+    fi
 }
 
 case "${1:-all}" in
