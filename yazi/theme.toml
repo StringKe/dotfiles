@@ -2,109 +2,109 @@
 # 部署目标: ~/.config/yazi/theme.toml
 # AI 部署时复制此文件（仅当目标不存在），不修改本文件。
 #
-# GitHub Light Colorblind 配色（橙色替代红色，蓝色替代绿色）
-# 参考 https://primer.style/foundations/color/overview
+# 用 ANSI 颜色名而非 hex：颜色由终端主题渲染（ghostty 的 GitHub Light Colorblind
+# 已把 ANSI red 映射为橙色，green 为蓝色，自动色盲友好）。
+# 不写死 hex 避免和终端主题双重映射。
 
 [mgr]
-cwd = { fg = "#0969da" }
+cwd = { fg = "blue" }
 
 hovered         = { reversed = true }
 preview_hovered = { underline = true }
 
-find_keyword  = { fg = "#9a6700", bold = true, italic = true, underline = true }
-find_position = { fg = "#bf3989", bg = "reset", bold = true, italic = true }
+find_keyword  = { fg = "yellow", bold = true, italic = true, underline = true }
+find_position = { fg = "magenta", bg = "reset", bold = true, italic = true }
 
-# 文件标记：橙/蓝/紫，避免红绿
-marker_copied   = { fg = "#0969da", bg = "#0969da" }   # blue (copy)
-marker_cut      = { fg = "#b35900", bg = "#b35900" }   # orange (cut, 替代 red)
-marker_marked   = { fg = "#1b7c83", bg = "#1b7c83" }   # teal
-marker_selected = { fg = "#8250df", bg = "#8250df" }   # purple
+marker_copied   = { fg = "green",   bg = "green" }
+marker_cut      = { fg = "red",     bg = "red" }
+marker_marked   = { fg = "cyan",    bg = "cyan" }
+marker_selected = { fg = "magenta", bg = "magenta" }
 
 tab_active   = { reversed = true }
 tab_inactive = {}
 tab_width    = 1
 
-count_copied   = { fg = "#ffffff", bg = "#0969da" }
-count_cut      = { fg = "#ffffff", bg = "#b35900" }
-count_selected = { fg = "#ffffff", bg = "#8250df" }
+count_copied   = { fg = "white", bg = "green" }
+count_cut      = { fg = "white", bg = "red" }
+count_selected = { fg = "white", bg = "magenta" }
 
 border_symbol = "│"
-border_style  = { fg = "#d1d9e0" }
+border_style  = { fg = "darkgray" }
 
 [mode]
-normal_main = { fg = "#ffffff", bg = "#0969da", bold = true }
-normal_alt  = { fg = "#0969da", bg = "#d1d9e0" }
+normal_main = { fg = "white", bg = "blue",    bold = true }
+normal_alt  = { fg = "blue",  bg = "darkgray" }
 
-select_main = { fg = "#ffffff", bg = "#8250df", bold = true }
-select_alt  = { fg = "#8250df", bg = "#d1d9e0" }
+select_main = { fg = "white", bg = "magenta",  bold = true }
+select_alt  = { fg = "magenta", bg = "darkgray" }
 
-unset_main = { fg = "#ffffff", bg = "#b35900", bold = true }
-unset_alt  = { fg = "#b35900", bg = "#d1d9e0" }
+unset_main = { fg = "white", bg = "red",     bold = true }
+unset_alt  = { fg = "red",   bg = "darkgray" }
 
 [status]
 separator_open  = ""
 separator_close = ""
-separator_style = { fg = "#d1d9e0", bg = "#d1d9e0" }
+separator_style = { fg = "darkgray", bg = "darkgray" }
 
-progress_label  = { fg = "#ffffff", bold = true }
-progress_normal = { fg = "#0969da", bg = "#d1d9e0" }
-progress_error  = { fg = "#b35900", bg = "#d1d9e0" }   # orange 替代 red
+progress_label  = { fg = "white", bold = true }
+progress_normal = { fg = "blue",  bg = "darkgray" }
+progress_error  = { fg = "red",   bg = "darkgray" }
 
-permissions_t = { fg = "#0969da" }
-permissions_r = { fg = "#9a6700" }
-permissions_w = { fg = "#b35900" }   # orange 替代 red
-permissions_x = { fg = "#1b7c83" }   # teal 替代 green
-permissions_s = { fg = "#6e7781" }
+permissions_t = { fg = "blue" }
+permissions_r = { fg = "yellow" }
+permissions_w = { fg = "red" }
+permissions_x = { fg = "green" }
+permissions_s = { fg = "darkgray" }
 
 [input]
-border   = { fg = "#0969da" }
+border   = { fg = "blue" }
 title    = {}
 value    = {}
 selected = { reversed = true }
 
 [confirm]
-border       = { fg = "#0969da" }
-title        = { fg = "#0969da" }
+border       = { fg = "blue" }
+title        = { fg = "blue" }
 content      = {}
 list         = {}
 btn_yes      = { reversed = true }
 btn_no       = {}
-btn_labels   = [{ fg = "#0969da" }, { fg = "#b35900" }]
+btn_labels   = [{ fg = "blue" }, { fg = "red" }]
 
 [pick]
-border   = { fg = "#0969da" }
-active   = { fg = "#bf3989", bold = true }
+border   = { fg = "blue" }
+active   = { fg = "magenta", bold = true }
 inactive = {}
 
 [cmp]
-border         = { fg = "#0969da" }
+border         = { fg = "blue" }
 active         = { reversed = true }
 inactive       = {}
-icon_file      = { fg = "#1b7c83" }
-icon_folder    = { fg = "#0969da" }
-icon_command   = { fg = "#9a6700" }
+icon_file      = { fg = "cyan" }
+icon_folder    = { fg = "blue" }
+icon_command   = { fg = "yellow" }
 
 [tasks]
-border  = { fg = "#0969da" }
+border  = { fg = "blue" }
 title   = {}
 hovered = { underline = true }
 
 [which]
-mask            = { bg = "#f6f8fa" }
-cand            = { fg = "#1b7c83" }
-rest            = { fg = "#57606a" }
-desc            = { fg = "#bf3989" }
+mask            = {}
+cand            = { fg = "cyan" }
+rest            = { fg = "darkgray" }
+desc            = { fg = "magenta" }
 separator       = "  "
-separator_style = { fg = "#d1d9e0" }
+separator_style = { fg = "darkgray" }
 
 [help]
-on      = { fg = "#bf3989" }
-run     = { fg = "#1b7c83" }
+on      = { fg = "magenta" }
+run     = { fg = "cyan" }
 desc    = {}
 hovered = { reversed = true, bold = true }
-footer  = { fg = "#d1d9e0", bg = "#24292f" }
+footer  = { fg = "darkgray", bg = "white" }
 
 [notify]
-title_info = { fg = "#1b7c83" }
-title_warn = { fg = "#9a6700" }
-title_error = { fg = "#b35900" }   # orange 替代 red
+title_info  = { fg = "cyan" }
+title_warn  = { fg = "yellow" }
+title_error = { fg = "red" }

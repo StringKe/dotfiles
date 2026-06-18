@@ -34,14 +34,9 @@ fi
 # fzf - 模糊搜索（键绑定：CTRL-T / CTRL-R / ALT-C）
 # 注意：fzf-tab（Tab 补全 UI）由 zimrc 中的 zmodule Aloxaf/fzf-tab 加载，
 #   此处 fzf --zsh 提供的是额外的键绑定和 ** glob 展开，两者互补不冲突。
-# GitHub Light Colorblind 配色（orange 替代 red，blue 替代 green，避红绿混淆）
+# fzf 不设 --color hex：默认走终端 ANSI 16 色，由终端主题
+# (ghostty 的 GitHub Light Colorblind) 渲染为色盲友好配色。
 # ============================================================
-export FZF_DEFAULT_OPTS="\
---color=bg+:#f6f8fa,bg:#ffffff,spinner:#0969da,hl:#b35900 \
---color=fg:#24292f,header:#0969da,info:#8250df,pointer:#0969da \
---color=marker:#8250df,fg+:#24292f,prompt:#0969da,hl+:#b35900 \
---color=selected-bg:#d1d9e0 \
---color=border:#d1d9e0,label:#24292f"
 if command -v fzf &>/dev/null; then
     source <(fzf --zsh)
 fi

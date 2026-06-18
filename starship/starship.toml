@@ -8,41 +8,8 @@ add_newline        = false
 command_timeout    = 10000
 continuation_prompt = "[.](bright-black) "
 
-# GitHub Light Colorblind palette
-# 用橙色（#b35900）代替红色，紫色（#8250df）/蓝色（#0969da）代替绿色，
-# 避开红绿色盲混淆。
-palette = "github_light_colorblind"
-
-[palettes.github_light_colorblind]
-# 主色调
-text      = "#24292f"
-subtext1  = "#57606a"
-subtext0  = "#6e7781"
-overlay2  = "#6e7781"
-overlay1  = "#8c959f"
-overlay0  = "#8c959f"
-surface2  = "#d1d9e0"
-surface1  = "#d1d9e0"
-surface0  = "#f6f8fa"
-base      = "#ffffff"
-mantle    = "#f6f8fa"
-crust     = "#eaeef2"
-
-# 强调色（colorblind 友好）
-red       = "#b35900"     # orange 替代 red
-maroon    = "#8a4600"     # darker orange
-peach     = "#b35900"
-rosewater = "#b35900"
-flamingo  = "#b35900"
-yellow    = "#9a6700"
-green     = "#0969da"     # blue 替代 green
-teal      = "#1b7c83"
-sky       = "#0969da"
-sapphire  = "#218bff"
-blue      = "#0969da"
-mauve     = "#8250df"
-lavender  = "#a475f9"
-pink      = "#bf3989"
+# 不指定 palette / 不重定义颜色：starship symbols 用 ANSI 颜色名 (red/green/blue 等)，
+# 由终端 (ghostty 的 GitHub Light Colorblind 主题) 渲染为色盲友好配色。
 
 # ── 提示符 ──────────────────────────────────────────────────
 [character]
