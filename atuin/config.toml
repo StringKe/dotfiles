@@ -1,4 +1,15 @@
+# [TEMPLATE] atuin/config.toml
+# 部署目标: ~/.config/atuin/config.toml
+# AI 部署时复制此文件（仅当目标不存在），不修改本文件。
+
 enter_accept = true
+style = "compact"
+inline_height = 12
+show_preview = true
 
 [sync]
 records = true
+
+# 主题（Catppuccin Latte）
+[theme]
+name = "catppuccin-latte"

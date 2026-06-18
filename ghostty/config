@@ -1,10 +1,14 @@
+# [TEMPLATE] ghostty/config
+# 部署目标: ~/Library/Application Support/com.mitchellh.ghostty/config
+# AI 部署时复制此文件，不修改本文件。
+
 # 字体
 font-family = JetBrainsMonoNL Nerd Font Mono
 font-size = 15
 font-thicken = true
 
-# 主题
-theme = Ultra Dark
+# 主题（Catppuccin Latte，与其他工具对齐）
+theme = catppuccin-latte
 
 # 窗口
 window-height = 48
