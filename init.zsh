@@ -1,14 +1,18 @@
 # ============================================================
-# dotfiles 交互式 shell 配置
-# 由 zimfw 作为本地模块加载（zmodule $DOTFILES_ROOT）
+# [TEMPLATE] init.zsh - 交互式 shell 全部配置
 #
-# [AI 规则] 交互式 shell 的全部配置在此文件，不要修改 ~/.zshrc。
-#   环境变量 / PATH -> dotfiles/zsh/zshenv
-#   登录 shell     -> dotfiles/zsh/zprofile
-#   zim 插件列表   -> dotfiles/zsh/zimrc
+# 部署目标: ~/.zsh/init.zsh
+#   - 首次部署: bin/deploy.sh init <STORAGE_ROOT>
+#   - 编辑后同步: bin/deploy.sh sync
+#
+# AI 规则:
+#   - 此文件是仓库模板，AI 部署时复制到 ~/.zsh/init.zsh，不修改本文件。
+#   - 由 ~/.zshrc 末尾 `source ~/.zsh/init.zsh` 加载。
+#   - 仓库主人编辑此文件后跑 `bin/deploy.sh sync`。
+#   - 别名 / 函数 / 工具激活 / fzf-tab zstyle / prompt 全在此。
 # ============================================================
 
-(( $+functions[_prof] )) && _prof "init.zsh start (zimfw 本地模块)"
+(( $+functions[_prof] )) && _prof "init.zsh start"
 
 # ============================================================
 # OrbStack - 容器 / Linux VM 集成
@@ -30,7 +34,14 @@ fi
 # fzf - 模糊搜索（键绑定：CTRL-T / CTRL-R / ALT-C）
 # 注意：fzf-tab（Tab 补全 UI）由 zimrc 中的 zmodule Aloxaf/fzf-tab 加载，
 #   此处 fzf --zsh 提供的是额外的键绑定和 ** glob 展开，两者互补不冲突。
+# Catppuccin Latte 配色（参考 https://github.com/catppuccin/fzf）
 # ============================================================
+export FZF_DEFAULT_OPTS="\
+--color=bg+:#ccd0da,bg:#eff1f5,spinner:#dc8a78,hl:#d20f39 \
+--color=fg:#4c4f69,header:#d20f39,info:#8839ef,pointer:#dc8a78 \
+--color=marker:#7287fd,fg+:#4c4f69,prompt:#8839ef,hl+:#d20f39 \
+--color=selected-bg:#bcc0cc \
+--color=border:#9ca0b0,label:#4c4f69"
 if command -v fzf &>/dev/null; then
     source <(fzf --zsh)
 fi

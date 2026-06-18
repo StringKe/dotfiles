@@ -1,11 +1,14 @@
 # ============================================================
-# ~/.zshrc - 交互式 shell 引导（仅 zimfw 初始化）
+# [TEMPLATE] zsh/zshrc - 交互式 shell 引导
 #
-# [AI 规则] 此文件只做 zimfw 引导，不要在此添加任何配置。
-#   交互式 shell 配置（别名/函数/工具激活/prompt）-> DOTFILES_ROOT/init.zsh
-#   zim 插件列表 -> dotfiles/zsh/zimrc -> ~/.zimrc
-#   环境变量 / PATH -> dotfiles/zsh/zshenv -> ~/.zshenv
-#   模板路径：dotfiles/zsh/zshrc
+# 部署目标: ~/.zshrc（由 bin/deploy.sh 复制）
+#
+# AI 规则:
+#   - 此文件是仓库模板。AI 部署时复制到 ~/.zshrc，不修改本文件。
+#   - 此文件只负责 zimfw 引导 + 加载 ~/.zsh/init.zsh，不放具体配置。
+#   - 别名/函数/工具激活 -> dotfiles/init.zsh -> ~/.zsh/init.zsh
+#   - zim 插件列表 -> dotfiles/zsh/zimrc -> ~/.zimrc
+#   - 环境变量 / PATH -> dotfiles/zsh/zshenv -> ~/.zshenv
 # ============================================================
 
 (( $+functions[_prof] )) && _prof "zshrc start"
@@ -14,18 +17,21 @@
 ZSH_AUTOSUGGEST_MANUAL_REBIND=1
 fpath=(~/.zsh/completions $fpath)
 
-# zimfw 引导
+# zimfw 引导（首次自动下载）
 ZIM_HOME=~/.zim
-
 if [[ ! -e ${ZIM_HOME}/zimfw.zsh ]]; then
     curl -fsSL --create-dirs -o ${ZIM_HOME}/zimfw.zsh \
         https://github.com/zimfw/zimfw/releases/latest/download/zimfw.zsh
 fi
-
 if [[ ! ${ZIM_HOME}/init.zsh -nt ${ZDOTDIR:-${HOME}}/.zimrc ]]; then
     source ${ZIM_HOME}/zimfw.zsh init -q
 fi
 
 (( $+functions[_prof] )) && _prof "before zimfw init.zsh"
 source ${ZIM_HOME}/init.zsh
-(( $+functions[_prof] )) && _prof "zshrc DONE (all zim modules + init.zsh loaded)"
+(( $+functions[_prof] )) && _prof "after zimfw init.zsh"
+
+# 交互式配置（部署时复制到 ~/.zsh/init.zsh）
+[[ -f ~/.zsh/init.zsh ]] && source ~/.zsh/init.zsh
+
+(( $+functions[_prof] )) && _prof "zshrc DONE"
