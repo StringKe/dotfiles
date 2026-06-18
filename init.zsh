@@ -8,12 +8,15 @@
 #   zim 插件列表   -> dotfiles/zsh/zimrc
 # ============================================================
 
+(( $+functions[_prof] )) && _prof "init.zsh start (zimfw 本地模块)"
+
 # ============================================================
 # OrbStack - 容器 / Linux VM 集成
 # ============================================================
 if [[ -f ~/.orbstack/shell/init.zsh ]]; then
     source ~/.orbstack/shell/init.zsh 2>/dev/null || true
 fi
+(( $+functions[_prof] )) && _prof "OrbStack"
 
 # ============================================================
 # mise - 运行时版本管理器（全局默认）
@@ -21,6 +24,7 @@ fi
 if command -v mise &>/dev/null; then
     eval "$(mise activate zsh)"
 fi
+(( $+functions[_prof] )) && _prof "mise activate"
 
 # ============================================================
 # fzf - 模糊搜索（键绑定：CTRL-T / CTRL-R / ALT-C）
@@ -30,6 +34,7 @@ fi
 if command -v fzf &>/dev/null; then
     source <(fzf --zsh)
 fi
+(( $+functions[_prof] )) && _prof "fzf --zsh"
 
 # ============================================================
 # Atuin - 历史搜索（替换 CTRL-R）
@@ -37,6 +42,7 @@ fi
 if command -v atuin &>/dev/null; then
     eval "$(atuin init zsh)"
 fi
+(( $+functions[_prof] )) && _prof "atuin init"
 
 # ============================================================
 # Zoxide - 智能目录跳转（`cd` 替换为 zoxide）
@@ -44,6 +50,33 @@ fi
 if command -v zoxide &>/dev/null; then
     eval "$(zoxide init zsh --cmd cd)"
 fi
+(( $+functions[_prof] )) && _prof "zoxide init"
+
+# ============================================================
+# direnv - 目录级环境变量管理
+# 自定义为 chpwd-only：避免 direnv 官方 hook 同时挂 precmd 导致每次命令
+# 都跑 `direnv export zsh`（265ms fork）。代价：编辑 .envrc 后需 `cd .` 重触发。
+# 启动时仅在当前目录链上有 .envrc/.env 才跑一次（避免无谓 fork）。
+# ============================================================
+if command -v direnv &>/dev/null; then
+    [[ -z $NO_COLOR && -z $DIRENV_LOG_FORMAT ]] && export DIRENV_LOG_FORMAT=$'\E[2mdirenv: %s\E[0m'
+    _direnv_hook() {
+        trap -- '' SIGINT
+        eval "$(direnv export zsh)"
+        trap - SIGINT
+    }
+    autoload -Uz add-zsh-hook
+    add-zsh-hook chpwd _direnv_hook
+    # 启动时检查当前目录链是否需要加载 envrc（避免 home 等无 envrc 目录被 fork）
+    () {
+        local dir=$PWD
+        while [[ $dir != / && -n $dir ]]; do
+            [[ -f $dir/.envrc || -f $dir/.env ]] && { _direnv_hook; return }
+            dir=${dir:h}
+        done
+    }
+fi
+(( $+functions[_prof] )) && _prof "direnv hook (chpwd-only)"
 
 # ============================================================
 # fzf-tab 样式配置
@@ -174,3 +207,4 @@ fi
 if command -v starship &>/dev/null; then
     eval "$(starship init zsh)"
 fi
+(( $+functions[_prof] )) && _prof "starship init (init.zsh DONE)"
