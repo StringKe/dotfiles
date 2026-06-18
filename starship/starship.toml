@@ -8,36 +8,41 @@ add_newline        = false
 command_timeout    = 10000
 continuation_prompt = "[.](bright-black) "
 
-# Catppuccin Latte palette
-palette = "catppuccin_latte"
+# GitHub Light Colorblind palette
+# 用橙色（#b35900）代替红色，紫色（#8250df）/蓝色（#0969da）代替绿色，
+# 避开红绿色盲混淆。
+palette = "github_light_colorblind"
 
-[palettes.catppuccin_latte]
-rosewater = "#dc8a78"
-flamingo  = "#dd7878"
-pink      = "#ea76cb"
-mauve     = "#8839ef"
-red       = "#d20f39"
-maroon    = "#e64553"
-peach     = "#fe640b"
-yellow    = "#df8e1d"
-green     = "#40a02b"
-teal      = "#179299"
-sky       = "#04a5e5"
-sapphire  = "#209fb5"
-blue      = "#1e66f5"
-lavender  = "#7287fd"
-text      = "#4c4f69"
-subtext1  = "#5c5f77"
-subtext0  = "#6c6f85"
-overlay2  = "#7c7f93"
-overlay1  = "#8c8fa1"
-overlay0  = "#9ca0b0"
-surface2  = "#acb0be"
-surface1  = "#bcc0cc"
-surface0  = "#ccd0da"
-base      = "#eff1f5"
-mantle    = "#e6e9ef"
-crust     = "#dce0e8"
+[palettes.github_light_colorblind]
+# 主色调
+text      = "#24292f"
+subtext1  = "#57606a"
+subtext0  = "#6e7781"
+overlay2  = "#6e7781"
+overlay1  = "#8c959f"
+overlay0  = "#8c959f"
+surface2  = "#d1d9e0"
+surface1  = "#d1d9e0"
+surface0  = "#f6f8fa"
+base      = "#ffffff"
+mantle    = "#f6f8fa"
+crust     = "#eaeef2"
+
+# 强调色（colorblind 友好）
+red       = "#b35900"     # orange 替代 red
+maroon    = "#8a4600"     # darker orange
+peach     = "#b35900"
+rosewater = "#b35900"
+flamingo  = "#b35900"
+yellow    = "#9a6700"
+green     = "#0969da"     # blue 替代 green
+teal      = "#1b7c83"
+sky       = "#0969da"
+sapphire  = "#218bff"
+blue      = "#0969da"
+mauve     = "#8250df"
+lavender  = "#a475f9"
+pink      = "#bf3989"
 
 # ── 提示符 ──────────────────────────────────────────────────
 [character]

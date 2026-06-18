@@ -1,0 +1,57 @@
+# GitHub Light Colorblind theme for btop
+# 配色来源: ghostty 内置 'GitHub Light Colorblind' + primer/primitives
+# orange (#b35900) 替代 red, blue (#0969da) 替代 green，避红绿色盲混淆
+
+theme[main_bg]="#ffffff"
+theme[main_fg]="#24292f"
+theme[title]="#24292f"
+theme[hi_fg]="#0969da"
+theme[selected_bg]="#d1d9e0"
+theme[selected_fg]="#0969da"
+theme[inactive_fg]="#6e7781"
+theme[graph_text]="#57606a"
+theme[proc_misc]="#0969da"
+
+theme[cpu_box]="#d1d9e0"
+theme[mem_box]="#d1d9e0"
+theme[net_box]="#d1d9e0"
+theme[proc_box]="#d1d9e0"
+theme[div_line]="#d1d9e0"
+
+# 温度 / CPU / Mem 渐变：blue -> orange (避红绿)
+theme[temp_start]="#0969da"
+theme[temp_mid]="#9a6700"
+theme[temp_end]="#b35900"
+
+theme[cpu_start]="#0969da"
+theme[cpu_mid]="#9a6700"
+theme[cpu_end]="#b35900"
+
+# free 反向：高 = blue（健康），低 = orange（警告）
+theme[free_start]="#b35900"
+theme[free_mid]="#9a6700"
+theme[free_end]="#0969da"
+
+theme[cached_start]="#1b7c83"
+theme[cached_mid]="#218bff"
+theme[cached_end]="#0969da"
+
+theme[available_start]="#b35900"
+theme[available_mid]="#9a6700"
+theme[available_end]="#0969da"
+
+theme[used_start]="#0969da"
+theme[used_mid]="#9a6700"
+theme[used_end]="#b35900"
+
+theme[download_start]="#0969da"
+theme[download_mid]="#218bff"
+theme[download_end]="#8250df"
+
+theme[upload_start]="#9a6700"
+theme[upload_mid]="#b35900"
+theme[upload_end]="#bf3989"
+
+theme[process_start]="#0969da"
+theme[process_mid]="#8250df"
+theme[process_end]="#b35900"

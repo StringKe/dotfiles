@@ -173,20 +173,23 @@ dotfiles/
 
 机制定义在仓库 `git/config`，本机 `~/.gitconfig` 通过 `[include]` 引用；`[user]` 身份和 `signingkey` 在本机主文件，不进仓库。修改通用配置编辑 `git/config` 即对所有机器生效。
 
-## 主题：Catppuccin Latte（统一 light 配色）
+## 主题：GitHub Light Colorblind（统一 light 配色 + 色盲友好）
 
-所有终端工具 + VS Code 统一使用 Catppuccin Latte：
+所有终端工具 + VS Code 统一使用 GitHub Light Colorblind 配色。
+**橙色 (#b35900) 替代红色，蓝色 (#0969da) / 紫色 (#8250df) 替代绿色**，避免红绿色盲混淆。
 
 | 工具 | 配置位置 | 主题来源 |
 |---|---|---|
-| ghostty | `ghostty/config` | 内置（`theme = catppuccin-latte`） |
-| starship | `starship/starship.toml` | 手写 palette |
-| bat | `bat/config` | 内置（`--theme="Catppuccin Latte"`） |
-| fzf | `init.zsh` 内 `FZF_DEFAULT_OPTS` | 手写色 |
-| btop | `btop/btop.conf` 引用 + `bin/install-themes.sh btop` 下载 | catppuccin/btop |
+| ghostty | `ghostty/config` | 内置（`theme = GitHub Light Colorblind`） |
+| starship | `starship/starship.toml` | 手写 palette（github_light_colorblind） |
+| bat | `bat/config` | `--theme="ansi"` 跟随终端 ANSI 配色 |
+| fzf | `init.zsh` 内 `FZF_DEFAULT_OPTS` | 手写 |
+| btop | `btop/btop.conf` 引用 + `bin/install-themes.sh btop` 从仓库 `btop/themes/` 复制 | 仓库自带主题文件 |
 | yazi | `yazi/theme.toml` | 手写 |
-| atuin | `atuin/config.toml` | `name = "catppuccin-latte"` |
-| vscode | Brewfile `Catppuccin.catppuccin-vsc` 扩展 | 扩展自带 |
+| atuin | `atuin/config.toml` | 不指定主题，fallback 跟随终端 ANSI |
+| vscode | Brewfile `GitHub.github-vscode-theme` 扩展，VS Code 设置选 "GitHub Light Colorblind (Beta)" | 扩展自带 |
+
+修改主题：编辑对应配置文件（ghostty/starship/btop/yazi/init.zsh fzf 段），跑 `bin/deploy.sh init <ROOT>` 重新部署 + `bin/install-themes.sh` 复制 btop 主题。
 
 ## 调试 / Profile
 

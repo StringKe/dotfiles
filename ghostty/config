@@ -7,8 +7,8 @@ font-family = JetBrainsMonoNL Nerd Font Mono
 font-size = 15
 font-thicken = true
 
-# 主题（Catppuccin Latte，与其他工具对齐）
-theme = Catppuccin Latte
+# 主题（GitHub Light Colorblind，与其他工具对齐）
+theme = GitHub Light Colorblind
 
 # 窗口
 window-height = 48

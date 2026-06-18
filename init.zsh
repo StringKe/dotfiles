@@ -34,14 +34,14 @@ fi
 # fzf - 模糊搜索（键绑定：CTRL-T / CTRL-R / ALT-C）
 # 注意：fzf-tab（Tab 补全 UI）由 zimrc 中的 zmodule Aloxaf/fzf-tab 加载，
 #   此处 fzf --zsh 提供的是额外的键绑定和 ** glob 展开，两者互补不冲突。
-# Catppuccin Latte 配色（参考 https://github.com/catppuccin/fzf）
+# GitHub Light Colorblind 配色（orange 替代 red，blue 替代 green，避红绿混淆）
 # ============================================================
 export FZF_DEFAULT_OPTS="\
---color=bg+:#ccd0da,bg:#eff1f5,spinner:#dc8a78,hl:#d20f39 \
---color=fg:#4c4f69,header:#d20f39,info:#8839ef,pointer:#dc8a78 \
---color=marker:#7287fd,fg+:#4c4f69,prompt:#8839ef,hl+:#d20f39 \
---color=selected-bg:#bcc0cc \
---color=border:#9ca0b0,label:#4c4f69"
+--color=bg+:#f6f8fa,bg:#ffffff,spinner:#0969da,hl:#b35900 \
+--color=fg:#24292f,header:#0969da,info:#8250df,pointer:#0969da \
+--color=marker:#8250df,fg+:#24292f,prompt:#0969da,hl+:#b35900 \
+--color=selected-bg:#d1d9e0 \
+--color=border:#d1d9e0,label:#24292f"
 if command -v fzf &>/dev/null; then
     source <(fzf --zsh)
 fi

@@ -10,6 +10,5 @@ show_preview = true
 [sync]
 records = true
 
-# 主题（Catppuccin Latte）
-[theme]
-name = "catppuccin-latte"
+# 主题：atuin 18.x 没有 GitHub Light Colorblind 内置主题，
+# fallback 到 atuin 默认（会跟随终端 ANSI 配色，即 ghostty 的 GitHub Light Colorblind）

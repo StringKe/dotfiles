@@ -4,7 +4,7 @@ macOS 开发环境配置的**只读模板仓库**。
 
 仓库内文件是模板源，通过 `bin/deploy.sh` 复制（+ 占位符替换）到用户 home。仓库不被用户 shell 直接读取（唯一例外：`git/config` 由 `~/.gitconfig` 的 `[include]` 引用）。
 
-主题统一 **Catppuccin Latte**（light），覆盖 ghostty / starship / btop / yazi / atuin / bat / fzf / vscode。
+主题统一 **GitHub Light Colorblind**（橙色替代红，蓝色替代绿，避红绿色盲混淆），覆盖 ghostty / starship / btop / yazi / atuin / bat / fzf / vscode。
 
 ## 前置准备
 

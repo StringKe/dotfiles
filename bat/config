@@ -2,9 +2,10 @@
 # 部署目标: ~/.config/bat/config
 # AI 部署时复制此文件（仅当目标不存在），不修改本文件。
 
-# 主题（Catppuccin Latte，与其他工具对齐）
-# bat 自带 Catppuccin Latte 主题，无需额外下载
---theme="Catppuccin Latte"
+# 主题：bat 没有内置 GitHub Light Colorblind 主题。
+# 用 "ansi" 让 bat 走终端 ANSI 配色（自动跟随 ghostty 的 GitHub Light Colorblind），
+# 保证视觉一致 + colorblind 安全（语法高亮颜色由 ANSI 16 色推导）。
+--theme="ansi"
 
 # 行号 + Git 修改状态条
 --style="numbers,changes,header"

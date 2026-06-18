@@ -239,10 +239,12 @@ vscode "denoland.vscode-deno"                 # Deno
 vscode "oven.bun-vscode"                      # Bun
 
 # ============================================================
-# VS Code 扩展 - 主题（Catppuccin Latte，与终端工具对齐）
+# VS Code 扩展 - 主题（GitHub Light Colorblind，与终端工具对齐）
+# 在 VS Code 设置 -> Color Theme 选 "GitHub Light Colorblind (Beta)"
+# 图标主题保留 Material Icon Theme（GitHub 无官方图标主题）
 # ============================================================
-vscode "Catppuccin.catppuccin-vsc"            # Catppuccin 颜色主题
-vscode "Catppuccin.catppuccin-vsc-icons"      # Catppuccin 图标主题
+vscode "GitHub.github-vscode-theme"           # GitHub 官方主题包（含 Light Colorblind）
+vscode "PKief.material-icon-theme"            # 文件图标主题
 
 # ============================================================
 # 字体
