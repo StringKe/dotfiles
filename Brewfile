@@ -192,7 +192,6 @@ cask "consul"
 # ============================================================
 vscode "editorconfig.editorconfig"            # EditorConfig
 vscode "eamodio.gitlens"                      # Git 增强
-vscode "github.copilot-chat"                  # GitHub Copilot
 vscode "dbaeumer.vscode-eslint"               # ESLint
 vscode "esbenp.prettier-vscode"               # Prettier 格式化
 vscode "streetsidesoftware.code-spell-checker" # 拼写检查
@@ -232,7 +231,7 @@ vscode "golang.go"                            # Go
 # VS Code 扩展 - Web 前端 (TS / Vue / Svelte / Astro / Tailwind / Bun / Deno)
 # ============================================================
 vscode "bradlc.vscode-tailwindcss"            # Tailwind CSS
-vscode "Vue.volar"                            # Vue
+vscode "vue.volar"                            # Vue
 vscode "svelte.svelte-vscode"                 # Svelte
 vscode "astro-build.astro-vscode"             # Astro
 vscode "denoland.vscode-deno"                 # Deno
@@ -243,8 +242,8 @@ vscode "oven.bun-vscode"                      # Bun
 # 在 VS Code 设置 -> Color Theme 选 "GitHub Light Colorblind (Beta)"
 # 图标主题保留 Material Icon Theme（GitHub 无官方图标主题）
 # ============================================================
-vscode "GitHub.github-vscode-theme"           # GitHub 官方主题包（含 Light Colorblind）
-vscode "PKief.material-icon-theme"            # 文件图标主题
+vscode "github.github-vscode-theme"           # GitHub 官方主题包（含 Light Colorblind）
+vscode "pkief.material-icon-theme"            # 文件图标主题
 
 # ============================================================
 # 字体
