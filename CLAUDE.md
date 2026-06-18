@@ -131,6 +131,7 @@ dotfiles/
 | `infat/config.toml` | `~/.config/infat/config.toml` | 仅首次 | 直接复制 |
 | `git/ignore` | `~/.config/git/ignore` | 仅首次 | 直接复制 |
 | `git/config` | (不复制) | - | `~/.gitconfig` 加 `[include] path = ...` |
+| `vscode/settings.json` | `~/Library/Application Support/Code/User/settings.json` | jq 深合并 | 本地字段保留, 仓库同名 key 覆盖 |
 | `Brewfile` | (不复制) | - | `brew bundle install --file=...` 直接读 |
 
 ## Shell 加载顺序
@@ -187,7 +188,7 @@ dotfiles/
 | btop | `btop/btop.conf` 引用 + `bin/install-themes.sh btop` 从仓库 `btop/themes/` 复制 | 仓库自带主题文件 |
 | yazi | `yazi/theme.toml` | 手写 |
 | atuin | `atuin/config.toml` | 不指定主题，fallback 跟随终端 ANSI |
-| vscode | Brewfile `GitHub.github-vscode-theme` 扩展，VS Code 设置选 "GitHub Light Colorblind (Beta)" | 扩展自带 |
+| vscode | Brewfile `GitHub.github-vscode-theme` 扩展 + `vscode/settings.json` 自动启用 `workbench.colorTheme: "GitHub Light Colorblind"` | 扩展自带 |
 
 修改主题：编辑对应配置文件（ghostty/starship/btop/yazi/init.zsh fzf 段），跑 `bin/deploy.sh init <ROOT>` 重新部署 + `bin/install-themes.sh` 复制 btop 主题。
 

@@ -1,0 +1,29 @@
+{
+  "_": "[TEMPLATE] vscode/settings.json - 仅放主题 + 字体 + 全局基础项, deploy 时 jq 合并到本机已有 settings.json (本机字段保留, 同名 key 被仓库覆盖)",
+
+  "workbench.colorTheme": "GitHub Light Colorblind",
+  "workbench.iconTheme": "material-icon-theme",
+  "workbench.preferredLightColorTheme": "GitHub Light Colorblind",
+  "workbench.preferredDarkColorTheme": "GitHub Dark Colorblind",
+
+  "editor.fontFamily": "'JetBrainsMonoNL Nerd Font Mono', 'Maple Mono NF CN', Menlo, Monaco, monospace",
+  "terminal.integrated.fontFamily": "'JetBrainsMonoNL Nerd Font Mono', 'Maple Mono NF CN', Menlo, monospace",
+
+  "editor.fontLigatures": true,
+  "editor.minimap.enabled": false,
+  "editor.smoothScrolling": true,
+  "editor.cursorSmoothCaretAnimation": "on",
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": "active",
+
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+
+  "explorer.compactFolders": false,
+  "extensions.autoUpdate": true,
+  "extensions.ignoreRecommendations": false,
+
+  "telemetry.telemetryLevel": "off",
+  "update.mode": "default"
+}

@@ -59,6 +59,32 @@ deploy_if_absent() {
     log "wrote $dst"
 }
 
+deploy_vscode_settings() {
+    local src="$DOTFILES_ROOT/vscode/settings.json"
+    local dst="$HOME/Library/Application Support/Code/User/settings.json"
+    [[ ! -f $src ]] && return
+    mkdir -p "$(dirname "$dst")"
+    if [[ -f $dst ]]; then
+        if command -v jq >/dev/null 2>&1; then
+            local tmp="$dst.tmp.$$"
+            # 深合并: 本地原有字段保留, 仓库同名 key 覆盖本地 (仓库放后面)
+            # 用 //{} 兜底 settings.json 为空对象
+            if jq -s '(.[0] // {}) * (.[1] // {})' "$dst" "$src" > "$tmp" 2>/dev/null; then
+                mv "$tmp" "$dst"
+                log "merged vscode settings -> $dst (jq deep merge, 本地字段保留)"
+            else
+                rm -f "$tmp"
+                log "warn: jq merge 失败 (settings.json 可能含 jsonc 注释), 跳过 vscode settings"
+            fi
+        else
+            log "skip vscode settings (jq 未安装, 不自动 merge; 请手动加 仓库 vscode/settings.json 的字段)"
+        fi
+    else
+        cp "$src" "$dst"
+        log "wrote vscode settings -> $dst (首次创建, 含 GitHub Light Colorblind 主题)"
+    fi
+}
+
 setup_gitconfig() {
     local include_path="$DOTFILES_ROOT/git/config"
     local gitconfig="$HOME/.gitconfig"
@@ -118,6 +144,9 @@ cmd_init() {
     deploy_if_absent infat/config.toml     "$HOME/.config/infat/config.toml"
     [[ -f $DOTFILES_ROOT/bat/config ]]      && deploy_if_absent bat/config "$HOME/.config/bat/config"
     deploy_if_absent git/ignore            "$HOME/.config/git/ignore"
+
+    # vscode settings.json (jq 合并到本机, 本地字段保留, 仓库主题字段覆盖同名 key)
+    deploy_vscode_settings
 
     # git/config 走 [include]，不整体复制
     setup_gitconfig

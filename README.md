@@ -236,6 +236,7 @@ dotfiles/
 ├── yazi/                   [TEMPLATE] 文件管理器
 ├── atuin/                  [TEMPLATE] 历史搜索
 ├── bat/                    [TEMPLATE] cat 替代
+├── vscode/settings.json    [TEMPLATE] 主题 + 字体 + 基础项（jq merge 到本机）
 ├── ripgrep/                [TEMPLATE] grep 替代
 ├── infat/                  [TEMPLATE] 文件关联
 ├── git/                    [TEMPLATE] git 通用配置（include 引用，不复制）
