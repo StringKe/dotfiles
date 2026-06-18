@@ -1,112 +1,205 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+本仓库是 macOS 开发环境配置的**只读模板**。本文档定义 AI 在本仓库内工作时的角色与边界。
 
-## 仓库概述
+## 仓库定位（重要）
 
-macOS 开发环境 dotfiles 模板仓库。大部分配置文件**复制到系统路径**，不使用 symlink。例外：`init.zsh` 不复制，而是由 zimfw 作为本地模块直接从仓库路径加载（通过 `zmodule $DOTFILES_ROOT`），修改后立即生效，无需重新部署。
+**本仓库 ≠ 用户的 home 配置**。
 
-## 常用命令
+- 仓库内所有 `zsh/*` / `ghostty/config` / `starship/starship.toml` / `templates/*` 等都是**模板源**。
+- 实际生效的是 `~/.zshenv` / `~/.config/...` 等用户 home 内的**部署产物**。
+- 部署通过 `bin/deploy.sh` 完成（复制 + sed 替换占位符），仓库内文件不直接被用户 shell 读取（唯一例外见下）。
+
+**唯一例外**: `git/config` 通过 `~/.gitconfig` 的 `[include] path` 引用，不复制。修改即对所有引用它的机器生效。
+
+## AI 角色边界（HARD RULES）
+
+AI 进入本仓库时，必须先确定属于哪个角色：
+
+### CONSUMER 模式 - 部署 / 升级 / 验证
+
+触发场景：用户要"初始化新机器" / "重新部署 dotfiles" / "切换存储位置" / "拉最新更新到本机"。
+
+允许：
+- 读仓库任何文件
+- 调用 `bin/deploy.sh` / `bin/install-themes.sh`
+- 修改 `~` 内的部署产物（`~/.zshenv` / `~/.config/...`）
+- 运行 `brew bundle install` / `zimfw install` / `mise install` 等外部工具
+
+**禁止（违反立即停止）**：
+- `git add` / `git commit` / `git push` 操作仓库
+- 在仓库内新建任何文件（含临时脚本 / patch / .env / 备份）
+- 修改仓库内任何文件（含"改一下 zsh/zshenv 适配本机"）
+- 把部署版的绝对路径（如 `/Volumes/Storage/...`）回写到 `zsh/zshenv` 模板
+- 用 `sed -i` / `Edit` 工具碰仓库目录下任何路径
+
+### MAINTAINER 模式 - 功能开发 / 演进
+
+触发场景：用户明确说"修改仓库" / "添加 X 功能" / "提交" / "演进 dotfiles"。
+
+允许：
+- 编辑仓库内任何模板文件
+- 编辑 `bin/*` 部署脚本
+- 编辑文档（README / CLAUDE.md）
+- 编辑后 `git add` / `git commit` / `git push`（仅当用户明确说"提交"）
+
+**禁止**：
+- 把部署版绝对路径回写到模板（必须保持 `__STORAGE_ROOT__` / `__DOTFILES_ROOT__` 占位符）
+- 在模板里嵌入本机特有信息（账号、密钥、机器名）
+- 把 `~/.zsh_secrets` 等敏感文件内容回写到 `templates/zsh_secrets.template`
+
+### 模式不清时
+
+如果不确定属于哪个角色，**默认 CONSUMER**（只读仓库），并询问用户："这是部署到本机，还是修改仓库功能？"
+
+## 部署流程（CONSUMER 用）
 
 ```bash
-# 安装/同步所有软件
-brew bundle install --file=$DOTFILES_ROOT/Brewfile
+# 首次部署或重配（STORAGE_ROOT 是绝对路径，如 /Volumes/Storage 或 $HOME）
+bin/deploy.sh init /Volumes/Storage
 
-# 清理系统中 Brewfile 未声明的软件
-brew bundle cleanup --force --file=$DOTFILES_ROOT/Brewfile
+# 编辑 init.zsh 后同步到 ~/.zsh/init.zsh
+bin/deploy.sh sync
 
-# 安装/更新 zim 模块（新增模块后必须运行）
-zimfw install
+# 安装第三方主题文件（btop / atuin）
+bin/install-themes.sh
 
-# 重新生成 zim 初始化脚本（zimrc 变化后必须运行，或重开终端自动触发）
-zimfw init
-
-# 应用文件关联配置
-infat --config ~/.config/infat/config.toml
-
-# 安装语言运行时（mise 管理的 Node.js / Rust / Go / uv）
-mise install
+# 验证部署状态
+bin/deploy.sh check
 ```
 
-## 架构
-
-### 部署模型
-
-仓库是模板源，通过 README 中的 AI 引导 prompt 执行初始化。
-
-**复制部署（copy-once）的文件：**
-- `zsh/zshenv` -> `~/.zshenv`（存储根路径展开后复制，重配时覆盖）
-- `zsh/zprofile` -> `~/.zprofile`（重配时覆盖）
-- `zsh/zshrc` -> `~/.zshrc`（仅 zimfw 引导，极少变动，重配时覆盖）
-- `zsh/zimrc` -> `~/.zimrc`（插件列表，重配时覆盖）
-- 所有非 zsh 工具配置（ghostty、starship、atuin、git、btop、infat、yazi、ripgrep）-> 各自系统路径
-
-**直接从仓库加载（无需复制）的文件：**
-- `init.zsh` - zimfw 本地模块入口，包含全部交互式 shell 配置。通过 `~/.zimrc` 中的 `zmodule $DOTFILES_ROOT` 加载。**修改 `init.zsh` 立即生效，重开终端即可。**
-- `git/config` - 通用 Git 配置（gpg/commit/credential 等，无身份）。通过本机 `~/.gitconfig` 的 `[include] path` 引用，**不整体复制**。本机 `~/.gitconfig` 只放 `[user]`（身份/签名密钥）和 `[filter "lfs"]` 等机器特有字段。修改仓库 `git/config` 立即对所有 include 它的机器生效。
-
-### Shell 加载顺序
-
-```
-~/.zshenv      <- 所有 shell（含非交互式脚本）: 环境变量 / PATH / DOTFILES_ROOT
-~/.zprofile    <- 登录 shell（在 zshrc 前）: Homebrew env / mise --shims（IDE 专用）
-~/.zshrc       <- 交互式 shell: 仅 zimfw 引导（10 行），不含任何配置
-  ~/.zimrc     <- zimfw 模块列表（由 zshrc 内的 zimfw 加载）
-    -> zim 模块按顺序初始化: environment, input, completions, fzf-tab, direnv, ...
-    -> zmodule $DOTFILES_ROOT -> dotfiles/init.zsh 被加载（交互式 shell 全部配置在此）
+部署后续命令：
+```bash
+brew bundle install --file=$DOTFILES_ROOT/Brewfile   # 软件安装
+zimfw install                                         # zsh 模块
+mise install                                          # 语言运行时
+infat --config ~/.config/infat/config.toml            # 文件关联
+chsh -s /opt/homebrew/bin/zsh                         # 默认 shell
 ```
 
-**各文件职责：**
-- `~/.zshenv`：环境变量和 PATH，任何地方都能用的值（DOTFILES_ROOT / CODE_LANGUAGES_HOME / GOPATH 等）
-- `~/.zprofile`：Homebrew shellenv + mise --shims（仅非交互式登录 shell）
-- `~/.zshrc`：zimfw 引导，不放其他任何内容
-- `dotfiles/init.zsh`：所有交互式配置（OrbStack / mise activate / fzf / atuin / zoxide / fzf-tab 样式 / kubectl 别名 / eza/fd 别名 / rm 包装 / y() / secrets / starship）
+## 仓库结构
 
-### proto + mise 工具版本管理
+```
+dotfiles/
+├── bin/
+│   ├── deploy.sh           部署主脚本（CONSUMER 用）
+│   └── install-themes.sh   第三方主题下载
+├── debug/
+│   └── profile.zsh         zsh 启动 profile 调试（ZSH_PROFILE=1 启用）
+├── zsh/                    [TEMPLATE] zsh 入口文件
+│   ├── zshenv              环境变量 + PATH（含两个占位符）
+│   ├── zprofile            登录 shell（brew shellenv + mise --shims）
+│   ├── zshrc               zimfw 引导 + source ~/.zsh/init.zsh
+│   └── zimrc               zim 模块声明
+├── init.zsh                [TEMPLATE] 交互式 shell 全部配置
+├── templates/
+│   ├── mise_config.toml    mise 全局配置（含 __STORAGE_ROOT__）
+│   └── zsh_secrets.template 空白密钥模板
+├── ghostty/config          [TEMPLATE] 终端配置
+├── starship/starship.toml  [TEMPLATE] 提示符
+├── btop/btop.conf          [TEMPLATE] 系统监控
+├── yazi/                   [TEMPLATE] 文件管理器
+├── atuin/config.toml       [TEMPLATE] 历史搜索
+├── bat/config              [TEMPLATE] cat 替代
+├── ripgrep/config          [TEMPLATE] grep 替代
+├── infat/config.toml       [TEMPLATE] 文件关联
+├── git/                    [TEMPLATE] git 通用配置（include 引用，不复制）
+├── Brewfile                软件清单（直接被 brew bundle 读，不部署）
+├── CLAUDE.md               本文件（AI 规则）
+└── README.md               使用文档
+```
 
-**分工原则：**
-- `mise activate zsh`（在 `init.zsh` 中）：全局运行时版本管理（node / go / rust / python），通过 precmd hook 在每次 prompt 前重置 PATH，始终优先
-- `~/.proto/bin`（在 PATH 中）：proto CLI 本身
-- `~/.proto/shims`（在 PATH 中）：proto 管理的工具（atlas / buf / cosign / sops 等 proto-only 工具）
-  - shims 是智能 shim：有 `.prototools` 配置时用配置版本，无配置时自动回退到 PATH 其余位置的同名工具（即 mise 版本）
-  - mise 的 precmd hook 对共享工具（node / go）始终优先于 proto shims
+## 部署目标对照
 
-**不使用 `proto activate`** 的原因：proto activate 只注册 `chpwd_functions`，而 mise activate 同时注册 `chpwd_functions`（追加到末位）和 `precmd_functions`。mise 的 precmd hook 在每次 Enter 前重置 PATH，永远覆盖 proto 的 chpwd 效果。proto-shim 内置 fallback 逻辑，不依赖 `proto activate` 设置的 `__ORIG_PATH`。
+| 仓库文件 | 部署目标 | 覆盖策略 | 处理方式 |
+|---|---|---|---|
+| `zsh/zshenv` | `~/.zshenv` | 重配覆盖 | sed 替换占位符 |
+| `zsh/zshrc` | `~/.zshrc` | 重配覆盖 | 直接复制 |
+| `zsh/zprofile` | `~/.zprofile` | 重配覆盖 | 直接复制 |
+| `zsh/zimrc` | `~/.zimrc` | 重配覆盖 | 直接复制 |
+| `init.zsh` | `~/.zsh/init.zsh` | `sync` 同步 | 直接复制 |
+| `templates/mise_config.toml` | `~/.config/mise/config.toml` | 重配覆盖 | sed 替换占位符 |
+| `templates/zsh_secrets.template` | `~/.zsh_secrets` | 仅首次 | 复制 + chmod 600 |
+| `ghostty/config` | `~/Library/Application Support/com.mitchellh.ghostty/config` | 仅首次 | 直接复制 |
+| `starship/starship.toml` | `~/.config/starship.toml` | 仅首次 | 直接复制 |
+| `btop/btop.conf` | `~/.config/btop/btop.conf` | 仅首次 | 直接复制 |
+| `yazi/keymap.toml` | `~/.config/yazi/keymap.toml` | 仅首次 | 直接复制 |
+| `yazi/theme.toml` | `~/.config/yazi/theme.toml` | 仅首次 | 直接复制 |
+| `atuin/config.toml` | `~/.config/atuin/config.toml` | 仅首次 | 直接复制 |
+| `bat/config` | `~/.config/bat/config` | 仅首次 | 直接复制 |
+| `ripgrep/config` | `~/.config/ripgrep/config` | 仅首次 | 直接复制 |
+| `infat/config.toml` | `~/.config/infat/config.toml` | 仅首次 | 直接复制 |
+| `git/ignore` | `~/.config/git/ignore` | 仅首次 | 直接复制 |
+| `git/config` | (不复制) | - | `~/.gitconfig` 加 `[include] path = ...` |
+| `Brewfile` | (不复制) | - | `brew bundle install --file=...` 直接读 |
 
-### 存储根占位符
+## Shell 加载顺序
 
-`zsh/zshenv` 和 `templates/mise_config.toml` 含两类占位符，部署时由 AI 全文替换：
+```
+~/.zshenv      所有 shell             环境变量 / PATH / DOTFILES_ROOT
+~/.zprofile    登录 shell（zshrc 前）  Homebrew env / mise shims
+~/.zshrc       交互式 shell            zimfw 引导 -> source ~/.zsh/init.zsh
+  ~/.zimrc     由 zimfw 读取            zim 模块列表
+    zim 模块: environment, input, completions, fzf-tab, syntax-highlighting, autosuggestions
+  ~/.zsh/init.zsh                      交互式配置（部署版 init.zsh）
+```
 
-| 占位符 | 替换为 | 影响变量 |
+## 占位符规则
+
+`zsh/zshenv` 和 `templates/mise_config.toml` 含两类占位符，**仅在部署时**由 `bin/deploy.sh init` 替换：
+
+| 占位符 | 部署时替换为 | 影响变量 |
 |---|---|---|
-| `__STORAGE_ROOT__` | 用户选择的存储根绝对路径 | CODE_LANGUAGES_HOME、OLLAMA_MODELS |
-| `__DOTFILES_ROOT__` | dotfiles 仓库绝对路径 | DOTFILES_ROOT |
+| `__STORAGE_ROOT__` | 用户选的存储根绝对路径 | `CODE_LANGUAGES_HOME`, `OLLAMA_MODELS` |
+| `__DOTFILES_ROOT__` | 仓库克隆的绝对路径 | `DOTFILES_ROOT` |
 
-**规则：**
-- 禁止 `export STORAGE_ROOT`（无此变量）
-- `DOTFILES_ROOT` 是合法变量（zimfw 模块加载需要）
-- `rg '__STORAGE_ROOT__|__DOTFILES_ROOT__'` 检查仓库：只应命中模板文件，不应出现在已部署的 `~/.zshenv`
+**绝不**：
+- 在仓库模板里写绝对路径（必须保留占位符）
+- 部署版 `~/.zshenv` 反向同步回 `zsh/zshenv`（会污染模板）
+- AI 手写 sed 命令（必须调用 `bin/deploy.sh init`）
 
-### 同步回仓库
+## proto + mise 工具版本管理
 
-修改 `dotfiles/init.zsh` 直接 commit，无需手动复制。
+**分工**：
+- `mise activate zsh`（在 `init.zsh` 内）：全局运行时（node / go / rust / python）+ precmd hook 重置 PATH
+- `~/.proto/bin`（PATH 内）：proto CLI 本身
+- `~/.proto/shims`（PATH 内）：proto-only 工具（atlas / buf / cosign / sops）
 
-修改 `~/.zshenv`（已部署版）同步回仓库：
-1. 将 `CODE_LANGUAGES_HOME` 的绝对路径改回 `__STORAGE_ROOT__/Languages`
-2. 将 `OLLAMA_MODELS` 的绝对路径改回 `__STORAGE_ROOT__/ollama/models`
-3. 将 `DOTFILES_ROOT` 的绝对路径改回 `__DOTFILES_ROOT__`
-4. `rg '__STORAGE_ROOT__|__DOTFILES_ROOT__'` 确认仅命中模板文件
+不用 `proto activate`：proto 只注册 chpwd_functions，mise 的 precmd 每次 prompt 重置 PATH 会覆盖 proto chpwd 效果。proto-shim 内置 fallback 逻辑，不依赖 `proto activate` 设的 `__ORIG_PATH`。
 
-### Git 签名
+## Git 签名
 
-使用 1Password SSH 签名（`gpg.format = ssh`，`gpg.ssh.program` 指向 1Password）。commit 默认启用 GPG 签名。GitHub credential 通过 `gh auth git-credential` 管理。
+1Password SSH 签名（`gpg.format = ssh`，`gpg.ssh.program` 指向 1Password）。commit 默认 GPG 签名。GitHub credential 通过 `gh auth git-credential`。
 
-签名机制和 credential 配置在仓库 `git/config`（通用），本机 `~/.gitconfig` 通过 `[include] path` 引用；`[user]` 身份和 `signingkey` 留在本机主文件，不进仓库。修改通用配置编辑 `git/config` 即对所有机器生效。
+机制定义在仓库 `git/config`，本机 `~/.gitconfig` 通过 `[include]` 引用；`[user]` 身份和 `signingkey` 在本机主文件，不进仓库。修改通用配置编辑 `git/config` 即对所有机器生效。
 
-### Ghostty 终端配置
+## 主题：Catppuccin Latte（统一 light 配色）
 
-纯文本配置文件 `ghostty/config`，部署到 `~/Library/Application Support/com.mitchellh.ghostty/config`。修改后通过 `ghostty +reload-config` 即时生效。
+所有终端工具 + VS Code 统一使用 Catppuccin Latte：
 
-### 敏感信息
+| 工具 | 配置位置 | 主题来源 |
+|---|---|---|
+| ghostty | `ghostty/config` | 内置（`theme = catppuccin-latte`） |
+| starship | `starship/starship.toml` | 手写 palette |
+| bat | `bat/config` | 内置（`--theme="Catppuccin Latte"`） |
+| fzf | `init.zsh` 内 `FZF_DEFAULT_OPTS` | 手写色 |
+| btop | `btop/btop.conf` 引用 + `bin/install-themes.sh btop` 下载 | catppuccin/btop |
+| yazi | `yazi/theme.toml` | 手写 |
+| atuin | `atuin/config.toml` | `name = "catppuccin-latte"` |
+| vscode | Brewfile `Catppuccin.catppuccin-vsc` 扩展 | 扩展自带 |
 
-`~/.zsh_secrets` 不纳入版本控制（`.gitignore` 排除），从 `templates/zsh_secrets.template` 复制创建，权限 600。
+## 调试 / Profile
+
+`ZSH_PROFILE=1` 启用 zsh 启动 profile（详见 `debug/profile.zsh` 顶部）。默认关闭，零开销。
+
+```bash
+# 临时开启（一次性测试）
+ZSH_PROFILE=1 zsh -i -l -c exit
+
+# 长期开启（编辑 ~/.zshenv 加 export ZSH_PROFILE=1，再开新窗口）
+# 关闭：删除 ~/.zshenv 那行
+```
+
+## 敏感信息
+
+`~/.zsh_secrets` 不进版本控制（`.gitignore` 排除）。从 `templates/zsh_secrets.template` 复制创建，权限 600。AI 不得把部署版内容回写模板。

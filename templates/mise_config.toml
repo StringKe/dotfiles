@@ -1,6 +1,11 @@
-# 部署模板：复制到 ~/.config/mise/config.toml 前将 __STORAGE_ROOT__ 替换为绝对路径。
-# 勿放在仓库内 mise/config.toml —— mise 会在项目目录自动加载，导致占位符污染环境。
-# [tools] 可按本机需求定制；重配时通常只更新 [env] 段路径。
+# [TEMPLATE] templates/mise_config.toml
+# 部署目标: ~/.config/mise/config.toml（由 bin/deploy.sh init 处理 __STORAGE_ROOT__ 替换）
+#
+# AI 规则:
+#   - 此文件是仓库模板，含 __STORAGE_ROOT__ 占位符。
+#   - AI 部署时调用 bin/deploy.sh init，绝不手写 sed 命令。
+#   - 文件必须放在 templates/ 而非仓库根，避免 mise 在 dotfiles 目录自动加载占位符。
+#   - [tools] 可按本机需求定制；[env] 路径由占位符替换生成。
 
 [tools]
 node = "lts"

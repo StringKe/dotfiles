@@ -1,12 +1,15 @@
 # ============================================================
-# ~/.zshenv - 环境变量配置（所有 shell 加载，含非交互式脚本）
+# [TEMPLATE] zsh/zshenv - 环境变量（所有 shell 加载）
 #
-# [AI 规则] 此文件由 dotfiles 模板部署，直接修改会被重配覆盖。
-#   - 仅放环境变量和 PATH，不放别名 / 函数 / prompt 初始化
-#   - 交互式 shell 配置（别名/函数/工具激活）-> DOTFILES_ROOT/init.zsh
-#   - __STORAGE_ROOT__ / __DOTFILES_ROOT__ 是模板占位符，部署后为绝对路径
-#   - 禁止 export STORAGE_ROOT
-#   - 模板路径：dotfiles/zsh/zshenv
+# 部署目标: ~/.zshenv（由 bin/deploy.sh init 处理占位符替换后写入）
+#
+# AI 规则:
+#   - 此文件是仓库模板，含两个占位符 __STORAGE_ROOT__ / __DOTFILES_ROOT__。
+#   - AI 部署时调用 bin/deploy.sh init <STORAGE_ROOT>，绝不手写 sed 命令。
+#   - 禁止把部署版（~/.zshenv 内绝对路径）回写到本文件。
+#   - 仅放环境变量和 PATH，不放别名 / 函数 / prompt 初始化。
+#   - 交互式 shell 配置 -> dotfiles/init.zsh -> ~/.zsh/init.zsh
+#   - 禁止 export STORAGE_ROOT。
 # ============================================================
 
 # ============================================================

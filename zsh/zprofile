@@ -1,12 +1,13 @@
 # ============================================================
-# ~/.zprofile - 登录 shell 配置（在 ~/.zshrc 之前加载）
+# [TEMPLATE] zsh/zprofile - 登录 shell（在 zshrc 之前加载）
 #
-# [AI 规则] 此文件只放登录时执行一次的配置，不要添加交互式工具。
-#   - 仅放：Homebrew 环境变量、mise shims（非交互式登录 shell 用）
-#   - 别名 / 函数 / prompt 初始化 -> DOTFILES_ROOT/init.zsh
-#   - 环境变量 / PATH -> dotfiles/zsh/zshenv
-#   - 此文件由 dotfiles 模板部署，修改会被重配覆盖
-#   - 模板路径：dotfiles/zsh/zprofile
+# 部署目标: ~/.zprofile（由 bin/deploy.sh 复制）
+#
+# AI 规则:
+#   - 此文件是仓库模板，AI 部署时复制，不修改本文件。
+#   - 只放登录时执行一次的环境配置（Homebrew env / mise shims）。
+#   - 不放别名 / 函数 / prompt 初始化（-> dotfiles/init.zsh）。
+#   - 不放交互式工具激活（-> dotfiles/init.zsh）。
 # ============================================================
 
 (( $+functions[_prof] )) && _prof "zprofile start"

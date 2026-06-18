@@ -1,6 +1,6 @@
-# ═══════════════════════════════════════════════════════════════
-# Yazi Keymap Configuration
-# ═══════════════════════════════════════════════════════════════
+# [TEMPLATE] yazi/keymap.toml - Yazi 键位
+# 部署目标: ~/.config/yazi/keymap.toml
+# AI 部署时复制此文件（仅当目标不存在），不修改本文件。
 
 [mgr]
 prepend_keymap = [

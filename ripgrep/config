@@ -1,4 +1,6 @@
-# ripgrep 全局配置
+# [TEMPLATE] ripgrep/config - ripgrep 全局配置
+# 部署目标: ~/.config/ripgrep/config
+# AI 部署时复制此文件（仅当目标不存在），不修改本文件。
 
 # OSC 8 超链接输出（终端 Cmd+Click 直接打开文件）
 --hyperlink-format

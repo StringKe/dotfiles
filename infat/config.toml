@@ -1,5 +1,7 @@
-# infat - macOS 文件关联声明式配置
-# 使用方法: infat --config ~/.config/infat/config.toml
+# [TEMPLATE] infat/config.toml - macOS 文件关联
+# 部署目标: ~/.config/infat/config.toml
+# AI 部署时复制此文件（仅当目标不存在），不修改本文件。
+# 应用配置: infat --config ~/.config/infat/config.toml
 #
 # 注意：macOS 26 (Tahoe) 的 LaunchServices 仅允许为系统已注册 UTI 的扩展名设置
 # 默认应用，其他扩展名会报 error -50。此配置仅保留实际有效的项。

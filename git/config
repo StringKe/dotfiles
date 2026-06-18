@@ -1,3 +1,8 @@
+# [TEMPLATE] git/config - 通用 Git 配置（gpg/commit/credential，无身份）
+# 部署方式: ~/.gitconfig 通过 [include] path 引用本文件（由 bin/deploy.sh init 设置）。
+# 不整体复制到 ~/.gitconfig。本机 [user] 身份和 signingkey 独立保留。
+# AI 规则: 修改本文件即对所有 include 它的机器生效，不要把本机 [user] 字段加到此处。
+
 [gpg]
 	format = ssh
 [gpg "ssh"]

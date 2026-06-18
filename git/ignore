@@ -1,1 +1,4 @@
+# [TEMPLATE] git/ignore - 全局 Git ignore
+# 部署目标: ~/.config/git/ignore（仅当不存在时由 bin/deploy.sh init 复制）
+
 **/.claude/settings.local.json

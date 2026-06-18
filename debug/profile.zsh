@@ -1,5 +1,8 @@
 # ============================================================
-# zsh profile 调试模块
+# [DEBUG TOOL] debug/profile.zsh - zsh 启动 profile 调试模块
+#
+# 不部署。由 ~/.zshenv 在 ZSH_PROFILE=1 时按 $DOTFILES_ROOT/debug/profile.zsh source。
+# AI 规则: 此文件是仓库内置调试工具，平时关闭无开销。AI 不修改本文件。
 #
 # 用法（临时，用完关闭）：
 #   1. 开新终端前 export ZSH_PROFILE=1
