@@ -97,7 +97,6 @@ brew "golangci-lint"   # Go linter
 # ============================================================
 brew "gradle"
 brew "groovy"
-brew "erlang"          # RabbitMQ 依赖
 
 # ============================================================
 # CLI - PHP（保留：composer 偶尔用）
@@ -114,15 +113,9 @@ brew "resvg"           # SVG 渲染
 brew "poppler"         # PDF 工具
 
 # ============================================================
-# CLI - 数据库
+# CLI - 数据库 / 消息队列: 全部走 OrbStack docker, 本机不再装 server
+# (libpq 由 php 自动拉作为 pgsql 扩展运行时)
 # ============================================================
-brew "mariadb"
-brew "mariadb-connector-c"
-brew "libpq"
-brew "postgresql@18"
-brew "pgloader"
-brew "redis"
-brew "rabbitmq"
 
 # ============================================================
 # CLI - Linter
