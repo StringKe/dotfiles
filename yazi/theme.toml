@@ -65,11 +65,11 @@ selected = { reversed = true }
 [confirm]
 border       = { fg = "blue" }
 title        = { fg = "blue" }
-content      = {}
+body         = {}
 list         = {}
 btn_yes      = { reversed = true }
 btn_no       = {}
-btn_labels   = [{ fg = "blue" }, { fg = "red" }]
+btn_labels   = [ "  [Y]es  ", "  (N)o  " ]
 
 [pick]
 border   = { fg = "blue" }
@@ -80,9 +80,9 @@ inactive = {}
 border         = { fg = "blue" }
 active         = { reversed = true }
 inactive       = {}
-icon_file      = { fg = "cyan" }
-icon_folder    = { fg = "blue" }
-icon_command   = { fg = "yellow" }
+icon_file      = ""
+icon_folder    = ""
+icon_command   = ""
 
 [tasks]
 border  = { fg = "blue" }
