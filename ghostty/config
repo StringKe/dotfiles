@@ -8,7 +8,7 @@ font-size = 15
 font-thicken = true
 
 # 主题（Catppuccin Latte，与其他工具对齐）
-theme = catppuccin-latte
+theme = Catppuccin Latte
 
 # 窗口
 window-height = 48
