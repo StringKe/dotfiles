@@ -53,94 +53,169 @@ chsh -s /opt/homebrew/bin/zsh
 bin/deploy.sh check
 ```
 
-## 通过 AI 初始化
+## 通过 AI 初始化 / 更新
 
-把以下提示词发给 AI 助手。AI 会按 CONSUMER 模式（只读仓库）操作，遇到决策点（NEW_ROOT / 迁移）问用户。
+把以下提示词发给 AI 助手（Claude Code / Cursor / Codex 等）。AI 会按 CONSUMER 模式（只读仓库）操作，自动分流"首次部署 / 重配 / 迁移 / 拉新版本更新"四种场景。
 
 ````
-你正在帮助用户初始化或更新 macOS 开发环境。dotfiles 仓库已克隆到本机，记为 DOTFILES_ROOT。
+你正在帮助用户操作 dotfiles 仓库（已克隆到本机, 记为 DOTFILES_ROOT）。仓库是只读模板, 部署产物在 ~/。
 
-## 1. 角色
+## 1. 角色 (HARD RULES)
 
 你是 CONSUMER。允许:
 - 读 DOTFILES_ROOT 任何文件
-- 调用 bin/deploy.sh, bin/install-themes.sh
-- 修改 ~/ 下的部署产物
-- 运行 brew / zimfw / mise / infat 等外部工具
+- 调用 DOTFILES_ROOT/bin/deploy.sh, DOTFILES_ROOT/bin/install-themes.sh
+- 修改 ~/ 下的部署产物 (~/.zshenv / ~/.config/...)
+- 运行 brew / zimfw / mise / infat / git pull 等外部工具
 
 禁止:
-- git add / commit / push 操作仓库
-- 在 DOTFILES_ROOT 内新建或修改任何文件
-- 把本机绝对路径回写到模板（必须保留 __STORAGE_ROOT__ / __DOTFILES_ROOT__ 占位符）
-- 自己手写 sed 命令做占位符替换（必须调 bin/deploy.sh init）
+- 在 DOTFILES_ROOT 内新建任何文件 (含临时脚本 / patch / .env / 备份)
+- 修改 DOTFILES_ROOT 内任何现有文件
+- git add / commit / push 操作仓库 (除非用户明确说"提交"且声明 MAINTAINER 模式)
+- 把本机绝对路径回写到模板 (必须保留 __STORAGE_ROOT__ / __DOTFILES_ROOT__ 占位符)
+- 自己手写 sed 命令做占位符替换 (必须调 bin/deploy.sh init)
 
 ## 2. 定位 DOTFILES_ROOT
 
-依次检测含 Brewfile 的目录：
+依次检测含 Brewfile 的目录:
 1. $HOME/Code/SelfCode/dotfiles
 2. /Volumes/Storage/Code/SelfCode/dotfiles
 3. $HOME/Code/ 下 find Brewfile
 
-均无则告知用户先 git clone（README 前置准备）。
+均无则告知用户先 git clone (README 前置准备)。
 
-## 3. 判定首次 / 重配 / 迁移
+## 3. 判定场景
 
 读 ~/.zshenv:
-- 不存在 -> 首次部署
-- 含 export CODE_LANGUAGES_HOME=".../Languages" -> 取出 CURRENT_ROOT（去掉末尾 /Languages）
-- 含未替换占位符 -> 当作首次部署
+- 不存在               -> 场景 A 首次部署
+- 含未替换占位符       -> 场景 A 首次部署 (上次部署没完成)
+- 已部署 (有 DOTFILES_ROOT export) -> 进 3a 进一步判定
 
-询问用户 NEW_ROOT（绝对路径，不接受 ~ 或 $HOME 字面）。候选：
-- /Volumes/Storage（USB 外置盘）
-- $HOME 的绝对值（如 /Users/<username>）
+### 3a. 已部署机器场景判定
 
-判定：
-| 情形 | 条件 | 动作 |
+询问用户意图 (单选):
+- "我克隆了新机器, 帮我初始化"         -> 场景 A 首次部署
+- "我换存储位置, 比如从 $HOME 搬到 /Volumes/Storage" -> 场景 C 迁移
+- "我 git pull 了新版本仓库, 帮我应用"  -> 场景 D 更新 (跳到 5)
+- "我没改什么, 想重新跑一遍部署修复一下" -> 场景 B 重配
+
+### 3b. 询问 NEW_ROOT (仅场景 A/B/C 需要)
+
+候选:
+- /Volumes/Storage (USB 外置盘)
+- $HOME 的绝对值 (如 /Users/<username>)
+
+要求: 绝对路径, 不接受 ~ 或 $HOME 字面。
+
+判定:
+| 场景 | 条件 | 动作 |
 |---|---|---|
-| 首次 | 无 CURRENT_ROOT | 直接 bin/deploy.sh init NEW_ROOT |
-| 重配 | CURRENT_ROOT == NEW_ROOT | bin/deploy.sh init NEW_ROOT |
-| 迁移 | CURRENT_ROOT != NEW_ROOT | 先迁数据（见 4），再 bin/deploy.sh init NEW_ROOT |
+| A 首次 | 无 CURRENT_ROOT | 直接 bin/deploy.sh init NEW_ROOT |
+| B 重配 | CURRENT_ROOT == NEW_ROOT | bin/deploy.sh init NEW_ROOT |
+| C 迁移 | CURRENT_ROOT != NEW_ROOT | 先迁数据 (见 4), 再 bin/deploy.sh init NEW_ROOT |
 
-## 4. 数据迁移（仅 NEW_ROOT != CURRENT_ROOT）
+## 4. 数据迁移 (仅场景 C)
 
-输出迁移分析表（源 / 目标 / 大小 / 跨卷）。用户确认后:
+输出迁移分析表 (源 / 目标 / 大小 / 跨卷)。用户确认后:
 1. df -h 看目标卷剩余
 2. mkdir -p NEW_ROOT
-3. 逐目录 mv（目标已存在则停下询问）
-4. 完成后让用户验证新位置可用，再自行清理旧位置
+3. 逐目录 mv (目标已存在则停下询问)
+4. 完成后让用户验证新位置可用, 再自行清理旧位置
 
-## 5. 部署
+## 5. 更新场景 (D) - 拉新版本应用
+
+只在场景 D 走此节, 场景 A/B/C 跳到 6。
+
+### 5a. 拉新版本
+
+```bash
+cd $DOTFILES_ROOT
+git fetch origin
+git log --oneline HEAD..origin/main           # 看本机落后多少 commit
+```
+
+如果输出为空 -> 已是最新, 告知用户无需操作, 结束。
+
+询问用户是否拉取:
+```bash
+git pull --ff-only origin main
+```
+
+如果含 untracked / dirty -> 告知用户先 stash 或 commit, 不强行覆盖。
+
+### 5b. 分析改动类型 (决定要跑什么)
+
+跑 git diff --name-only HEAD@{1}..HEAD 看本次更新动了哪些文件。按以下规则分流, 每条命中就跑对应命令:
+
+| 改动文件 | 对应命令 | 说明 |
+|---|---|---|
+| init.zsh | bin/deploy.sh sync | 复制到 ~/.zsh/init.zsh |
+| zsh/zshenv | bin/deploy.sh init <CURRENT_ROOT> | 覆盖 ~/.zshenv (含占位符替换) |
+| zsh/zprofile, zsh/zshrc | bin/deploy.sh init <CURRENT_ROOT> | 直接覆盖 |
+| zsh/zimrc | bin/deploy.sh init <CURRENT_ROOT> + zimfw install | 模块清单变了 |
+| templates/mise_config.toml | bin/deploy.sh init <CURRENT_ROOT> | 覆盖 ~/.config/mise/config.toml |
+| Brewfile | brew bundle install --file=$DOTFILES_ROOT/Brewfile | 装新软件 / vscode 扩展 |
+| ghostty/, starship/, btop/, atuin/, yazi/, bat/ | bin/deploy.sh init <CURRENT_ROOT> | 仅首次部署文件, 已存在不覆盖 (见 5c) |
+| ripgrep/, infat/, git/ignore | bin/deploy.sh init <CURRENT_ROOT> | 同上 |
+| git/config | 无操作 | ~/.gitconfig [include] 引用, 自动生效 |
+| bin/* | 无操作 | 脚本下次调用时生效 |
+| debug/profile.zsh | 无操作 | 仅 ZSH_PROFILE=1 时被 source |
+| CLAUDE.md, README.md, docs/* | 无操作 | 仅文档 |
+
+### 5c. 主题或仅首次覆盖类文件改动 (重要)
+
+ghostty / starship / btop / atuin / yazi / bat / ripgrep / infat 走 deploy_if_absent (已存在跳过)。如果仓库改了它们 (如主题切换), 用户本机老版本不会被覆盖。
+
+需要先删本机旧版再重跑 deploy:
+
+```bash
+# 询问用户是否覆盖 (有自定义会丢)
+rm ~/.config/<对应文件>
+bin/deploy.sh init <CURRENT_ROOT>
+```
+
+主题文件 (btop / atuin 的 .theme) 还要跑:
+```bash
+bin/install-themes.sh
+```
+
+### 5d. 应用更新
+
+```bash
+exec zsh                                  # 重载 shell, 所有 zsh/* 改动生效
+ghostty +reload-config 2>/dev/null || true # ghostty 主题改动
+```
+
+跳过 6, 直接到 7 验证。
+
+## 6. 部署 (场景 A/B/C)
 
 ```bash
 bin/deploy.sh init <NEW_ROOT>
 brew bundle install --file=$DOTFILES_ROOT/Brewfile
 bin/install-themes.sh
-```
-
-## 6. 后续
-
-```bash
 exec zsh
 zimfw install
 mise install
 infat --config ~/.config/infat/config.toml
 grep -qF /opt/homebrew/bin/zsh /etc/shells || echo /opt/homebrew/bin/zsh | sudo tee -a /etc/shells
 chsh -s /opt/homebrew/bin/zsh
-bin/deploy.sh check
 ```
 
 ## 7. 验证
 
-跑 bin/deploy.sh check，报告通过 / 失败项。额外检查:
+跑 bin/deploy.sh check, 报告通过 / 失败项。额外检查:
 - echo $DOTFILES_ROOT 输出仓库绝对路径
-- which proto 输出 ~/.proto/bin/proto
 - ~/.zshrc 末尾含 source ~/.zsh/init.zsh
 - ~/.zim/modules/ 含 zsh-syntax-highlighting / autosuggestions / fzf-tab 等
+- ghostty 主题: grep '^theme' "$HOME/Library/Application Support/com.mitchellh.ghostty/config" 输出 catppuccin-latte
+- starship palette: grep -c catppuccin ~/.config/starship.toml > 0
 
 ## 8. 提醒
 
-- 编辑 ~/.zsh_secrets 填密钥
-- 编辑仓库 init.zsh 后跑 bin/deploy.sh sync 同步到 ~/.zsh/init.zsh
+- 编辑 ~/.zsh_secrets 填密钥 (首次部署时 cp 自空白模板)
+- 仓库主人编辑 init.zsh 后跑 bin/deploy.sh sync 同步 ~/.zsh/init.zsh
+- ZSH_PROFILE=1 启用启动 timing 调试 (用完 unset 或删 ~/.zshenv 那行)
 ````
 
 ## 仓库结构
