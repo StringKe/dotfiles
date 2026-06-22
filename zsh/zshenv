@@ -21,8 +21,10 @@ export DOTFILES_ROOT="__DOTFILES_ROOT__"
 # ============================================================
 # Profile 调试（ZSH_PROFILE=1 启用，平时无任何开销）
 # 详见 debug/profile.zsh 顶部用法
+# 真值判断：(( )) 算术求值，ZSH_PROFILE=0 或 unset 均关闭。
+# 不能用 [[ -n $ZSH_PROFILE ]]——"0" 是非空字符串会误判为开启。
 # ============================================================
-if [[ -n $ZSH_PROFILE && -f $DOTFILES_ROOT/debug/profile.zsh ]]; then
+if (( ${ZSH_PROFILE:-0} )) && [[ -f $DOTFILES_ROOT/debug/profile.zsh ]]; then
     source $DOTFILES_ROOT/debug/profile.zsh
     _prof "zshenv start (after DOTFILES_ROOT)"
 fi
