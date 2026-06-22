@@ -6,8 +6,8 @@
   "workbench.preferredLightColorTheme": "GitHub Light Colorblind",
   "workbench.preferredDarkColorTheme": "GitHub Dark Colorblind",
 
-  "editor.fontFamily": "'JetBrainsMonoNL Nerd Font Mono', 'Maple Mono NF CN', Menlo, Monaco, monospace",
-  "terminal.integrated.fontFamily": "'JetBrainsMonoNL Nerd Font Mono', 'Maple Mono NF CN', Menlo, monospace",
+  "editor.fontFamily": "'Maple Mono NF CN', Menlo, Monaco, monospace",
+  "terminal.integrated.fontFamily": "'Maple Mono NF CN', Menlo, monospace",
 
   "editor.fontLigatures": true,
   "editor.minimap.enabled": false,
