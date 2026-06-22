@@ -139,7 +139,13 @@ cask "jetbrains-toolbox"
 # GUI - 开发环境
 # ============================================================
 cask "orbstack"
-cask "claude-code"     # Claude Code CLI
+
+# ============================================================
+# AI CLI - 走官方 curl 安装, 不用 brew (自带后台自更新, 无需 brew upgrade)
+#   claude-code:  curl -fsSL https://claude.ai/install.sh | bash
+#   codex:        curl -fsSL https://chatgpt.com/codex/install.sh | sh
+#   grok-build:   curl -fsSL https://x.ai/cli/install.sh | bash
+# ============================================================
 
 # ============================================================
 # GUI - 生产力
@@ -177,69 +183,15 @@ cask "android-platform-tools"
 # GUI - 云工具
 # ============================================================
 cask "gcloud-cli"
-cask "codex"
 cask "consul"
 
 # ============================================================
-# VS Code 扩展 - 通用工具
+# VS Code 扩展: 不再由 Brewfile 同步管理。
+# 改用 VS Code 内置 Settings Sync / 手动安装, 仓库只托管 vscode/settings.json (主题+字体)。
 # ============================================================
-vscode "editorconfig.editorconfig"            # EditorConfig
-vscode "eamodio.gitlens"                      # Git 增强
-vscode "dbaeumer.vscode-eslint"               # ESLint
-vscode "esbenp.prettier-vscode"               # Prettier 格式化
-vscode "streetsidesoftware.code-spell-checker" # 拼写检查
-vscode "gruntfuggly.todo-tree"                # TODO 高亮
-vscode "usernamehw.errorlens"                 # 行内错误提示
-vscode "tamasfe.even-better-toml"             # TOML 语法高亮
 
 # ============================================================
-# VS Code 扩展 - 文档 / 文件预览
-# ============================================================
-vscode "yzhang.markdown-all-in-one"           # Markdown 编辑增强
-vscode "shd101wyy.markdown-preview-enhanced"  # Markdown 预览（mermaid/LaTeX/流程图）
-vscode "bierner.markdown-mermaid"             # Mermaid 内联预览
-vscode "redhat.vscode-yaml"                   # YAML 智能提示
-vscode "redhat.vscode-xml"                    # XML
-vscode "zainchen.json"                        # JSON 预览 + 格式化
-vscode "tomoki1207.pdf"                       # PDF 预览
-vscode "janisdd.vscode-edit-csv"              # CSV 编辑器
-vscode "hediet.vscode-drawio"                 # Draw.io 图表编辑
-vscode "jock.svg"                             # SVG 预览
-
-# ============================================================
-# VS Code 扩展 - 容器 / 远程
-# ============================================================
-vscode "ms-azuretools.vscode-docker"          # Docker
-vscode "ms-kubernetes-tools.vscode-kubernetes-tools" # Kubernetes
-vscode "ms-vscode-remote.remote-ssh"          # SSH 远程开发
-vscode "ms-vscode-remote.remote-containers"   # Dev Containers
-vscode "hashicorp.terraform"                  # Terraform
-
-# ============================================================
-# VS Code 扩展 - Go
-# ============================================================
-vscode "golang.go"                            # Go
-
-# ============================================================
-# VS Code 扩展 - Web 前端 (TS / Vue / Svelte / Astro / Tailwind / Bun / Deno)
-# ============================================================
-vscode "bradlc.vscode-tailwindcss"            # Tailwind CSS
-vscode "vue.volar"                            # Vue
-vscode "svelte.svelte-vscode"                 # Svelte
-vscode "astro-build.astro-vscode"             # Astro
-vscode "denoland.vscode-deno"                 # Deno
-vscode "oven.bun-vscode"                      # Bun
-
-# ============================================================
-# VS Code 扩展 - 主题（GitHub Light Colorblind，与终端工具对齐）
-# 在 VS Code 设置 -> Color Theme 选 "GitHub Light Colorblind (Beta)"
-# 图标主题保留 Material Icon Theme（GitHub 无官方图标主题）
-# ============================================================
-vscode "github.github-vscode-theme"           # GitHub 官方主题包（含 Light Colorblind）
-vscode "pkief.material-icon-theme"            # 文件图标主题
-
-# ============================================================
-# 字体
+# 字体: 全部 Maple Mono 系列 (终端 + VS Code 统一 Maple Mono NF CN)
 # ============================================================
 cask "font-maple-mono"
 cask "font-maple-mono-cn"
@@ -249,7 +201,6 @@ cask "font-maple-mono-normal"
 cask "font-maple-mono-normal-cn"
 cask "font-maple-mono-normal-nf"
 cask "font-maple-mono-normal-nf-cn"
-cask "font-jetbrains-mono-nerd-font"
 
 # ============================================================
 # Mac App Store
