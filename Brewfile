@@ -1,15 +1,23 @@
 # [TEMPLATE] Brewfile - macOS 软件清单
 # 用法: brew bundle install --file=$DOTFILES_ROOT/Brewfile
 #
+# !!! 严禁 !!!  brew bundle cleanup --file=<本文件>
+#   本文件是模板, 不是本机软件全集。cleanup 会卸载所有"不在 Brewfile 里"的软件,
+#   包括用户手动 brew install / MAS / 第三方 tap 装的全部工具。等同于灾难性误删。
+#   清理孤儿包用 brew autoremove; 单独卸载用 brew uninstall <名>。
+#
 # AI 规则:
 #   - 此文件是仓库模板，不部署到 ~/。AI 直接调用此文件。
 #   - 添加/删除条目时按类别分组。语言专用工具仅放日常使用的（Go / Web 全栈）。
+#   - AI 绝不可对本文件执行 brew bundle cleanup (含 --force)。
 
 # ============================================================
 # Taps
 # ============================================================
 tap "cloudflare/cloudflare"
 tap "hashicorp/tap"
+tap "fluxcd/tap"
+tap "qovery/qovery-cli"
 
 # ============================================================
 # CLI - Shell 与提示符
@@ -44,6 +52,14 @@ brew "fastfetch"       # 系统信息展示
 brew "macos-trash"     # 安全删除（Finder 回收站）
 brew "coreutils"       # GNU 核心工具
 brew "sevenzip"        # 7z 压缩
+brew "sqlcipher"       # 加密 SQLite
+
+# ============================================================
+# CLI - 代码分析 / 反编译
+# ============================================================
+brew "cloc"            # 代码行统计
+brew "jadx"            # Android dex/apk 反编译
+brew "cfr-decompiler"  # Java .class 反编译
 
 # ============================================================
 # CLI - Git
@@ -65,8 +81,11 @@ brew "autocorrect"     # 中英文排版
 # ============================================================
 brew "curl"
 brew "wget"
+brew "aria2"           # 多连接下载
 brew "oha"             # HTTP 压测
+brew "wrk"             # HTTP 压测 (C 实现, 高并发)
 brew "iperf3"          # 网络带宽测试
+brew "socat"           # 多用途 socket 中继
 
 # ============================================================
 # CLI - 云 / Kubernetes / IaC
@@ -86,11 +105,25 @@ brew "terragrunt"
 brew "cloudflared"
 brew "flarectl"
 brew "operator-sdk"
+brew "aliyun-cli"      # 阿里云
+brew "openshift-cli"   # OpenShift oc
+brew "rosa-cli"        # AWS Red Hat OpenShift
+brew "tektoncd-cli"    # Tekton tkn
+brew "kargo"           # GitOps 提升管线
+brew "fluxcd/tap/flux" # Flux CD
+brew "qovery/qovery-cli/qovery-cli"
 
 # ============================================================
 # CLI - 语言工具链（Go 生态）
 # ============================================================
 brew "golangci-lint"   # Go linter
+
+# ============================================================
+# CLI - 编译器 / 原生工具链
+# ============================================================
+brew "gcc"             # GNU 编译器套件
+brew "llvm"            # LLVM/Clang
+brew "cocoapods"       # iOS/macOS 原生依赖管理
 
 # ============================================================
 # CLI - JVM 生态（Gradle 项目 + ClickHouse 等用得到）
@@ -111,6 +144,7 @@ brew "ffmpeg"
 brew "imagemagick"
 brew "resvg"           # SVG 渲染
 brew "poppler"         # PDF 工具
+brew "tesseract"       # OCR 引擎
 
 # ============================================================
 # CLI - 数据库 / 消息队列: 全部走 OrbStack docker, 本机不再装 server
@@ -126,7 +160,11 @@ brew "yamllint"
 # CLI - 系统集成
 # ============================================================
 brew "infat"           # 声明式文件类型关联
+brew "duti"            # 命令式文件关联 (补 infat 之外的细粒度)
 brew "mas"             # App Store CLI
+brew "displayplacer"   # 多显示器布局 CLI
+brew "qrencode"        # 二维码生成
+brew "technitium-dns"  # 本地 DNS 服务
 
 # ============================================================
 # GUI - 终端 / 编辑器
@@ -139,6 +177,7 @@ cask "jetbrains-toolbox"
 # GUI - 开发环境
 # ============================================================
 cask "orbstack"
+cask "freelens"        # Kubernetes 集群 GUI
 
 # ============================================================
 # AI CLI - 走官方 curl 安装, 不用 brew (自带后台自更新, 无需 brew upgrade)
@@ -172,6 +211,11 @@ cask "whatsapp"
 cask "cloudflare-warp"
 cask "mitmproxy"
 cask "ngrok"
+
+# ============================================================
+# GUI - 多媒体
+# ============================================================
+cask "obs"             # 录屏 / 直播推流
 
 # ============================================================
 # GUI - SDK

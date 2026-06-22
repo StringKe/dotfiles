@@ -32,6 +32,7 @@ AI 进入本仓库时，必须先确定属于哪个角色：
 - 修改仓库内任何文件（含"改一下 zsh/zshenv 适配本机"）
 - 把部署版的绝对路径（如 `/Volumes/Storage/...`）回写到 `zsh/zshenv` 模板
 - 用 `sed -i` / `Edit` 工具碰仓库目录下任何路径
+- **`brew bundle cleanup` 含 `--force`**：本仓库 Brewfile 是模板而非本机全集，cleanup 会卸光本机所有未在模板里的软件（包括 MAS、第三方 tap、手动 brew install）。清理孤儿用 `brew autoremove`；单独卸用 `brew uninstall <名>`。AI 提及"清理 brew"任何场景，都要先确认非 cleanup 命令
 
 ### MAINTAINER 模式 - 功能开发 / 演进
 
