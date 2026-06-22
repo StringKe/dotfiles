@@ -182,13 +182,13 @@ dotfiles/
 | 工具 | 配置位置 | 主题来源 |
 |---|---|---|
 | ghostty | `ghostty/config` | 内置（`theme = GitHub Light Colorblind`） |
-| starship | `starship/starship.toml` | 手写 palette（github_light_colorblind） |
+| starship | `starship/starship.toml` | 不指定 palette，跟随终端 ANSI 配色 |
 | bat | `bat/config` | `--theme="ansi"` 跟随终端 ANSI 配色 |
 | fzf | `init.zsh` 内 `FZF_DEFAULT_OPTS` | 手写 |
 | btop | `btop/btop.conf` 引用 + `bin/install-themes.sh btop` 从仓库 `btop/themes/` 复制 | 仓库自带主题文件 |
 | yazi | `yazi/theme.toml` | 手写 |
 | atuin | `atuin/config.toml` | 不指定主题，fallback 跟随终端 ANSI |
-| vscode | Brewfile `GitHub.github-vscode-theme` 扩展 + `vscode/settings.json` 自动启用 `workbench.colorTheme: "GitHub Light Colorblind"` | 扩展自带 |
+| vscode | `vscode/settings.json` 设 `workbench.colorTheme: "GitHub Light Colorblind"`（扩展 `GitHub.github-vscode-theme` 需经 VS Code 内置 Settings Sync / 手动安装，不再由 Brewfile 托管） | 扩展自带 |
 
 修改主题：编辑对应配置文件（ghostty/starship/btop/yazi/init.zsh fzf 段），跑 `bin/deploy.sh init <ROOT>` 重新部署 + `bin/install-themes.sh` 复制 btop 主题。
 

@@ -154,7 +154,7 @@ git pull --ff-only origin main
 | zsh/zprofile, zsh/zshrc | bin/deploy.sh init <CURRENT_ROOT> | 直接覆盖 |
 | zsh/zimrc | bin/deploy.sh init <CURRENT_ROOT> + zimfw install | 模块清单变了 |
 | templates/mise_config.toml | bin/deploy.sh init <CURRENT_ROOT> | 覆盖 ~/.config/mise/config.toml |
-| Brewfile | brew bundle install --file=$DOTFILES_ROOT/Brewfile | 装新软件 / vscode 扩展 |
+| Brewfile | brew bundle install --file=$DOTFILES_ROOT/Brewfile | 装新软件 (vscode 扩展不再托管, AI CLI 走 curl) |
 | ghostty/, starship/, btop/, atuin/, yazi/, bat/ | bin/deploy.sh init <CURRENT_ROOT> | 仅首次部署文件, 已存在不覆盖 (见 5c) |
 | ripgrep/, infat/, git/ignore | bin/deploy.sh init <CURRENT_ROOT> | 同上 |
 | git/config | 无操作 | ~/.gitconfig [include] 引用, 自动生效 |
@@ -208,8 +208,8 @@ chsh -s /opt/homebrew/bin/zsh
 - echo $DOTFILES_ROOT 输出仓库绝对路径
 - ~/.zshrc 末尾含 source ~/.zsh/init.zsh
 - ~/.zim/modules/ 含 zsh-syntax-highlighting / autosuggestions / fzf-tab 等
-- ghostty 主题: grep '^theme' "$HOME/Library/Application Support/com.mitchellh.ghostty/config" 输出 catppuccin-latte
-- starship palette: grep -c catppuccin ~/.config/starship.toml > 0
+- ghostty 主题: grep '^theme' "$HOME/Library/Application Support/com.mitchellh.ghostty/config" 输出 GitHub Light Colorblind
+- starship: 不指定 palette, 跟随终端 ANSI 配色 (见 starship/starship.toml 注释)
 
 ## 8. 提醒
 
