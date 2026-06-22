@@ -1,62 +1,138 @@
 # [TEMPLATE] ghostty/config
 # 部署目标: ~/Library/Application Support/com.mitchellh.ghostty/config
 # AI 部署时复制此文件，不修改本文件。
+#
+# macOS 26.5 · Ghostty 1.3.1+ · tip channel
+# 设计目标：extend padding 无缝外观 + tab 标题正常显示 + Tahoe 标题栏稳定
 
-# 字体
-font-family = JetBrainsMonoNL Nerd Font Mono
-font-size = 15
+# ══════════════════════════════════════════════════════════════════════════════
+# Appearance
+# ══════════════════════════════════════════════════════════════════════════════
+
+font-family = "Maple Mono NF CN"
+font-size = 16
 font-thicken = true
+font-feature = +calt
+font-feature = +liga
 
-# 主题（GitHub Light Colorblind，与其他工具对齐）
 theme = GitHub Light Colorblind
+window-theme = light
+window-colorspace = display-p3
+alpha-blending = native
 
-# 窗口
+# ══════════════════════════════════════════════════════════════════════════════
+# Window
+# ══════════════════════════════════════════════════════════════════════════════
+
 window-height = 48
 window-width = 160
-window-padding-x = 4
-window-padding-y = 4
-window-save-state = always
-window-inherit-working-directory = true
+window-decoration = client
 window-vsync = true
 
-# 标签页和分屏继承工作目录
+# default：跟随 macOS；avoid always（#3049 tabs+extend 恢复闪烁）
+window-save-state = default
+window-new-tab-position = current
+
+# 不设全局 title — 会覆盖所有 tab 标题；由 shell integration 动态
+# title = " "
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Padding（extend 必须保留）
+# ══════════════════════════════════════════════════════════════════════════════
+
+window-padding-color = extend
+window-padding-balance = true
+# 上 0：titlebar 已占顶部空间；左右/下适度留白
+window-padding-x = 4,4
+window-padding-y = 0,4
+
+# 不使用透明度/毛玻璃 — macOS 26 + tab 会致标题栏异常（#10104 #5432）
+# background-opacity = 1.0
+# background-blur = false
+
+# ══════════════════════════════════════════════════════════════════════════════
+# macOS titlebar
+# ══════════════════════════════════════════════════════════════════════════════
+
+# transparent：官方默认，与 extend 最搭；Tahoe 上比 tabs 稳定（#12818 #9946）
+macos-titlebar-style = transparent
+macos-titlebar-proxy-icon = hidden
+
+# 若要用 tabs 集成标题栏，取消下行注释并注释掉 transparent 行（Tahoe 可能仍有闪烁）
+# macos-titlebar-style = tabs
+
+macos-option-as-alt = left
+macos-auto-secure-input = true
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Auto-update（macOS only）
+# ══════════════════════════════════════════════════════════════════════════════
+
+auto-update = download
+auto-update-channel = tip
+
+# ═══════════════════════════════════════════════════════════════
+# Working directory
+# ═══════════════════════════════════════════════════════════════
+
+window-inherit-working-directory = true
 tab-inherit-working-directory = true
 split-inherit-working-directory = true
 
-# 滚动
+# ═══════════════════════════════════════════════════════════════
+# Scroll
+# ═══════════════════════════════════════════════════════════════
+
 scrollback-limit = 524288000
 scrollbar = system
 mouse-scroll-multiplier = precision:0.5
 mouse-hide-while-typing = true
 
-# 剪贴板
+# ══════════════════════════════════════════════════════════════════════════════
+# Clipboard
+# ══════════════════════════════════════════════════════════════════════════════
+
 copy-on-select = clipboard
 clipboard-read = allow
 clipboard-write = allow
 
-# 渲染
-background-opacity = 1
-alpha-blending = native
-minimum-contrast = 1.1
+# ══════════════════════════════════════════════════════════════════════════════
+# Split
+# ══════════════════════════════════════════════════════════════════════════════
 
-# 分屏
 unfocused-split-opacity = 0.85
 split-preserve-zoom = navigation
 
-# 行为
+# ═══════════════════════════════════════════════════════════════
+# Interaction（1.3+）
+# ═══════════════════════════════════════════════════════════════
+
+link-url = true
+cursor-click-to-move = true
+
+notify-on-command-finish = unfocused
+notify-on-command-finish-action = no-bell,notify
+notify-on-command-finish-after = 30s
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Behavior
+# ══════════════════════════════════════════════════════════════════════════════
+
 confirm-close-surface = false
 quit-after-last-window-closed = true
 quit-after-last-window-closed-delay = 1m
 
-# macOS：自绘 tabs 标题栏（避开 Tahoe 液态玻璃），减少动画
-macos-titlebar-style = tabs
-macos-titlebar-proxy-icon = hidden
-macos-option-as-alt = true
-macos-window-shadow = false
-window-theme = ghostty
-window-padding-balance = true
-resize-overlay = never
-quick-terminal-animation-duration = 0
+# ══════════════════════════════════════════════════════════════════════════════
+# Shell integration
+# ══════════════════════════════════════════════════════════════════════════════
 
-# Shell
 shell-integration = zsh
+# title：tab 显示目录/命令；path：确保 ghostty CLI 在 PATH 中
+shell-integration-features = cursor,sudo,title,path
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Keybinds（可选，按需启用）
+# ══════════════════════════════════════════════════════════════════════════════
+
+# Shift+Enter 插入换行（Claude Code / 多行输入）
+# keybind = shift+enter=text:\n
