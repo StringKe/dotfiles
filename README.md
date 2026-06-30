@@ -42,8 +42,9 @@ mise install
 # 第三方主题（btop / atuin）
 bin/install-themes.sh
 
-# 文件关联
+# 文件关联（代码文件 → VS Code；跑完必须恢复浏览器 handler）
 infat --config ~/.config/infat/config.toml
+bin/fix-browser-handlers.sh
 
 # 默认 shell
 grep -qF /opt/homebrew/bin/zsh /etc/shells || echo /opt/homebrew/bin/zsh | sudo tee -a /etc/shells
@@ -198,6 +199,7 @@ exec zsh
 zimfw install
 mise install
 infat --config ~/.config/infat/config.toml
+bin/fix-browser-handlers.sh
 grep -qF /opt/homebrew/bin/zsh /etc/shells || echo /opt/homebrew/bin/zsh | sudo tee -a /etc/shells
 chsh -s /opt/homebrew/bin/zsh
 ```

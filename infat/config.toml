@@ -5,6 +5,10 @@
 #
 # 注意：macOS 26 (Tahoe) 的 LaunchServices 仅允许为系统已注册 UTI 的扩展名设置
 # 默认应用，其他扩展名会报 error -50。此配置仅保留实际有效的项。
+#
+# http / https 不要写进 [schemes]——VS Code 未注册这两个 scheme，写了也无效或误绑。
+# 跑完 infat 后必须执行: bin/fix-browser-handlers.sh
+# （把 http / https / 系统默认浏览器指回 Chrome 或 Safari）
 
 [extensions]
 json  = "Visual Studio Code"
