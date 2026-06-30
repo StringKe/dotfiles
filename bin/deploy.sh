@@ -141,7 +141,7 @@ cmd_init() {
     [[ -f $DOTFILES_ROOT/yazi/theme.toml ]] && deploy_if_absent yazi/theme.toml "$HOME/.config/yazi/theme.toml"
     deploy_if_absent atuin/config.toml     "$HOME/.config/atuin/config.toml"
     deploy_if_absent btop/btop.conf        "$HOME/.config/btop/btop.conf"
-    deploy_if_absent infat/config.toml     "$HOME/.config/infat/config.toml"
+    deploy_copy infat/config.toml          "$HOME/.config/infat/config.toml"
     [[ -f $DOTFILES_ROOT/bat/config ]]      && deploy_if_absent bat/config "$HOME/.config/bat/config"
     deploy_if_absent git/ignore            "$HOME/.config/git/ignore"
 
@@ -201,8 +201,7 @@ cmd_init() {
     log "  3. zimfw install              # 安装 zsh 模块"
     log "  4. mise install               # 安装语言运行时"
     log "  5. infat --config ~/.config/infat/config.toml"
-    log "  6. bin/fix-browser-handlers.sh  # 恢复 http/https 默认浏览器"
-    log "  7. chsh -s /opt/homebrew/bin/zsh"
+    log "  6. chsh -s /opt/homebrew/bin/zsh"
 }
 
 cmd_sync() {
@@ -244,30 +243,6 @@ cmd_check() {
     # ~/.gitconfig 含 [include] 指向仓库
     if [[ -f $HOME/.gitconfig ]] && ! grep -qF "path = $DOTFILES_ROOT/git/config" "$HOME/.gitconfig"; then
         log "WARN   ~/.gitconfig 未通过 [include] 引用 $DOTFILES_ROOT/git/config"
-    fi
-
-    # http/https 不应由 VS Code 处理
-    local ls_plist="$HOME/Library/Preferences/com.apple.LaunchServices/com.apple.launchservices.secure.plist"
-    if [[ -f $ls_plist ]] && command -v python3 >/dev/null 2>&1; then
-        local bad_handlers
-        bad_handlers="$(python3 - "$ls_plist" <<'PY'
-import plistlib, sys
-with open(sys.argv[1], 'rb') as f:
-    data = plistlib.load(f)
-bad = []
-for h in data.get('LSHandlers', []):
-    app = h.get('LSHandlerRoleAll', '')
-    scheme = h.get('LSHandlerURLScheme', '')
-    ctype = h.get('LSHandlerContentType', '')
-    if 'com.microsoft' in str(app) and (scheme in ('http', 'https') or ctype == 'com.apple.default-app.web-browser'):
-        bad.append(f"{scheme or ctype}→{app}")
-if bad:
-    print(', '.join(bad))
-PY
-)"
-        if [[ -n $bad_handlers ]]; then
-            log "WARN   http/https 被 VS Code 占用 ($bad_handlers); 运行 bin/fix-browser-handlers.sh"
-        fi
     fi
 
     log ""

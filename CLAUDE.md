@@ -129,7 +129,7 @@ dotfiles/
 | `atuin/config.toml` | `~/.config/atuin/config.toml` | 仅首次 | 直接复制 |
 | `bat/config` | `~/.config/bat/config` | 仅首次 | 直接复制 |
 | `ripgrep/config` | `~/.config/ripgrep/config` | 仅首次 | 直接复制 |
-| `infat/config.toml` | `~/.config/infat/config.toml` | 仅首次 | 直接复制 |
+| `infat/config.toml` | `~/.config/infat/config.toml` | init 覆盖 | 直接复制 |
 | `git/ignore` | `~/.config/git/ignore` | 仅首次 | 直接复制 |
 | `git/config` | (不复制) | - | `~/.gitconfig` 加 `[include] path = ...` |
 | `vscode/settings.json` | `~/Library/Application Support/Code/User/settings.json` | jq 深合并 | 本地字段保留, 仓库同名 key 覆盖 |

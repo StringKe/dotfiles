@@ -1,30 +1,25 @@
 # [TEMPLATE] infat/config.toml - macOS 文件关联
 # 部署目标: ~/.config/infat/config.toml
-# AI 部署时复制此文件（仅当目标不存在），不修改本文件。
+# AI 部署时复制此文件，不修改本文件。
 # 应用配置: infat --config ~/.config/infat/config.toml
 #
 # 注意：macOS 26 (Tahoe) 的 LaunchServices 仅允许为系统已注册 UTI 的扩展名设置
 # 默认应用，其他扩展名会报 error -50。此配置仅保留实际有效的项。
 #
-# http / https 不要写进 [schemes]——VS Code 未注册这两个 scheme，写了也无效或误绑。
-# 跑完 infat 后必须执行: bin/fix-browser-handlers.sh
-# （把 http / https / 系统默认浏览器指回 Chrome 或 Safari）
+# 不设 html / svg——与浏览器争 public.html / public.svg-image，可能连带影响 http/https。
+# [schemes] 只绑 vscode://，不写 http / https（VS Code 未注册这两个 scheme）。
 
 [extensions]
-json  = "Visual Studio Code"
-yaml  = "Visual Studio Code"
-xml   = "Visual Studio Code"
-csv   = "Visual Studio Code"
-html  = "Visual Studio Code"
-svg   = "Visual Studio Code"
-ts    = "Visual Studio Code"
-md    = "Visual Studio Code"
+json = "Visual Studio Code"
+yaml = "Visual Studio Code"
+xml  = "Visual Studio Code"
+csv  = "Visual Studio Code"
+ts   = "Visual Studio Code"
+md   = "Visual Studio Code"
 
 [types]
 sourcecode = "Visual Studio Code"
-plain-text = "Visual Studio Code"
 json       = "Visual Studio Code"
-xml        = "Visual Studio Code"
 yaml       = "Visual Studio Code"
 
 [schemes]

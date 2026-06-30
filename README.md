@@ -42,9 +42,8 @@ mise install
 # 第三方主题（btop / atuin）
 bin/install-themes.sh
 
-# 文件关联（代码文件 → VS Code；跑完必须恢复浏览器 handler）
+# 文件关联
 infat --config ~/.config/infat/config.toml
-bin/fix-browser-handlers.sh
 
 # 默认 shell
 grep -qF /opt/homebrew/bin/zsh /etc/shells || echo /opt/homebrew/bin/zsh | sudo tee -a /etc/shells
@@ -157,7 +156,8 @@ git pull --ff-only origin main
 | templates/mise_config.toml | bin/deploy.sh init <CURRENT_ROOT> | 覆盖 ~/.config/mise/config.toml |
 | Brewfile | brew bundle install --file=$DOTFILES_ROOT/Brewfile | 装新软件 (vscode 扩展不再托管, AI CLI 走 curl) |
 | ghostty/, starship/, btop/, atuin/, yazi/, bat/ | bin/deploy.sh init <CURRENT_ROOT> | 仅首次部署文件, 已存在不覆盖 (见 5c) |
-| ripgrep/, infat/, git/ignore | bin/deploy.sh init <CURRENT_ROOT> | 同上 |
+| ripgrep/, git/ignore | bin/deploy.sh init <CURRENT_ROOT> | 同上 |
+| infat/ | bin/deploy.sh init <CURRENT_ROOT> | 每次 init 覆盖（关联规则跟仓库走） |
 | git/config | 无操作 | ~/.gitconfig [include] 引用, 自动生效 |
 | bin/* | 无操作 | 脚本下次调用时生效 |
 | debug/profile.zsh | 无操作 | 仅 ZSH_PROFILE=1 时被 source |
@@ -165,7 +165,7 @@ git pull --ff-only origin main
 
 ### 5c. 主题或仅首次覆盖类文件改动 (重要)
 
-ghostty / starship / btop / atuin / yazi / bat / ripgrep / infat 走 deploy_if_absent (已存在跳过)。如果仓库改了它们 (如主题切换), 用户本机老版本不会被覆盖。
+ghostty / starship / btop / atuin / yazi / bat / ripgrep 走 deploy_if_absent (已存在跳过)。如果仓库改了它们 (如主题切换), 用户本机老版本不会被覆盖。infat 每次 init 覆盖。
 
 需要先删本机旧版再重跑 deploy:
 
@@ -199,7 +199,6 @@ exec zsh
 zimfw install
 mise install
 infat --config ~/.config/infat/config.toml
-bin/fix-browser-handlers.sh
 grep -qF /opt/homebrew/bin/zsh /etc/shells || echo /opt/homebrew/bin/zsh | sudo tee -a /etc/shells
 chsh -s /opt/homebrew/bin/zsh
 ```
