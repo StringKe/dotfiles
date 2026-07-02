@@ -22,7 +22,7 @@ AI 进入本仓库时，必须先确定属于哪个角色：
 
 允许：
 - 读仓库任何文件
-- 调用 `bin/deploy.sh` / `bin/install-themes.sh`
+- 调用 `bin/deploy.sh` / `bin/install-themes.sh` / `bin/install-ai-cli.sh`
 - 修改 `~` 内的部署产物（`~/.zshenv` / `~/.config/...`）
 - 运行 `brew bundle install` / `zimfw install` / `mise install` 等外部工具
 
@@ -72,9 +72,13 @@ bin/deploy.sh check
 部署后续命令：
 ```bash
 brew bundle install --file=$DOTFILES_ROOT/Brewfile   # 软件安装
+bin/install-ai-cli.sh                                 # claude-code / codex / grok-build（官方 curl 脚本，不走 brew）
 zimfw install                                         # zsh 模块
 mise install                                          # 语言运行时
+herdr integration install claude                      # herdr 的 Claude Code 集成（会话恢复 + 状态检测）
 infat --config ~/.config/infat/config.toml            # 文件关联
+duti -s com.microsoft.VSCode .sh all                  # infat 对 sh/bash 报 error -50, 改用 duti
+duti -s com.microsoft.VSCode .bash all
 chsh -s /opt/homebrew/bin/zsh                         # 默认 shell
 ```
 
@@ -84,7 +88,8 @@ chsh -s /opt/homebrew/bin/zsh                         # 默认 shell
 dotfiles/
 ├── bin/
 │   ├── deploy.sh           部署主脚本（CONSUMER 用）
-│   └── install-themes.sh   第三方主题下载
+│   ├── install-themes.sh   第三方主题下载
+│   └── install-ai-cli.sh   claude-code / codex / grok-build 官方 curl 安装（CONSUMER 用）
 ├── debug/
 │   └── profile.zsh         zsh 启动 profile 调试（ZSH_PROFILE=1 启用）
 ├── zsh/                    [TEMPLATE] zsh 入口文件
@@ -97,6 +102,7 @@ dotfiles/
 │   ├── mise_config.toml    mise 全局配置（含 __STORAGE_ROOT__）
 │   └── zsh_secrets.template 空白密钥模板
 ├── ghostty/config          [TEMPLATE] 终端配置
+├── herdr/config.toml       [TEMPLATE] agent multiplexer（键位分层设计见文件头注释）
 ├── starship/starship.toml  [TEMPLATE] 提示符
 ├── btop/btop.conf          [TEMPLATE] 系统监控
 ├── yazi/                   [TEMPLATE] 文件管理器
@@ -127,6 +133,7 @@ dotfiles/
 | `yazi/keymap.toml` | `~/.config/yazi/keymap.toml` | 仅首次 | 直接复制 |
 | `yazi/theme.toml` | `~/.config/yazi/theme.toml` | 仅首次 | 直接复制 |
 | `atuin/config.toml` | `~/.config/atuin/config.toml` | 仅首次 | 直接复制 |
+| `herdr/config.toml` | `~/.config/herdr/config.toml` | 仅首次 | 直接复制 |
 | `bat/config` | `~/.config/bat/config` | 仅首次 | 直接复制 |
 | `ripgrep/config` | `~/.config/ripgrep/config` | 仅首次 | 直接复制 |
 | `infat/config.toml` | `~/.config/infat/config.toml` | init 覆盖 | 直接复制 |
@@ -134,6 +141,7 @@ dotfiles/
 | `git/config` | (不复制) | - | `~/.gitconfig` 加 `[include] path = ...` |
 | `vscode/settings.json` | `~/Library/Application Support/Code/User/settings.json` | jq 深合并 | 本地字段保留, 仓库同名 key 覆盖 |
 | `Brewfile` | (不复制) | - | `brew bundle install --file=...` 直接读 |
+| `bin/install-ai-cli.sh` | (不复制) | 每次重跑 = 更新 | 官方 curl 脚本装 claude-code / codex / grok-build |
 
 ## Shell 加载顺序
 
@@ -189,6 +197,7 @@ dotfiles/
 | btop | `btop/btop.conf` 引用 + `bin/install-themes.sh btop` 从仓库 `btop/themes/` 复制 | 仓库自带主题文件 |
 | yazi | `yazi/theme.toml` | 手写 |
 | atuin | `atuin/config.toml` | 不指定主题，fallback 跟随终端 ANSI |
+| herdr | `herdr/config.toml` 设 `name = "terminal"` | 跟随终端 ANSI 配色 |
 | vscode | `vscode/settings.json` 设 `workbench.colorTheme: "GitHub Light Colorblind"`（扩展 `GitHub.github-vscode-theme` 需经 VS Code 内置 Settings Sync / 手动安装，不再由 Brewfile 托管） | 扩展自带 |
 
 修改主题：编辑对应配置文件（ghostty/starship/btop/yazi/init.zsh fzf 段），跑 `bin/deploy.sh init <ROOT>` 重新部署 + `bin/install-themes.sh` 复制 btop 主题。

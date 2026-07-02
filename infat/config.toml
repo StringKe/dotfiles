@@ -8,6 +8,9 @@
 #
 # 不设 html / svg——与浏览器争 public.html / public.svg-image，可能连带影响 http/https。
 # [schemes] 只绑 vscode://，不写 http / https（VS Code 未注册这两个 scheme）。
+#
+# 不设 sh / bash——同样触发 error -50（Tahoe 不让 infat 改这两个已被 Ghostty/Xcode
+# 抢注的扩展名）。改用 duti 按扩展名语法设置，见 CLAUDE.md「部署流程」。
 
 [extensions]
 json = "Visual Studio Code"

@@ -4,7 +4,7 @@ macOS 开发环境配置的**只读模板仓库**。
 
 仓库内文件是模板源，通过 `bin/deploy.sh` 复制（+ 占位符替换）到用户 home。仓库不被用户 shell 直接读取（唯一例外：`git/config` 由 `~/.gitconfig` 的 `[include]` 引用）。
 
-主题统一 **GitHub Light Colorblind**（橙色替代红，蓝色替代绿，避红绿色盲混淆），覆盖 ghostty / starship / btop / yazi / atuin / bat / fzf / vscode。
+主题统一 **GitHub Light Colorblind**（橙色替代红，蓝色替代绿，避红绿色盲混淆），覆盖 ghostty / starship / btop / yazi / atuin / bat / fzf / herdr / vscode。
 
 ## 前置准备
 
@@ -32,6 +32,9 @@ bin/deploy.sh init /Volumes/Storage
 # 软件
 brew bundle install --file=$PWD/Brewfile
 
+# AI CLI（claude-code / codex / grok-build，官方 curl 脚本，不走 brew）
+bin/install-ai-cli.sh
+
 # 应用 shell（启动新 shell）
 exec zsh
 
@@ -39,11 +42,16 @@ exec zsh
 zimfw install
 mise install
 
+# herdr 的 Claude Code 集成（会话恢复 + 状态检测）
+herdr integration install claude
+
 # 第三方主题（btop / atuin）
 bin/install-themes.sh
 
 # 文件关联
 infat --config ~/.config/infat/config.toml
+duti -s com.microsoft.VSCode .sh all    # infat 对 sh/bash 报 error -50, 改用 duti
+duti -s com.microsoft.VSCode .bash all
 
 # 默认 shell
 grep -qF /opt/homebrew/bin/zsh /etc/shells || echo /opt/homebrew/bin/zsh | sudo tee -a /etc/shells
@@ -64,7 +72,7 @@ bin/deploy.sh check
 
 你是 CONSUMER。允许:
 - 读 DOTFILES_ROOT 任何文件
-- 调用 DOTFILES_ROOT/bin/deploy.sh, DOTFILES_ROOT/bin/install-themes.sh
+- 调用 DOTFILES_ROOT/bin/deploy.sh, DOTFILES_ROOT/bin/install-themes.sh, DOTFILES_ROOT/bin/install-ai-cli.sh
 - 修改 ~/ 下的部署产物 (~/.zshenv / ~/.config/...)
 - 运行 brew / zimfw / mise / infat / git pull 等外部工具
 
@@ -154,10 +162,11 @@ git pull --ff-only origin main
 | zsh/zprofile, zsh/zshrc | bin/deploy.sh init <CURRENT_ROOT> | 直接覆盖 |
 | zsh/zimrc | bin/deploy.sh init <CURRENT_ROOT> + zimfw install | 模块清单变了 |
 | templates/mise_config.toml | bin/deploy.sh init <CURRENT_ROOT> | 覆盖 ~/.config/mise/config.toml |
-| Brewfile | brew bundle install --file=$DOTFILES_ROOT/Brewfile | 装新软件 (vscode 扩展不再托管, AI CLI 走 curl) |
-| ghostty/, starship/, btop/, atuin/, yazi/, bat/ | bin/deploy.sh init <CURRENT_ROOT> | 仅首次部署文件, 已存在不覆盖 (见 5c) |
+| Brewfile | brew bundle install --file=$DOTFILES_ROOT/Brewfile | 装新软件 (vscode 扩展不再托管) |
+| bin/install-ai-cli.sh | bin/install-ai-cli.sh | claude-code / codex / grok-build 官方 curl 脚本变了才需要 |
+| ghostty/, starship/, btop/, atuin/, yazi/, bat/, herdr/ | bin/deploy.sh init <CURRENT_ROOT> | 仅首次部署文件, 已存在不覆盖 (见 5c) |
 | ripgrep/, git/ignore | bin/deploy.sh init <CURRENT_ROOT> | 同上 |
-| infat/ | bin/deploy.sh init <CURRENT_ROOT> | 每次 init 覆盖（关联规则跟仓库走） |
+| infat/ | bin/deploy.sh init <CURRENT_ROOT> + duti -s com.microsoft.VSCode .sh all + duti -s com.microsoft.VSCode .bash all | 每次 init 覆盖（关联规则跟仓库走）; sh/bash 不在 infat 管辖内, 见 5c |
 | git/config | 无操作 | ~/.gitconfig [include] 引用, 自动生效 |
 | bin/* | 无操作 | 脚本下次调用时生效 |
 | debug/profile.zsh | 无操作 | 仅 ZSH_PROFILE=1 时被 source |
@@ -165,7 +174,13 @@ git pull --ff-only origin main
 
 ### 5c. 主题或仅首次覆盖类文件改动 (重要)
 
-ghostty / starship / btop / atuin / yazi / bat / ripgrep 走 deploy_if_absent (已存在跳过)。如果仓库改了它们 (如主题切换), 用户本机老版本不会被覆盖。infat 每次 init 覆盖。
+ghostty / starship / btop / atuin / yazi / bat / ripgrep / herdr 走 deploy_if_absent (已存在跳过)。如果仓库改了它们 (如主题切换), 用户本机老版本不会被覆盖。infat 每次 init 覆盖。herdr 配置更新后跑 herdr server reload-config 生效。
+
+infat 在 macOS Tahoe 上无法设置 sh / bash 扩展名的默认应用 (LaunchServices error -50, 已被 Ghostty / Xcode 抢注)。这两个跑完 infat 后额外执行:
+```bash
+duti -s com.microsoft.VSCode .sh all
+duti -s com.microsoft.VSCode .bash all
+```
 
 需要先删本机旧版再重跑 deploy:
 
@@ -194,11 +209,15 @@ ghostty +reload-config 2>/dev/null || true # ghostty 主题改动
 ```bash
 bin/deploy.sh init <NEW_ROOT>
 brew bundle install --file=$DOTFILES_ROOT/Brewfile
+bin/install-ai-cli.sh
 bin/install-themes.sh
 exec zsh
 zimfw install
 mise install
+herdr integration install claude
 infat --config ~/.config/infat/config.toml
+duti -s com.microsoft.VSCode .sh all
+duti -s com.microsoft.VSCode .bash all
 grep -qF /opt/homebrew/bin/zsh /etc/shells || echo /opt/homebrew/bin/zsh | sudo tee -a /etc/shells
 chsh -s /opt/homebrew/bin/zsh
 ```
@@ -225,13 +244,15 @@ chsh -s /opt/homebrew/bin/zsh
 dotfiles/
 ├── bin/
 │   ├── deploy.sh           部署主脚本
-│   └── install-themes.sh   第三方主题下载（btop / atuin）
+│   ├── install-themes.sh   第三方主题下载（btop / atuin）
+│   └── install-ai-cli.sh   claude-code / codex / grok-build 官方 curl 安装
 ├── debug/
 │   └── profile.zsh         ZSH_PROFILE=1 启用的启动 timing 调试
 ├── zsh/                    [TEMPLATE] zsh 入口
 ├── init.zsh                [TEMPLATE] 交互式配置 -> ~/.zsh/init.zsh
 ├── templates/              [TEMPLATE] 含占位符的模板
 ├── ghostty/                [TEMPLATE] 终端
+├── herdr/                  [TEMPLATE] agent multiplexer（键位分层设计见文件头注释）
 ├── starship/               [TEMPLATE] 提示符
 ├── btop/                   [TEMPLATE] 系统监控
 ├── yazi/                   [TEMPLATE] 文件管理器
@@ -267,6 +288,7 @@ dotfiles/
 | 环境变量 | `zsh/zshenv`（**保留占位符**） | `bin/deploy.sh init <ROOT>` |
 | 软件清单 | `Brewfile` | `brew bundle install` |
 | 终端主题 | `ghostty/config` | 重新部署 |
+| herdr 键位 / 主题 | `herdr/config.toml` | 重新部署（仅首次覆盖，需先删本机旧文件）+ `herdr server reload-config` |
 | 提示符 | `starship/starship.toml` | 重新部署 |
 | Git 通用配置 | `git/config` | 自动生效（`[include]` 引用） |
 
