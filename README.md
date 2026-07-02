@@ -4,7 +4,7 @@ macOS 开发环境配置的**只读模板仓库**。
 
 仓库内文件是模板源，通过 `bin/deploy.sh` 复制（+ 占位符替换）到用户 home。仓库不被用户 shell 直接读取（唯一例外：`git/config` 由 `~/.gitconfig` 的 `[include]` 引用）。
 
-主题统一 **GitHub Light Colorblind**（橙色替代红，蓝色替代绿，避红绿色盲混淆），覆盖 ghostty / starship / btop / yazi / atuin / bat / fzf / herdr / vscode。
+主题统一 **GitHub Light Colorblind**（橙色替代红，蓝色替代绿，避红绿色盲混淆），覆盖 ghostty / starship / btop / yazi / atuin / bat / fzf / vscode。
 
 ## 前置准备
 
@@ -41,9 +41,6 @@ exec zsh
 # zim 模块 + 语言运行时
 zimfw install
 mise install
-
-# herdr 的 Claude Code 集成（会话恢复 + 状态检测）
-herdr integration install claude
 
 # 第三方主题（btop / atuin）
 bin/install-themes.sh
@@ -165,7 +162,7 @@ git pull --ff-only origin main
 | templates/mise_config.toml | bin/deploy.sh init <CURRENT_ROOT> | 覆盖 ~/.config/mise/config.toml |
 | Brewfile | brew bundle install --file=$DOTFILES_ROOT/Brewfile | 装新软件 (vscode 扩展不再托管) |
 | bin/install-ai-cli.sh | bin/install-ai-cli.sh | claude-code / codex / grok-build 官方 curl 脚本变了才需要 |
-| ghostty/, starship/, btop/, atuin/, yazi/, bat/, herdr/ | bin/deploy.sh init <CURRENT_ROOT> | 仅首次部署文件, 已存在不覆盖 (见 5c) |
+| ghostty/, starship/, btop/, atuin/, yazi/, bat/ | bin/deploy.sh init <CURRENT_ROOT> | 仅首次部署文件, 已存在不覆盖 (见 5c) |
 | ripgrep/, git/ignore | bin/deploy.sh init <CURRENT_ROOT> | 同上 |
 | infat/ | bin/deploy.sh init <CURRENT_ROOT> + duti -s com.microsoft.VSCode .sh all + duti -s com.microsoft.VSCode .bash all | 每次 init 覆盖（关联规则跟仓库走）; sh/bash 不在 infat 管辖内, 见 5c |
 | git/config | 无操作 | ~/.gitconfig [include] 引用, 自动生效 |
@@ -175,7 +172,7 @@ git pull --ff-only origin main
 
 ### 5c. 主题或仅首次覆盖类文件改动 (重要)
 
-ghostty / starship / btop / atuin / yazi / bat / ripgrep / herdr 走 deploy_if_absent (已存在跳过)。如果仓库改了它们 (如主题切换), 用户本机老版本不会被覆盖。infat 每次 init 覆盖。herdr 配置更新后跑 herdr server reload-config 生效。
+ghostty / starship / btop / atuin / yazi / bat / ripgrep 走 deploy_if_absent (已存在跳过)。如果仓库改了它们 (如主题切换), 用户本机老版本不会被覆盖。infat 每次 init 覆盖。
 
 infat 在 macOS Tahoe 上无法设置 sh / bash / plist 扩展名的默认应用 (LaunchServices error -50, 已被 Ghostty / Xcode 抢注)。这几个跑完 infat 后额外执行:
 ```bash
@@ -217,7 +214,6 @@ bin/install-themes.sh
 exec zsh
 zimfw install
 mise install
-herdr integration install claude
 infat --config ~/.config/infat/config.toml
 duti -s com.microsoft.VSCode .sh all
 duti -s com.microsoft.VSCode .bash all
@@ -256,7 +252,6 @@ dotfiles/
 ├── init.zsh                [TEMPLATE] 交互式配置 -> ~/.zsh/init.zsh
 ├── templates/              [TEMPLATE] 含占位符的模板
 ├── ghostty/                [TEMPLATE] 终端
-├── herdr/                  [TEMPLATE] agent multiplexer（键位分层设计见文件头注释）
 ├── starship/               [TEMPLATE] 提示符
 ├── btop/                   [TEMPLATE] 系统监控
 ├── yazi/                   [TEMPLATE] 文件管理器
@@ -292,7 +287,6 @@ dotfiles/
 | 环境变量 | `zsh/zshenv`（**保留占位符**） | `bin/deploy.sh init <ROOT>` |
 | 软件清单 | `Brewfile` | `brew bundle install` |
 | 终端主题 | `ghostty/config` | 重新部署 |
-| herdr 键位 / 主题 | `herdr/config.toml` | 重新部署（仅首次覆盖，需先删本机旧文件）+ `herdr server reload-config` |
 | 提示符 | `starship/starship.toml` | 重新部署 |
 | Git 通用配置 | `git/config` | 自动生效（`[include]` 引用） |
 

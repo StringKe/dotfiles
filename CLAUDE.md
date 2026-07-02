@@ -75,7 +75,6 @@ brew bundle install --file=$DOTFILES_ROOT/Brewfile   # 软件安装
 bin/install-ai-cli.sh                                 # claude-code / codex / grok-build（官方 curl 脚本，不走 brew）
 zimfw install                                         # zsh 模块
 mise install                                          # 语言运行时
-herdr integration install claude                      # herdr 的 Claude Code 集成（会话恢复 + 状态检测）
 infat --config ~/.config/infat/config.toml            # 文件关联
 duti -s com.microsoft.VSCode .sh all                  # infat 对 sh/bash/plist 报 error -50, 改用 duti
 duti -s com.microsoft.VSCode .bash all
@@ -103,7 +102,6 @@ dotfiles/
 │   ├── mise_config.toml    mise 全局配置（含 __STORAGE_ROOT__）
 │   └── zsh_secrets.template 空白密钥模板
 ├── ghostty/config          [TEMPLATE] 终端配置
-├── herdr/config.toml       [TEMPLATE] agent multiplexer（键位分层设计见文件头注释）
 ├── starship/starship.toml  [TEMPLATE] 提示符
 ├── btop/btop.conf          [TEMPLATE] 系统监控
 ├── yazi/                   [TEMPLATE] 文件管理器
@@ -134,7 +132,6 @@ dotfiles/
 | `yazi/keymap.toml` | `~/.config/yazi/keymap.toml` | 仅首次 | 直接复制 |
 | `yazi/theme.toml` | `~/.config/yazi/theme.toml` | 仅首次 | 直接复制 |
 | `atuin/config.toml` | `~/.config/atuin/config.toml` | 仅首次 | 直接复制 |
-| `herdr/config.toml` | `~/.config/herdr/config.toml` | 仅首次 | 直接复制 |
 | `bat/config` | `~/.config/bat/config` | 仅首次 | 直接复制 |
 | `ripgrep/config` | `~/.config/ripgrep/config` | 仅首次 | 直接复制 |
 | `infat/config.toml` | `~/.config/infat/config.toml` | init 覆盖 | 直接复制 |
@@ -198,7 +195,6 @@ dotfiles/
 | btop | `btop/btop.conf` 引用 + `bin/install-themes.sh btop` 从仓库 `btop/themes/` 复制 | 仓库自带主题文件 |
 | yazi | `yazi/theme.toml` | 手写 |
 | atuin | `atuin/config.toml` | 不指定主题，fallback 跟随终端 ANSI |
-| herdr | `herdr/config.toml` 设 `name = "terminal"` | 跟随终端 ANSI 配色 |
 | vscode | `vscode/settings.json` 设 `workbench.colorTheme: "GitHub Light Colorblind"`（扩展 `GitHub.github-vscode-theme` 需经 VS Code 内置 Settings Sync / 手动安装，不再由 Brewfile 托管） | 扩展自带 |
 
 修改主题：编辑对应配置文件（ghostty/starship/btop/yazi/init.zsh fzf 段），跑 `bin/deploy.sh init <ROOT>` 重新部署 + `bin/install-themes.sh` 复制 btop 主题。
