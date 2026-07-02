@@ -181,9 +181,7 @@ cask "freelens"        # Kubernetes 集群 GUI
 
 # ============================================================
 # AI CLI - 走官方 curl 安装, 不用 brew (自带后台自更新, 无需 brew upgrade)
-#   claude-code:  curl -fsSL https://claude.ai/install.sh | bash
-#   codex:        curl -fsSL https://chatgpt.com/codex/install.sh | sh
-#   grok-build:   curl -fsSL https://x.ai/cli/install.sh | bash
+#   由 bin/install-ai-cli.sh 统一管理 (claude-code / codex / grok-build)
 # ============================================================
 
 # ============================================================
@@ -192,7 +190,6 @@ cask "freelens"        # Kubernetes 集群 GUI
 cask "1password"
 cask "1password-cli"
 cask "raycast"
-cask "claude"          # Claude GUI
 
 # ============================================================
 # GUI - 浏览器
