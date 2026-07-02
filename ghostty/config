@@ -131,8 +131,12 @@ shell-integration = zsh
 shell-integration-features = cursor,sudo,title,path
 
 # ══════════════════════════════════════════════════════════════════════════════
-# Keybinds（可选，按需启用）
+# Keybinds
 # ══════════════════════════════════════════════════════════════════════════════
 
-# Shift+Enter 插入换行（Claude Code / 多行输入）
-# keybind = shift+enter=text:\n
+# Shift+Enter 插入换行（Claude Code / 多行输入；经 herdr PTY 原样透传）
+keybind = shift+enter=text:\n
+
+# 键位分层约定（详见 herdr/config.toml 头注释）：
+# cmd 层 = ghostty；ctrl+alt 直达层 + ctrl+b prefix 层 = herdr；其余直达内层程序。
+# 默认键一条不改：herdr 全部键位与 ghostty 默认零冲突。

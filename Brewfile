@@ -45,6 +45,7 @@ brew "jq"              # JSON 处理
 brew "yq"              # YAML 处理
 brew "lazygit"         # Git TUI
 brew "fastfetch"       # 系统信息展示
+brew "herdr"           # agent multiplexer（持久会话 + agent 状态跟踪）
 
 # ============================================================
 # CLI - 文件工具

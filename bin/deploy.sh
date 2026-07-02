@@ -140,6 +140,7 @@ cmd_init() {
     deploy_if_absent yazi/keymap.toml      "$HOME/.config/yazi/keymap.toml"
     [[ -f $DOTFILES_ROOT/yazi/theme.toml ]] && deploy_if_absent yazi/theme.toml "$HOME/.config/yazi/theme.toml"
     deploy_if_absent atuin/config.toml     "$HOME/.config/atuin/config.toml"
+    deploy_if_absent herdr/config.toml     "$HOME/.config/herdr/config.toml"
     deploy_if_absent btop/btop.conf        "$HOME/.config/btop/btop.conf"
     deploy_copy infat/config.toml          "$HOME/.config/infat/config.toml"
     [[ -f $DOTFILES_ROOT/bat/config ]]      && deploy_if_absent bat/config "$HOME/.config/bat/config"
@@ -200,8 +201,9 @@ cmd_init() {
     log "  2. exec zsh                  # 应用新环境变量"
     log "  3. zimfw install              # 安装 zsh 模块"
     log "  4. mise install               # 安装语言运行时"
-    log "  5. infat --config ~/.config/infat/config.toml"
-    log "  6. chsh -s /opt/homebrew/bin/zsh"
+    log "  5. herdr integration install claude   # Claude Code 会话恢复 + 状态检测"
+    log "  6. infat --config ~/.config/infat/config.toml"
+    log "  7. chsh -s /opt/homebrew/bin/zsh"
 }
 
 cmd_sync() {
