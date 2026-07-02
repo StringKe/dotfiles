@@ -9,8 +9,13 @@
 # 不设 html / svg——与浏览器争 public.html / public.svg-image，可能连带影响 http/https。
 # [schemes] 只绑 vscode://，不写 http / https（VS Code 未注册这两个 scheme）。
 #
-# 不设 sh / bash——同样触发 error -50（Tahoe 不让 infat 改这两个已被 Ghostty/Xcode
-# 抢注的扩展名）。改用 duti 按扩展名语法设置，见 CLAUDE.md「部署流程」。
+# 不设 sh / bash / plist——同样触发 error -50（Tahoe 不让 infat 改这些已被
+# Ghostty/Xcode 抢注的扩展名）。改用 duti 按扩展名语法设置，见 CLAUDE.md「部署流程」。
+# duti -x 查询会误报旧值，验证真实 handler 用 LSCopyDefaultRoleHandlerForContentType。
+#
+# 无扩展名文件（Brewfile 等）UTI 是 public.data，不能全局关联（会劫持所有未知
+# 类型文件），只能对单个文件写 com.apple.LaunchServices.OpenWith xattr，
+# 见 CLAUDE.md「部署流程」。
 
 [extensions]
 json = "Visual Studio Code"

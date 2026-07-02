@@ -50,8 +50,9 @@ bin/install-themes.sh
 
 # 文件关联
 infat --config ~/.config/infat/config.toml
-duti -s com.microsoft.VSCode .sh all    # infat 对 sh/bash 报 error -50, 改用 duti
+duti -s com.microsoft.VSCode .sh all    # infat 对 sh/bash/plist 报 error -50, 改用 duti
 duti -s com.microsoft.VSCode .bash all
+duti -s com.microsoft.VSCode .plist all
 
 # 默认 shell
 grep -qF /opt/homebrew/bin/zsh /etc/shells || echo /opt/homebrew/bin/zsh | sudo tee -a /etc/shells
@@ -176,11 +177,13 @@ git pull --ff-only origin main
 
 ghostty / starship / btop / atuin / yazi / bat / ripgrep / herdr 走 deploy_if_absent (已存在跳过)。如果仓库改了它们 (如主题切换), 用户本机老版本不会被覆盖。infat 每次 init 覆盖。herdr 配置更新后跑 herdr server reload-config 生效。
 
-infat 在 macOS Tahoe 上无法设置 sh / bash 扩展名的默认应用 (LaunchServices error -50, 已被 Ghostty / Xcode 抢注)。这两个跑完 infat 后额外执行:
+infat 在 macOS Tahoe 上无法设置 sh / bash / plist 扩展名的默认应用 (LaunchServices error -50, 已被 Ghostty / Xcode 抢注)。这几个跑完 infat 后额外执行:
 ```bash
 duti -s com.microsoft.VSCode .sh all
 duti -s com.microsoft.VSCode .bash all
+duti -s com.microsoft.VSCode .plist all
 ```
+注: duti -x 查询会误报旧值, 验证真实 handler 用 LSCopyDefaultRoleHandlerForContentType。
 
 需要先删本机旧版再重跑 deploy:
 
@@ -218,6 +221,7 @@ herdr integration install claude
 infat --config ~/.config/infat/config.toml
 duti -s com.microsoft.VSCode .sh all
 duti -s com.microsoft.VSCode .bash all
+duti -s com.microsoft.VSCode .plist all
 grep -qF /opt/homebrew/bin/zsh /etc/shells || echo /opt/homebrew/bin/zsh | sudo tee -a /etc/shells
 chsh -s /opt/homebrew/bin/zsh
 ```

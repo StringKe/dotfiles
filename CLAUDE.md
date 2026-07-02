@@ -77,8 +77,9 @@ zimfw install                                         # zsh 模块
 mise install                                          # 语言运行时
 herdr integration install claude                      # herdr 的 Claude Code 集成（会话恢复 + 状态检测）
 infat --config ~/.config/infat/config.toml            # 文件关联
-duti -s com.microsoft.VSCode .sh all                  # infat 对 sh/bash 报 error -50, 改用 duti
+duti -s com.microsoft.VSCode .sh all                  # infat 对 sh/bash/plist 报 error -50, 改用 duti
 duti -s com.microsoft.VSCode .bash all
+duti -s com.microsoft.VSCode .plist all
 chsh -s /opt/homebrew/bin/zsh                         # 默认 shell
 ```
 
