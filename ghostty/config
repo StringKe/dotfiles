@@ -137,6 +137,15 @@ shell-integration-features = cursor,sudo,title,path
 # Shift+Enter 插入换行（Claude Code / 多行输入）
 keybind = shift+enter=text:\n
 
+# 关掉官方默认 super+enter=toggle_fullscreen（误触全屏）；
+# 全屏只保留 macOS / Ghostty 默认的 super+ctrl+f（⌃⌘F）
+keybind = super+enter=unbind
+
+# 防误触退出：cmd+q 失效（confirm-close-surface = false 时 cmd+q 会静默杀掉
+# 所有 tab）；有意退出用 cmd+shift+q 或菜单 Ghostty > Quit
+keybind = super+q=ignore
+keybind = super+shift+q=quit
+
 # Split：cmd+d/cmd+shift+d（右/下）是 ghostty 官方默认，钉住不依赖隐式
 # 默认；new_split 其实支持 left/up 参数，官方默认没给键位，这里用同一个
 # d 字母补上（不加修饰键=右，+shift=下，+alt=左，+ctrl=上）
