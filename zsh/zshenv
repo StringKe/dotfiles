@@ -31,7 +31,7 @@ fi
 
 # ============================================================
 # 存储根：以下两行 export 在仓库内为占位符，部署时由 AI 全文替换为绝对路径（见 README）。
-# 禁止 export STORAGE_ROOT 环境变量。固定子目录：Code/、Languages/、ollama/
+# 禁止 export STORAGE_ROOT 环境变量。固定子目录：Code/、Languages/
 # 换位置见 README「存储位置与迁移」
 # ============================================================
 export CODE_LANGUAGES_HOME="__STORAGE_ROOT__/Languages"
@@ -135,13 +135,6 @@ export HF_HUB_CACHE="$CODE_LANGUAGES_HOME/python/huggingface/hub"
 # PHP
 # ============================================================
 export COMPOSER_HOME="$CODE_LANGUAGES_HOME/php/composer"
-
-# ============================================================
-# Ollama
-# ============================================================
-export OLLAMA_MODELS="__STORAGE_ROOT__/ollama/models"
-export OLLAMA_HOST="0.0.0.0:11434"
-export OLLAMA_KEEP_ALIVE="24h"
 
 # ============================================================
 # Homebrew keg-only 包路径
