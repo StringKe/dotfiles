@@ -16,14 +16,13 @@
 # ============================================================
 tap "cloudflare/cloudflare"
 tap "hashicorp/tap"
-tap "fluxcd/tap"
-tap "qovery/qovery-cli"
 
 # ============================================================
 # CLI - Shell 与提示符
 # ============================================================
 brew "zsh"
 brew "starship"        # 跨 shell 提示符
+brew "tmux"            # 终端复用
 brew "pam-reattach"    # tmux 下 Touch ID sudo
 
 # ============================================================
@@ -50,9 +49,11 @@ brew "fastfetch"       # 系统信息展示
 # CLI - 文件工具
 # ============================================================
 brew "macos-trash"     # 安全删除（Finder 回收站）
-brew "coreutils"       # GNU 核心工具
+brew "coreutils"       # GNU 核心工具；zshenv 把 gnubin 放在 /usr/bin 之前
 brew "sevenzip"        # 7z 压缩
 brew "sqlcipher"       # 加密 SQLite
+brew "age"             # 文件加密
+brew "sops"            # 密钥文件加解密
 
 # ============================================================
 # CLI - 代码分析 / 反编译
@@ -96,22 +97,12 @@ brew "kubernetes-cli"
 brew "helm"
 brew "kind"
 brew "kustomize"
-brew "k8sgpt"
-brew "argo"
-brew "argocd"
 brew "hashicorp/tap/terraform"
 brew "opentofu"
 brew "terragrunt"
 brew "cloudflared"
 brew "flarectl"
-brew "operator-sdk"
 brew "aliyun-cli"      # 阿里云
-brew "openshift-cli"   # OpenShift oc
-brew "rosa-cli"        # AWS Red Hat OpenShift
-brew "tektoncd-cli"    # Tekton tkn
-brew "kargo"           # GitOps 提升管线
-brew "fluxcd/tap/flux" # Flux CD
-brew "qovery/qovery-cli/qovery-cli"
 
 # ============================================================
 # CLI - 语言工具链（Go 生态）
@@ -140,16 +131,17 @@ brew "composer"
 # ============================================================
 # CLI - 多媒体
 # ============================================================
-brew "ffmpeg"
+brew "ffmpeg-full"     # keg-only，PATH / 编译 flags 在 zshenv
 brew "imagemagick"
 brew "resvg"           # SVG 渲染
 brew "poppler"         # PDF 工具
 brew "tesseract"       # OCR 引擎
 
 # ============================================================
-# CLI - 数据库 / 消息队列: 全部走 OrbStack docker, 本机不再装 server
-# (libpq 由 php 自动拉作为 pgsql 扩展运行时)
+# CLI - 数据库客户端: server 走 OrbStack docker，本机只留 client
+# libpq 由 php 自动拉；zshenv 把它和 mysql-client 的 keg-only bin 放进 PATH
 # ============================================================
+brew "mysql-client"    # keg-only，与 mysql server 公式冲突
 
 # ============================================================
 # CLI - Linter
@@ -205,7 +197,6 @@ cask "whatsapp"
 # GUI - 网络工具
 # ============================================================
 cask "cloudflare-warp"
-cask "mitmproxy"
 cask "ngrok"
 
 # ============================================================

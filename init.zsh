@@ -15,10 +15,10 @@
 (( $+functions[_prof] )) && _prof "init.zsh start"
 
 # ============================================================
-# OrbStack - 容器 / Linux VM 集成
+# OrbStack 补全（bin 已在 zshenv PATH，不 source 其 init，避免重复改 PATH）
 # ============================================================
-if [[ -f ~/.orbstack/shell/init.zsh ]]; then
-    source ~/.orbstack/shell/init.zsh 2>/dev/null || true
+if [[ -d ~/.orbstack/shell/completions/zsh ]]; then
+    fpath=(~/.orbstack/shell/completions/zsh $fpath)
 fi
 (( $+functions[_prof] )) && _prof "OrbStack"
 
@@ -206,6 +206,20 @@ fi
 if [[ -s "$BUN_INSTALL/_bun" ]]; then
     source "$BUN_INSTALL/_bun"
 fi
+
+# ============================================================
+# Vite+：vp() 与补全。PATH / VP_HOME 在 zshenv，此处只加载函数。
+# ============================================================
+if [[ -f $HOME/.vite-plus/env ]]; then
+    source "$HOME/.vite-plus/env"
+fi
+(( $+functions[_prof] )) && _prof "Vite+"
+
+# ngrok caveats 会让人写进 ~/.zshrc。补全脚本含 bash `type -t`，丢弃其噪声。
+if command -v ngrok &>/dev/null; then
+    eval "$(ngrok completion)" 2>/dev/null || true
+fi
+(( $+functions[_prof] )) && _prof "ngrok completion"
 
 # ============================================================
 # Starship - 提示符（最后加载，接管 precmd）

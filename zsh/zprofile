@@ -13,11 +13,15 @@
 (( $+functions[_prof] )) && _prof "zprofile start"
 
 # ============================================================
-# Homebrew 初始化
+# Homebrew
+# /etc/zprofile 的 path_helper 会把 /usr/bin 抬到最前。
+# brew shellenv 会再把 $HOMEBREW_PREFIX/bin 插到最前。
+# 两者都会压过 keg-only，所以取完 HOMEBREW_* 后重建 PATH。
 # ============================================================
-if [[ -f /opt/homebrew/bin/brew ]]; then
-    eval "$(/opt/homebrew/bin/brew shellenv)"
+if [[ -x ${HOMEBREW_PREFIX:-/opt/homebrew}/bin/brew ]]; then
+    eval "$(${HOMEBREW_PREFIX:-/opt/homebrew}/bin/brew shellenv)"
 fi
+(( $+functions[_dotfiles_setup_path] )) && _dotfiles_setup_path
 (( $+functions[_prof] )) && _prof "brew shellenv"
 
 # ============================================================

@@ -12,6 +12,7 @@ node = "latest"
 rust = "latest"
 go = "latest"
 uv = "latest"
+java = "25"
 
 # 与 ~/.zshenv 语言路径对齐；供 mise shims / IDE 读取（GUI 可能不加载 zshenv）。
 # MISE_DATA_DIR / MISE_CACHE_DIR / JAVA_HOME 不在此定义：MISE_* 须由 zshenv 在 mise 启动前 export；JAVA_HOME 由 mise java 工具管理。

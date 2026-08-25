@@ -113,8 +113,8 @@ export DENO_INSTALL="$CODE_LANGUAGES_HOME/deno"
 
 # ============================================================
 # Java
+# JAVA_HOME 由 mise java 在 activate 时设置，不在此写死 brew openjdk。
 # ============================================================
-export JAVA_HOME="/opt/homebrew/opt/openjdk/libexec/openjdk.jdk/Contents/Home"
 export GRADLE_USER_HOME="$CODE_LANGUAGES_HOME/java/gradle"
 export MAVEN_OPTS="-Dmaven.repo.local=$CODE_LANGUAGES_HOME/java/maven"
 
@@ -137,67 +137,64 @@ export HF_HUB_CACHE="$CODE_LANGUAGES_HOME/python/huggingface/hub"
 export COMPOSER_HOME="$CODE_LANGUAGES_HOME/php/composer"
 
 # ============================================================
-# Homebrew keg-only 包路径
+# Homebrew
+# PATH 在本文件独占。zprofile 取完 brew shellenv 的 HOMEBREW_* 后再调
+# _dotfiles_setup_path，抵消 path_helper / brew 把 /usr/bin 抬到最前。
+# 安装器 caveats 禁止留在 ~/.zshrc；按是否该盖住系统命令分层加入。
 # ============================================================
-HOMEBREW_PREFIX="/opt/homebrew"
+if [[ -z ${HOMEBREW_PREFIX:-} ]]; then
+    if [[ -x /opt/homebrew/bin/brew ]]; then
+        HOMEBREW_PREFIX=/opt/homebrew
+    elif [[ -x /usr/local/bin/brew ]]; then
+        HOMEBREW_PREFIX=/usr/local
+    else
+        HOMEBREW_PREFIX=/opt/homebrew
+    fi
+fi
+export HOMEBREW_PREFIX
 
-# keg-only bin 路径
-KEG_ONLY_PATHS=(
-    "$HOMEBREW_PREFIX/opt/postgresql@18/bin"
-    "$HOMEBREW_PREFIX/opt/libpq/bin"
-    "$HOMEBREW_PREFIX/opt/openjdk/bin"
-    "$HOMEBREW_PREFIX/opt/curl/bin"
-    "$HOMEBREW_PREFIX/opt/sqlite/bin"
-    "$HOMEBREW_PREFIX/opt/ncurses/bin"
-    "$HOMEBREW_PREFIX/opt/libiconv/bin"
-    "$HOMEBREW_PREFIX/opt/icu4c@78/bin"
-    "$HOMEBREW_PREFIX/opt/icu4c@78/sbin"
-)
+# keg-only CLI 目录在 _dotfiles_setup_path 里收集，便于登录壳在 path_helper 之后重建。
 
 # ============================================================
 # 编译环境变量 (LDFLAGS / CPPFLAGS / PKG_CONFIG_PATH)
+# 只收录 keg-only 库。已 link 进 prefix 的（zstd / libzip）不必再写。
+# llvm 不进默认 flags，避免盖住 Apple clang 的 headers。需要时在项目里单独加。
 # ============================================================
 KEG_ONLY_LIBS=(
-    "openssl@3"
-    "readline"
-    "sqlite"
-    "libpq"
-    "postgresql@18"
-    "ncurses"
-    "libiconv"
-    "icu4c@78"
-    "curl"
-    "krb5"
-    "openldap"
-    "zstd"
-    "libzip"
+    openssl@3
+    readline
+    sqlite
+    libpq
+    ncurses
+    icu4c
+    curl
+    krb5
+    openldap
+    libffi
+    libxml2
+    ffmpeg-full
+    mysql-client
 )
 
 _ldflags=""
-for lib in "${KEG_ONLY_LIBS[@]}"; do
-    if [[ -d "$HOMEBREW_PREFIX/opt/$lib/lib" ]]; then
-        _ldflags="$_ldflags -L$HOMEBREW_PREFIX/opt/$lib/lib"
-    fi
-done
-export LDFLAGS="${_ldflags# }"
-
 _cppflags=""
-for lib in "${KEG_ONLY_LIBS[@]}"; do
-    if [[ -d "$HOMEBREW_PREFIX/opt/$lib/include" ]]; then
-        _cppflags="$_cppflags -I$HOMEBREW_PREFIX/opt/$lib/include"
-    fi
-done
-export CPPFLAGS="${_cppflags# }"
-
 _pkg_config_path=""
 for lib in "${KEG_ONLY_LIBS[@]}"; do
-    if [[ -d "$HOMEBREW_PREFIX/opt/$lib/lib/pkgconfig" ]]; then
+    if [[ -d $HOMEBREW_PREFIX/opt/$lib/lib ]]; then
+        _ldflags="$_ldflags -L$HOMEBREW_PREFIX/opt/$lib/lib"
+    fi
+    if [[ -d $HOMEBREW_PREFIX/opt/$lib/include ]]; then
+        _cppflags="$_cppflags -I$HOMEBREW_PREFIX/opt/$lib/include"
+    fi
+    if [[ -d $HOMEBREW_PREFIX/opt/$lib/lib/pkgconfig ]]; then
         _pkg_config_path="$_pkg_config_path:$HOMEBREW_PREFIX/opt/$lib/lib/pkgconfig"
     fi
 done
+export LDFLAGS="${_ldflags# }"
+export CPPFLAGS="${_cppflags# }"
 export PKG_CONFIG_PATH="${_pkg_config_path#:}"
-
-unset _ldflags _cppflags _pkg_config_path
+unset _ldflags _cppflags _pkg_config_path lib
+unset KEG_ONLY_LIBS
 
 # ============================================================
 # 语言编译选项 (mise 编译 Ruby/Python 时使用)
@@ -206,70 +203,88 @@ export RUBY_CONFIGURE_OPTS="--with-openssl-dir=$HOMEBREW_PREFIX/opt/openssl@3 --
 export PYTHON_CONFIGURE_OPTS="--with-openssl=$HOMEBREW_PREFIX/opt/openssl@3"
 
 # ============================================================
-# PATH 配置
+# PATH
+# 用户 CLI 安装器常把 export PATH 追加进 ~/.zshrc / ~/.zprofile，部署会覆盖。
+# 登录壳会跑 /etc/zprofile 的 path_helper，把 /usr/bin 抬到最前，盖住
+# macos-trash / ffmpeg-full。zprofile 在 brew shellenv 之后再调本函数重建。
 # ============================================================
-typeset -U path
+if [[ -d $HOME/.vite-plus ]]; then
+    export VP_HOME="$HOME/.vite-plus"
+fi
 
-path=(
-    # 用户本地 bin
-    "$HOME/.local/bin"
+_dotfiles_setup_path() {
+    # -g：函数内 typeset 默认是 local，否则 PATH 改完就丢
+    typeset -gU path
+    local -a _user_cli _keg_front _gnu_front _keg_behind
+    local _d _keg
 
-    # proto / moon（moonrepo 工具链管理器）
-    # proto/bin: proto CLI 本身
-    # proto/shims: proto 管理的工具（atlas/buf/cosign/sops 等 proto-only 工具）
-    #   shims 是智能 shim：无 .prototools 配置时自动回退到 PATH 其余位置的同名工具（即 mise 版本）
-    #   mise activate 的 precmd hook 在每次 prompt 前优先设置共享工具版本（node/go），
-    #   proto-only 工具（atlas/buf/cosign/sops 等）不受 mise 影响，直接由 proto shims 提供。
-    "$HOME/.proto/bin"
-    "$HOME/.proto/shims"
-    "$HOME/.moon/bin"
+    for _d in \
+        "$HOME/.local/bin" \
+        "$HOME/.vite-plus/bin" \
+        "$HOME/.darkbloom/bin" \
+        "$HOME/.lmstudio/bin" \
+        "$HOME/.maestro/bin" \
+        "$HOME/.orbstack/bin" \
+        "$HOME/.yzos/bin" \
+        "$HOME/Library/Application Support/JetBrains/Toolbox/scripts"
+    do
+        [[ -d "$_d" ]] && _user_cli+=("$_d")
+    done
+    # kimi-code / kimi-webbridge / kimi-work 等安装器各自写 ~/.kimi-*/bin
+    for _d in "$HOME"/.kimi-*/bin; do
+        [[ -d "$_d" ]] && _user_cli+=("$_d")
+    done
 
-    # Rust
-    "$CARGO_HOME/bin"
+    # 必须盖住系统/普通公式：ffmpeg-full、macos-trash、mysql-client、较新的 curl/sqlite
+    for _keg in ffmpeg-full mysql-client macos-trash libpq curl sqlite icu4c; do
+        [[ -d $HOMEBREW_PREFIX/opt/$_keg/bin ]] && _keg_front+=("$HOMEBREW_PREFIX/opt/$_keg/bin")
+        [[ -d $HOMEBREW_PREFIX/opt/$_keg/sbin ]] && _keg_front+=("$HOMEBREW_PREFIX/opt/$_keg/sbin")
+    done
 
-    # Go
-    "$GOBIN"
+    # GNU 短名（date/timeout/stat）。交互式 ls/rm 仍走 init.zsh 别名。
+    # 不加 libtool gnubin：macOS libtool 与 GNU libtool 不是同一套命令。
+    [[ -d $HOMEBREW_PREFIX/opt/coreutils/libexec/gnubin ]] && \
+        _gnu_front+=("$HOMEBREW_PREFIX/opt/coreutils/libexec/gnubin")
 
-    # Node.js 生态
-    "$NPM_CONFIG_PREFIX/bin"
-    "$PNPM_HOME"
-    "$YARN_GLOBAL_FOLDER/bin"
+    # 系统命令之后：只要 llvm-config/clang-format、bsdtar 旁路、ncursesw6-config。
+    # clang 仍是 /usr/bin/clang；tar/clear 仍是系统的。
+    # 不把 openjdk / python@*/libexec 放进 PATH：JAVA_HOME 与 python 走 mise/uv。
+    for _keg in llvm ncurses libarchive; do
+        [[ -d $HOMEBREW_PREFIX/opt/$_keg/bin ]] && _keg_behind+=("$HOMEBREW_PREFIX/opt/$_keg/bin")
+        [[ -d $HOMEBREW_PREFIX/opt/$_keg/sbin ]] && _keg_behind+=("$HOMEBREW_PREFIX/opt/$_keg/sbin")
+    done
 
-    # Bun
-    "$BUN_INSTALL/bin"
+    path=(
+        "${_user_cli[@]}"
+        "$HOME/.proto/bin"
+        "$HOME/.proto/shims"
+        "$HOME/.moon/bin"
+        "$CARGO_HOME/bin"
+        "$GOBIN"
+        "$NPM_CONFIG_PREFIX/bin"
+        "$PNPM_HOME/bin"
+        "$YARN_GLOBAL_FOLDER/bin"
+        "$BUN_INSTALL/bin"
+        "$DENO_INSTALL/bin"
+        "$PIPX_BIN_DIR"
+        "$UV_TOOL_BIN_DIR"
+        "$COMPOSER_HOME/vendor/bin"
+        "${_keg_front[@]}"
+        "$HOMEBREW_PREFIX/bin"
+        "$HOMEBREW_PREFIX/sbin"
+        "${_gnu_front[@]}"
+        /usr/local/bin
+        /usr/bin
+        /bin
+        /usr/sbin
+        /sbin
+        "${_keg_behind[@]}"
+        $path
+    )
+    export PATH
+}
 
-    # Deno
-    "$DENO_INSTALL/bin"
-
-    # Python
-    "$PIPX_BIN_DIR"
-    "$UV_TOOL_BIN_DIR"
-
-    # PHP
-    "$COMPOSER_HOME/vendor/bin"
-
-    # Java
-    "$JAVA_HOME/bin"
-
-    # Homebrew keg-only
-    "${KEG_ONLY_PATHS[@]}"
-
-    # Homebrew
-    "$HOMEBREW_PREFIX/bin"
-    "$HOMEBREW_PREFIX/sbin"
-
-    # 系统路径
-    /usr/local/bin
-    /usr/bin
-    /bin
-    /usr/sbin
-    /sbin
-
-    # 保留现有 PATH
-    $path
-)
-
-export PATH
+_dotfiles_setup_path
 
 # ============================================================
 # fpath 修复 - Homebrew zsh bottle relocation 缺陷
@@ -279,8 +294,11 @@ export PATH
 # prepend 版本无关的稳定 symlink 目录修复（目录不存在则跳过）。
 # ============================================================
 typeset -U fpath
-if [[ -d /opt/homebrew/share/zsh/functions ]]; then
-    fpath=(/opt/homebrew/share/zsh/functions $fpath)
+if [[ -d $HOMEBREW_PREFIX/share/zsh/functions ]]; then
+    fpath=($HOMEBREW_PREFIX/share/zsh/functions $fpath)
 fi
+
+# Grok Build CLI：关闭 telemetry / codebase upload（优先级高于 config）
+[[ -f $HOME/.grok/privacy.env ]] && source "$HOME/.grok/privacy.env"
 
 (( $+functions[_prof] )) && _prof "zshenv DONE"

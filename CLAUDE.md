@@ -145,13 +145,26 @@ dotfiles/
 ## Shell 加载顺序
 
 ```
-~/.zshenv      所有 shell             环境变量 / PATH / DOTFILES_ROOT
-~/.zprofile    登录 shell（zshrc 前）  Homebrew env / mise shims
+~/.zshenv      所有 shell             环境变量 / PATH（含 keg-only 与用户 CLI）/ DOTFILES_ROOT
+~/.zprofile    登录 shell（zshrc 前）  brew shellenv（HOMEBREW_*）后恢复 PATH；非交互 mise shims
 ~/.zshrc       交互式 shell            zimfw 引导 -> source ~/.zsh/init.zsh
   ~/.zimrc     由 zimfw 读取            zim 模块列表
     zim 模块: environment, input, completions, fzf-tab, syntax-highlighting, autosuggestions
   ~/.zsh/init.zsh                      交互式配置（部署版 init.zsh）
 ```
+
+PATH 只在 `zsh/zshenv` 的 `_dotfiles_setup_path` 维护。`~/.zprofile` 在 `path_helper` 和 `brew shellenv` 之后再调一次该函数，否则登录壳会把 `/usr/bin` 抬到 keg-only 前面。brew caveats 和安装器 `echo >> ~/.zshrc` 的片段部署时会被覆盖，不要手动留在 `~/.zshrc` / `~/.zprofile`。
+
+PATH 分层（先到的赢）：
+
+1. 用户 CLI 与语言目录
+2. 必须盖住系统的 keg-only：`ffmpeg-full` / `mysql-client` / `macos-trash` / `libpq` / `curl` / `sqlite` / `icu4c`
+3. `$HOMEBREW_PREFIX/bin`
+4. coreutils `gnubin`（GNU `date`/`timeout`；交互式 `ls`/`rm` 仍走 init.zsh 别名）。不加 libtool gnubin
+5. `/usr/bin` 等系统路径
+6. 系统之后的 keg-only：`llvm`（`clang-format` / `llvm-config`；`clang` 仍是 Apple）、`ncurses`、`libarchive`（`bsdtar` 旁路；`tar`/`clear` 仍是系统）
+
+`JAVA_HOME` 由 mise `java` 设置，不把 brew openjdk 放进 PATH。python 走 mise / uv，不把 `python@*/libexec` 放进 PATH。llvm 不写进全局 `LDFLAGS`。
 
 ## 占位符规则
 
@@ -172,7 +185,7 @@ dotfiles/
 **分工**：
 - `mise activate zsh`（在 `init.zsh` 内）：全局运行时（node / go / rust / python）+ precmd hook 重置 PATH
 - `~/.proto/bin`（PATH 内）：proto CLI 本身
-- `~/.proto/shims`（PATH 内）：proto-only 工具（atlas / buf / cosign / sops）
+- `~/.proto/shims`（PATH 内）：proto-only 工具（atlas / buf / cosign）。`sops` 由 brew 管理
 
 不用 `proto activate`：proto 只注册 chpwd_functions，mise 的 precmd 每次 prompt 重置 PATH 会覆盖 proto chpwd 效果。proto-shim 内置 fallback 逻辑，不依赖 `proto activate` 设的 `__ORIG_PATH`。
 
