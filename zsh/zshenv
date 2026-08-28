@@ -215,12 +215,12 @@ fi
 _dotfiles_setup_path() {
     # -g：函数内 typeset 默认是 local，否则 PATH 改完就丢
     typeset -gU path
-    local -a _user_cli _keg_front _gnu_front _keg_behind
+    local -a _user_cli _keg_front _keg_behind
     local _d _keg
 
     for _d in \
         "$HOME/.local/bin" \
-        "$HOME/.vite-plus/bin" \
+        "$HOME/.opencode/bin" \
         "$HOME/.darkbloom/bin" \
         "$HOME/.lmstudio/bin" \
         "$HOME/.maestro/bin" \
@@ -241,12 +241,16 @@ _dotfiles_setup_path() {
         [[ -d $HOMEBREW_PREFIX/opt/$_keg/sbin ]] && _keg_front+=("$HOMEBREW_PREFIX/opt/$_keg/sbin")
     done
 
-    # GNU 短名（date/timeout/stat）。交互式 ls/rm 仍走 init.zsh 别名。
-    # 不加 libtool gnubin：macOS libtool 与 GNU libtool 不是同一套命令。
-    [[ -d $HOMEBREW_PREFIX/opt/coreutils/libexec/gnubin ]] && \
-        _gnu_front+=("$HOMEBREW_PREFIX/opt/coreutils/libexec/gnubin")
+    # 不把 coreutils gnubin 放在 /usr/bin 之前：GNU stat/date/mktemp 会让
+    # kimi/opencode 的 install.sh（按 BSD 语义写的）升级失败。不冲突的短名
+    # （timeout/nproc 等）已由 brew coreutils 链到 $HOMEBREW_PREFIX/bin。
+    # 需要 GNU date 用 gdate。不加 libtool gnubin。
+    #
+    # Vite+ bin 含 node/npm -> vp 的 shim，不能放前面，否则盖住 mise node。
+    # vp 本身在 keg_behind 仍能找到。
+    [[ -d $HOME/.vite-plus/bin ]] && _keg_behind+=("$HOME/.vite-plus/bin")
 
-    # 系统命令之后：只要 llvm-config/clang-format、bsdtar 旁路、ncursesw6-config。
+    # 系统命令之后：llvm-config/clang-format、bsdtar 旁路、ncursesw6-config。
     # clang 仍是 /usr/bin/clang；tar/clear 仍是系统的。
     # 不把 openjdk / python@*/libexec 放进 PATH：JAVA_HOME 与 python 走 mise/uv。
     for _keg in llvm ncurses libarchive; do
@@ -272,7 +276,6 @@ _dotfiles_setup_path() {
         "${_keg_front[@]}"
         "$HOMEBREW_PREFIX/bin"
         "$HOMEBREW_PREFIX/sbin"
-        "${_gnu_front[@]}"
         /usr/local/bin
         /usr/bin
         /bin

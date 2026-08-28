@@ -160,6 +160,16 @@ fi
 alias hh='atuin search -i'
 alias lg='lazygit'
 
+# AI CLI 自更新。kimi update 是 TUI，不能默认确认；官方升级即 install.sh。
+# 安装器禁止改 ~/.zshrc（KIMI_NO_MODIFY_PATH / PATH 已含各 bin）。
+codecliupdate() {
+    CODEX_NON_INTERACTIVE=1 command codex update \
+        && command grok update \
+        && command claude update \
+        && KIMI_NO_MODIFY_PATH=1 command curl -fsSL https://code.kimi.com/kimi-code/install.sh | command bash \
+        && command opencode upgrade --method curl
+}
+
 # ============================================================
 # rm -> trash 安全包装
 # 真正删除: command rm -rf xxx
@@ -208,10 +218,14 @@ if [[ -s "$BUN_INSTALL/_bun" ]]; then
 fi
 
 # ============================================================
-# Vite+：vp() 与补全。PATH / VP_HOME 在 zshenv，此处只加载函数。
+# Vite+：vp() 与补全。env 会把 node/npm shim 插到 PATH 最前，盖住 mise。
 # ============================================================
 if [[ -f $HOME/.vite-plus/env ]]; then
     source "$HOME/.vite-plus/env"
+    path=(${path:#$HOME/.vite-plus/bin})
+    path+=("$HOME/.vite-plus/bin")
+    typeset -gU path
+    export PATH
 fi
 (( $+functions[_prof] )) && _prof "Vite+"
 

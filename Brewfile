@@ -49,7 +49,7 @@ brew "fastfetch"       # 系统信息展示
 # CLI - 文件工具
 # ============================================================
 brew "macos-trash"     # 安全删除（Finder 回收站）
-brew "coreutils"       # GNU 核心工具；zshenv 把 gnubin 放在 /usr/bin 之前
+brew "coreutils"       # GNU 核心工具（g 前缀；不冲突短名如 timeout 已链到 prefix）
 brew "sevenzip"        # 7z 压缩
 brew "sqlcipher"       # 加密 SQLite
 brew "age"             # 文件加密
@@ -173,7 +173,7 @@ cask "freelens"        # Kubernetes 集群 GUI
 
 # ============================================================
 # AI CLI - 走官方 curl 安装, 不用 brew (自带后台自更新, 无需 brew upgrade)
-#   由 bin/install-ai-cli.sh 统一管理 (claude-code / codex / grok-build)
+#   由 bin/install-ai-cli.sh 统一管理 (claude-code / codex / grok-build / opencode)
 # ============================================================
 
 # ============================================================

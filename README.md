@@ -32,7 +32,7 @@ bin/deploy.sh init /Volumes/Storage
 # 软件
 brew bundle install --file=$PWD/Brewfile
 
-# AI CLI（claude-code / codex / grok-build，官方 curl 脚本，不走 brew）
+# AI CLI（claude-code / codex / grok-build / opencode，官方 curl 脚本，不走 brew）
 bin/install-ai-cli.sh
 
 # 应用 shell（启动新 shell）
@@ -161,7 +161,7 @@ git pull --ff-only origin main
 | zsh/zimrc | bin/deploy.sh init <CURRENT_ROOT> + zimfw install | 模块清单变了 |
 | templates/mise_config.toml | bin/deploy.sh init <CURRENT_ROOT> | 覆盖 ~/.config/mise/config.toml |
 | Brewfile | brew bundle install --file=$DOTFILES_ROOT/Brewfile | 装新软件 (vscode 扩展不再托管) |
-| bin/install-ai-cli.sh | bin/install-ai-cli.sh | claude-code / codex / grok-build 官方 curl 脚本变了才需要 |
+| bin/install-ai-cli.sh | bin/install-ai-cli.sh | claude-code / codex / grok-build / opencode 官方 curl 脚本变了才需要 |
 | ghostty/, starship/, btop/, atuin/, yazi/, bat/ | bin/deploy.sh init <CURRENT_ROOT> | 仅首次部署文件, 已存在不覆盖 (见 5c) |
 | ripgrep/, git/ignore | bin/deploy.sh init <CURRENT_ROOT> | 同上 |
 | infat/ | bin/deploy.sh init <CURRENT_ROOT> + duti -s com.microsoft.VSCode .sh all + duti -s com.microsoft.VSCode .bash all | 每次 init 覆盖（关联规则跟仓库走）; sh/bash 不在 infat 管辖内, 见 5c |
@@ -245,7 +245,7 @@ dotfiles/
 ├── bin/
 │   ├── deploy.sh           部署主脚本
 │   ├── install-themes.sh   第三方主题下载（btop / atuin）
-│   └── install-ai-cli.sh   claude-code / codex / grok-build 官方 curl 安装
+│   └── install-ai-cli.sh   claude-code / codex / grok-build / opencode 官方 curl 安装
 ├── debug/
 │   └── profile.zsh         ZSH_PROFILE=1 启用的启动 timing 调试
 ├── zsh/                    [TEMPLATE] zsh 入口

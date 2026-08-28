@@ -72,7 +72,7 @@ bin/deploy.sh check
 部署后续命令：
 ```bash
 brew bundle install --file=$DOTFILES_ROOT/Brewfile   # 软件安装
-bin/install-ai-cli.sh                                 # claude-code / codex / grok-build（官方 curl 脚本，不走 brew）
+bin/install-ai-cli.sh                                 # claude-code / codex / grok-build / opencode（官方 curl 脚本，不走 brew）
 zimfw install                                         # zsh 模块
 mise install                                          # 语言运行时
 infat --config ~/.config/infat/config.toml            # 文件关联
@@ -89,7 +89,7 @@ dotfiles/
 ├── bin/
 │   ├── deploy.sh           部署主脚本（CONSUMER 用）
 │   ├── install-themes.sh   第三方主题下载
-│   └── install-ai-cli.sh   claude-code / codex / grok-build 官方 curl 安装（CONSUMER 用）
+│   └── install-ai-cli.sh   claude-code / codex / grok-build / opencode 官方 curl 安装（CONSUMER 用）
 ├── debug/
 │   └── profile.zsh         zsh 启动 profile 调试（ZSH_PROFILE=1 启用）
 ├── zsh/                    [TEMPLATE] zsh 入口文件
@@ -140,7 +140,7 @@ dotfiles/
 | `git/config` | (不复制) | - | `~/.gitconfig` 加 `[include] path = ...` |
 | `vscode/settings.json` | `~/Library/Application Support/Code/User/settings.json` | jq 深合并 | 本地字段保留, 仓库同名 key 覆盖 |
 | `Brewfile` | (不复制) | - | `brew bundle install --file=...` 直接读 |
-| `bin/install-ai-cli.sh` | (不复制) | 每次重跑 = 更新 | 官方 curl 脚本装 claude-code / codex / grok-build |
+| `bin/install-ai-cli.sh` | (不复制) | 每次重跑 = 更新 | 官方 curl 脚本装 claude-code / codex / grok-build / opencode |
 
 ## Shell 加载顺序
 
@@ -160,9 +160,10 @@ PATH 分层（先到的赢）：
 1. 用户 CLI 与语言目录
 2. 必须盖住系统的 keg-only：`ffmpeg-full` / `mysql-client` / `macos-trash` / `libpq` / `curl` / `sqlite` / `icu4c`
 3. `$HOMEBREW_PREFIX/bin`
-4. coreutils `gnubin`（GNU `date`/`timeout`；交互式 `ls`/`rm` 仍走 init.zsh 别名）。不加 libtool gnubin
-5. `/usr/bin` 等系统路径
-6. 系统之后的 keg-only：`llvm`（`clang-format` / `llvm-config`；`clang` 仍是 Apple）、`ncurses`、`libarchive`（`bsdtar` 旁路；`tar`/`clear` 仍是系统）
+4. `/usr/bin` 等系统路径
+5. 系统之后：`llvm` / `ncurses` / `libarchive`，以及 Vite+ `bin`（只为 `vp`；其 `node`/`npm` shim 不能盖 mise）
+
+不要把 coreutils gnubin 放在 `/usr/bin` 之前：GNU `stat`/`date`/`mktemp` 会让 kimi/opencode 的 `install.sh` 升级失败。不冲突的 GNU 短名已由 brew 链到 `$HOMEBREW_PREFIX/bin`。`~/.opencode/bin` 与 `~/.kimi-*/bin` 在 zshenv 里，升级时设 `KIMI_NO_MODIFY_PATH=1`，禁止安装器改 `~/.zshrc`。`codecliupdate` 在 `init.zsh`。
 
 `JAVA_HOME` 由 mise `java` 设置，不把 brew openjdk 放进 PATH。python 走 mise / uv，不把 `python@*/libexec` 放进 PATH。llvm 不写进全局 `LDFLAGS`。
 
