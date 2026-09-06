@@ -110,7 +110,6 @@ dotfiles/
 ├── ripgrep/config          [TEMPLATE] grep 替代
 ├── infat/config.toml       [TEMPLATE] 文件关联
 ├── git/                    [TEMPLATE] git 通用配置（include 引用，不复制）
-├── technitium/README.md    [DOC] 本地 Technitium DNS 配置说明（配置为二进制不入库，照文档重建）
 ├── Brewfile                软件清单（直接被 brew bundle 读，不部署）
 ├── CLAUDE.md               本文件（AI 规则）
 └── README.md               使用文档

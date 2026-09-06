@@ -156,7 +156,6 @@ brew "duti"            # 命令式文件关联 (补 infat 之外的细粒度)
 brew "mas"             # App Store CLI
 brew "displayplacer"   # 多显示器布局 CLI
 brew "qrencode"        # 二维码生成
-brew "technitium-dns"  # 本地 DNS 服务
 
 # ============================================================
 # GUI - 终端 / 编辑器
