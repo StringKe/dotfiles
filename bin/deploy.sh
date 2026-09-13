@@ -200,7 +200,7 @@ cmd_init() {
     log "  2. exec zsh                  # 应用新环境变量"
     log "  3. zimfw install              # 安装 zsh 模块"
     log "  4. mise install               # 安装语言运行时"
-    log "  5. infat --config ~/.config/infat/config.toml"
+    log "  5. $DOTFILES_ROOT/bin/apply-file-associations.sh"
     log "  6. chsh -s /opt/homebrew/bin/zsh"
 }
 

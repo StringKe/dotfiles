@@ -1,7 +1,8 @@
 # [TEMPLATE] infat/config.toml - macOS 文件关联
 # 部署目标: ~/.config/infat/config.toml
 # AI 部署时复制此文件，不修改本文件。
-# 应用配置: infat --config ~/.config/infat/config.toml
+# 应用配置: bin/apply-file-associations.sh
+# （infat 只能覆盖本文件里的项；其余扩展由该脚本走 duti / LSHandlerContentTag）
 #
 # 注意：macOS 26 (Tahoe) 的 LaunchServices 仅允许为系统已注册 UTI 的扩展名设置
 # 默认应用，其他扩展名会报 error -50。此配置仅保留实际有效的项。
@@ -9,8 +10,11 @@
 # 不设 html / svg——与浏览器争 public.html / public.svg-image，可能连带影响 http/https。
 # [schemes] 只绑 vscode://，不写 http / https（VS Code 未注册这两个 scheme）。
 #
-# 不设 sh / bash / plist——同样触发 error -50（Tahoe 不让 infat 改这些已被
-# Ghostty/Xcode 抢注的扩展名）。改用 duti 按扩展名语法设置，见 CLAUDE.md「部署流程」。
+# 不设 php / phtml / js / mjs / css / sh / bash / zsh / plist / py / rb / toml / tsx——
+# infat 会把它们编成 dyn.* UTI，Tahoe 报 error -50（已被 PhpStorm / Ghostty / Xcode / Cursor 抢注）。
+# 不设 jsx / scss / vue——没有系统 UTI，改写 LSHandlerContentTag。
+# .ts 的系统 UTI 是 public.mpeg-2-transport-stream，本文件的 ts 实际绑的是 com.microsoft.typescript（.tsx）。
+# 上述全部由 bin/apply-file-associations.sh 处理。
 # duti -x 查询会误报旧值，验证真实 handler 用 LSCopyDefaultRoleHandlerForContentType。
 #
 # 无扩展名文件（Brewfile 等）UTI 是 public.data，不能全局关联（会劫持所有未知

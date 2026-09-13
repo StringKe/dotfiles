@@ -75,10 +75,7 @@ brew bundle install --file=$DOTFILES_ROOT/Brewfile   # 软件安装
 bin/install-ai-cli.sh                                 # claude-code / codex / grok-build / opencode（官方 curl 脚本，不走 brew）
 zimfw install                                         # zsh 模块
 mise install                                          # 语言运行时
-infat --config ~/.config/infat/config.toml            # 文件关联
-duti -s com.microsoft.VSCode .sh all                  # infat 对 sh/bash/plist 报 error -50, 改用 duti
-duti -s com.microsoft.VSCode .bash all
-duti -s com.microsoft.VSCode .plist all
+bin/apply-file-associations.sh                        # infat + duti + jsx/scss/vue ContentTag
 chsh -s /opt/homebrew/bin/zsh                         # 默认 shell
 ```
 
@@ -87,9 +84,10 @@ chsh -s /opt/homebrew/bin/zsh                         # 默认 shell
 ```
 dotfiles/
 ├── bin/
-│   ├── deploy.sh           部署主脚本（CONSUMER 用）
-│   ├── install-themes.sh   第三方主题下载
-│   └── install-ai-cli.sh   claude-code / codex / grok-build / opencode 官方 curl 安装（CONSUMER 用）
+│   ├── deploy.sh                      部署主脚本（CONSUMER 用）
+│   ├── apply-file-associations.sh     infat + duti 文件关联（CONSUMER 用）
+│   ├── install-themes.sh              第三方主题下载
+│   └── install-ai-cli.sh              claude-code / codex / grok-build / opencode 官方 curl 安装（CONSUMER 用）
 ├── debug/
 │   └── profile.zsh         zsh 启动 profile 调试（ZSH_PROFILE=1 启用）
 ├── zsh/                    [TEMPLATE] zsh 入口文件
@@ -134,7 +132,7 @@ dotfiles/
 | `atuin/config.toml` | `~/.config/atuin/config.toml` | 仅首次 | 直接复制 |
 | `bat/config` | `~/.config/bat/config` | 仅首次 | 直接复制 |
 | `ripgrep/config` | `~/.config/ripgrep/config` | 仅首次 | 直接复制 |
-| `infat/config.toml` | `~/.config/infat/config.toml` | init 覆盖 | 直接复制 |
+| `infat/config.toml` | `~/.config/infat/config.toml` | init 覆盖 | 直接复制，再跑 `bin/apply-file-associations.sh` |
 | `git/ignore` | `~/.config/git/ignore` | 仅首次 | 直接复制 |
 | `git/config` | (不复制) | - | `~/.gitconfig` 加 `[include] path = ...` |
 | `vscode/settings.json` | `~/Library/Application Support/Code/User/settings.json` | jq 深合并 | 本地字段保留, 仓库同名 key 覆盖 |

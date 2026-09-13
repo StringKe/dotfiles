@@ -46,10 +46,7 @@ mise install
 bin/install-themes.sh
 
 # 文件关联
-infat --config ~/.config/infat/config.toml
-duti -s com.microsoft.VSCode .sh all    # infat 对 sh/bash/plist 报 error -50, 改用 duti
-duti -s com.microsoft.VSCode .bash all
-duti -s com.microsoft.VSCode .plist all
+bin/apply-file-associations.sh
 
 # 默认 shell
 grep -qF /opt/homebrew/bin/zsh /etc/shells || echo /opt/homebrew/bin/zsh | sudo tee -a /etc/shells
@@ -164,7 +161,7 @@ git pull --ff-only origin main
 | bin/install-ai-cli.sh | bin/install-ai-cli.sh | claude-code / codex / grok-build / opencode 官方 curl 脚本变了才需要 |
 | ghostty/, starship/, btop/, atuin/, yazi/, bat/ | bin/deploy.sh init <CURRENT_ROOT> | 仅首次部署文件, 已存在不覆盖 (见 5c) |
 | ripgrep/, git/ignore | bin/deploy.sh init <CURRENT_ROOT> | 同上 |
-| infat/ | bin/deploy.sh init <CURRENT_ROOT> + duti -s com.microsoft.VSCode .sh all + duti -s com.microsoft.VSCode .bash all | 每次 init 覆盖（关联规则跟仓库走）; sh/bash 不在 infat 管辖内, 见 5c |
+| infat/ | bin/deploy.sh init <CURRENT_ROOT> + bin/apply-file-associations.sh | 每次 init 覆盖配置；PhpStorm 抢走的扩展由 apply 脚本走 duti / ContentTag |
 | git/config | 无操作 | ~/.gitconfig [include] 引用, 自动生效 |
 | bin/* | 无操作 | 脚本下次调用时生效 |
 | debug/profile.zsh | 无操作 | 仅 ZSH_PROFILE=1 时被 source |
@@ -174,13 +171,11 @@ git pull --ff-only origin main
 
 ghostty / starship / btop / atuin / yazi / bat / ripgrep 走 deploy_if_absent (已存在跳过)。如果仓库改了它们 (如主题切换), 用户本机老版本不会被覆盖。infat 每次 init 覆盖。
 
-infat 在 macOS Tahoe 上无法设置 sh / bash / plist 扩展名的默认应用 (LaunchServices error -50, 已被 Ghostty / Xcode 抢注)。这几个跑完 infat 后额外执行:
+infat 在 macOS Tahoe 上无法设置已被其他 app 抢注的扩展名 (LaunchServices error -50)。PhpStorm 声明了 php / phtml / js / css / `.*`。跑:
 ```bash
-duti -s com.microsoft.VSCode .sh all
-duti -s com.microsoft.VSCode .bash all
-duti -s com.microsoft.VSCode .plist all
+bin/apply-file-associations.sh
 ```
-注: duti -x 查询会误报旧值, 验证真实 handler 用 LSCopyDefaultRoleHandlerForContentType。
+该脚本会跑 infat，再用 duti 绑 php / js / css / sh 等，给 jsx / scss / vue 写 LSHandlerContentTag，并把 .ts 的 MPEG UTI 绑到 VS Code。duti -x 查询会误报旧值, 验证真实 handler 用 LSCopyDefaultRoleHandlerForContentType。
 
 需要先删本机旧版再重跑 deploy:
 
@@ -214,10 +209,7 @@ bin/install-themes.sh
 exec zsh
 zimfw install
 mise install
-infat --config ~/.config/infat/config.toml
-duti -s com.microsoft.VSCode .sh all
-duti -s com.microsoft.VSCode .bash all
-duti -s com.microsoft.VSCode .plist all
+bin/apply-file-associations.sh
 grep -qF /opt/homebrew/bin/zsh /etc/shells || echo /opt/homebrew/bin/zsh | sudo tee -a /etc/shells
 chsh -s /opt/homebrew/bin/zsh
 ```
@@ -243,9 +235,10 @@ chsh -s /opt/homebrew/bin/zsh
 ```
 dotfiles/
 ├── bin/
-│   ├── deploy.sh           部署主脚本
-│   ├── install-themes.sh   第三方主题下载（btop / atuin）
-│   └── install-ai-cli.sh   claude-code / codex / grok-build / opencode 官方 curl 安装
+│   ├── deploy.sh                      部署主脚本
+│   ├── apply-file-associations.sh     infat + duti 文件关联
+│   ├── install-themes.sh              第三方主题下载（btop / atuin）
+│   └── install-ai-cli.sh              claude-code / codex / grok-build / opencode 官方 curl 安装
 ├── debug/
 │   └── profile.zsh         ZSH_PROFILE=1 启用的启动 timing 调试
 ├── zsh/                    [TEMPLATE] zsh 入口
