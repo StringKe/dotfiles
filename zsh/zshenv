@@ -230,10 +230,6 @@ _dotfiles_setup_path() {
     do
         [[ -d "$_d" ]] && _user_cli+=("$_d")
     done
-    # kimi-code / kimi-webbridge / kimi-work 等安装器各自写 ~/.kimi-*/bin
-    for _d in "$HOME"/.kimi-*/bin; do
-        [[ -d "$_d" ]] && _user_cli+=("$_d")
-    done
 
     # 必须盖住系统/普通公式：ffmpeg-full、macos-trash、mysql-client、较新的 curl/sqlite
     for _keg in ffmpeg-full mysql-client macos-trash libpq curl sqlite icu4c; do
@@ -242,7 +238,7 @@ _dotfiles_setup_path() {
     done
 
     # 不把 coreutils gnubin 放在 /usr/bin 之前：GNU stat/date/mktemp 会让
-    # kimi/opencode 的 install.sh（按 BSD 语义写的）升级失败。不冲突的短名
+    # opencode 的 install.sh（按 BSD 语义写的）升级失败。不冲突的短名
     # （timeout/nproc 等）已由 brew coreutils 链到 $HOMEBREW_PREFIX/bin。
     # 需要 GNU date 用 gdate。不加 libtool gnubin。
     #

@@ -160,13 +160,11 @@ fi
 alias hh='atuin search -i'
 alias lg='lazygit'
 
-# AI CLI 自更新。kimi update 是 TUI，不能默认确认；官方升级即 install.sh。
-# 安装器禁止改 ~/.zshrc（KIMI_NO_MODIFY_PATH / PATH 已含各 bin）。
-codecliupdate() {
+# AI CLI 自更新。安装器禁止改 ~/.zshrc。
+aiupdate() {
     CODEX_NON_INTERACTIVE=1 command codex update \
         && command grok update \
         && command claude update \
-        && KIMI_NO_MODIFY_PATH=1 command curl -fsSL https://code.kimi.com/kimi-code/install.sh | command bash \
         && command opencode upgrade --method curl
 }
 

@@ -160,7 +160,7 @@ PATH 分层（先到的赢）：
 4. `/usr/bin` 等系统路径
 5. 系统之后：`llvm` / `ncurses` / `libarchive`，以及 Vite+ `bin`（只为 `vp`；其 `node`/`npm` shim 不能盖 mise）
 
-不要把 coreutils gnubin 放在 `/usr/bin` 之前：GNU `stat`/`date`/`mktemp` 会让 kimi/opencode 的 `install.sh` 升级失败。不冲突的 GNU 短名已由 brew 链到 `$HOMEBREW_PREFIX/bin`。`~/.opencode/bin` 与 `~/.kimi-*/bin` 在 zshenv 里，升级时设 `KIMI_NO_MODIFY_PATH=1`，禁止安装器改 `~/.zshrc`。`codecliupdate` 在 `init.zsh`。
+不要把 coreutils gnubin 放在 `/usr/bin` 之前：GNU `stat`/`date`/`mktemp` 会让 opencode 的 `install.sh` 升级失败。不冲突的 GNU 短名已由 brew 链到 `$HOMEBREW_PREFIX/bin`。`~/.opencode/bin` 在 zshenv 里。`aiupdate` 在 `init.zsh`。
 
 `JAVA_HOME` 由 mise `java` 设置，不把 brew openjdk 放进 PATH。python 走 mise / uv，不把 `python@*/libexec` 放进 PATH。llvm 不写进全局 `LDFLAGS`。
 
