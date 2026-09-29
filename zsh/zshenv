@@ -226,6 +226,7 @@ _dotfiles_setup_path() {
         "$HOME/.opencode/bin" \
         "$HOME/.darkbloom/bin" \
         "$HOME/.lmstudio/bin" \
+        "$HOME/.railway/bin" \
         "$HOME/.maestro/bin" \
         "$HOME/.orbstack/bin" \
         "$HOME/.yzos/bin" \
