@@ -10,8 +10,10 @@
 # ══════════════════════════════════════════════════════════════════════════════
 
 font-family = "Maple Mono NF CN"
+font-style = SemiBold
 font-size = 16
-font-thicken = true
+# 用字体自带 SemiBold，不用 CoreText thicken 描边
+font-thicken = false
 font-feature = +calt
 font-feature = +liga
 
@@ -83,7 +85,10 @@ split-inherit-working-directory = true
 # Scroll
 # ═══════════════════════════════════════════════════════════════
 
+# 每 surface（tab/split）上限约 500MB；内存充裕时故意保留大回滚。
+# 改限值只影响新 surface。compression 空闲时压缩页，吞吐路径不降速。
 scrollback-limit = 524288000
+scrollback-compression = true
 scrollbar = system
 mouse-scroll-multiplier = precision:0.5
 mouse-hide-while-typing = true
@@ -120,7 +125,6 @@ notify-on-command-finish-after = 30s
 
 confirm-close-surface = false
 quit-after-last-window-closed = true
-quit-after-last-window-closed-delay = 1m
 
 # ══════════════════════════════════════════════════════════════════════════════
 # Shell integration
@@ -128,11 +132,21 @@ quit-after-last-window-closed-delay = 1m
 
 shell-integration = zsh
 # title：tab 显示目录/命令；path：确保 ghostty CLI 在 PATH 中
-shell-integration-features = cursor,sudo,title,path
+# ssh-terminfo：首次 ssh 到某台机器时把 xterm-ghostty 装过去；ssh-env：装不上时退回 xterm-256color
+shell-integration-features = cursor,sudo,title,path,ssh-env,ssh-terminfo
 
 # ══════════════════════════════════════════════════════════════════════════════
 # Keybinds
 # ══════════════════════════════════════════════════════════════════════════════
+
+# 复制粘贴：覆盖 tip 默认的 performable:super+c/v。
+# performable 键不会进菜单 reverse map，Edit 菜单不显示 ⌘C/⌘V；
+# 且搜索框（⌘F）聚焦时键事件不走 first responder，⌘V 无法贴进搜索框。
+# 去掉 performable 后：菜单显示快捷键，⌘V 经菜单 paste: 交给当前 first responder。
+# macOS 是 ⌘（super），不是 Ctrl。
+keybind = super+c=copy_to_clipboard:mixed
+keybind = super+v=paste_from_clipboard
+keybind = super+a=select_all
 
 # Shift+Enter 插入换行（Claude Code / 多行输入）
 keybind = shift+enter=text:\n
