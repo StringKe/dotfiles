@@ -53,7 +53,8 @@ fi
 # ============================================================
 # Zoxide - 智能目录跳转（`cd` 替换为 zoxide）
 # ============================================================
-if command -v zoxide &>/dev/null; then
+# Claude Code 下不接管 cd：目录不存在时会静默跳到历史里的同名目录。
+if command -v zoxide &>/dev/null && [[ -z $CLAUDECODE ]]; then
     eval "$(zoxide init zsh --cmd cd)"
 fi
 (( $+functions[_prof] )) && _prof "zoxide init"
@@ -146,7 +147,7 @@ fi
 # 别名
 # ============================================================
 # eza - 现代 ls（--hyperlink 启用 OSC 8）
-if command -v eza &>/dev/null; then
+if command -v eza &>/dev/null && [[ -z $CLAUDECODE ]]; then
     alias ls='eza --hyperlink --icons --group-directories-first'
     alias ll='eza -la --hyperlink --icons --group-directories-first'
     alias lt='eza --tree --hyperlink --icons --group-directories-first'
@@ -154,7 +155,7 @@ fi
 
 # fd - 文件搜索
 if command -v fd &>/dev/null; then
-    alias fd='fd --hyperlink auto'
+    alias fd='fd --hyperlink=auto'
 fi
 
 alias hh='atuin search -i'
@@ -240,3 +241,9 @@ if command -v starship &>/dev/null; then
     eval "$(starship init zsh)"
 fi
 (( $+functions[_prof] )) && _prof "starship init (init.zsh DONE)"
+
+# Claude Code 的 Bash 工具从交互 shell 快照继承选项；AI 按 bash 习惯写 glob、`=` 与 `>`。
+if [[ -n $CLAUDECODE ]]; then
+    unsetopt NOMATCH EQUALS
+    setopt CLOBBER
+fi

@@ -152,6 +152,8 @@ dotfiles/
 
 PATH 只在 `zsh/zshenv` 的 `_dotfiles_setup_path` 维护。`~/.zprofile` 在 `path_helper` 和 `brew shellenv` 之后再调一次该函数，否则登录壳会把 `/usr/bin` 抬到 keg-only 前面。brew caveats 和安装器 `echo >> ~/.zshrc` 的片段部署时会被覆盖，不要手动留在 `~/.zshrc` / `~/.zprofile`。
 
+Claude Code 的 Bash 工具从交互 zsh 生成 shell 快照（setopt、alias、函数都会带进去），再 `eval` 命令。`init.zsh` 用 `CLAUDECODE` 区分：该环境下关 `NOMATCH` / `EQUALS`、开 `CLOBBER`，不启用 zoxide 接管 `cd` 和 `ls -> eza` alias。改这些后只对新开的 Claude Code 会话生效。
+
 PATH 分层（先到的赢）：
 
 1. 用户 CLI 与语言目录
