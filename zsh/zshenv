@@ -135,6 +135,9 @@ export HF_HUB_CACHE="$CODE_LANGUAGES_HOME/python/huggingface/hub"
 # PHP
 # ============================================================
 export COMPOSER_HOME="$CODE_LANGUAGES_HOME/php/composer"
+# vendor/bin 在 _dotfiles_setup_path 里放在 Homebrew bin 之后：valet trust 的 sudoers 只放行 $HOMEBREW_PREFIX/bin/valet。
+# php-fpm / pcntl_fork 在 macOS 10.13+ 会撞 ObjC +[Class initialize] fork-safety，子进程 SIGABRT。
+export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 
 # ============================================================
 # Homebrew
@@ -268,10 +271,10 @@ _dotfiles_setup_path() {
         "$DENO_INSTALL/bin"
         "$PIPX_BIN_DIR"
         "$UV_TOOL_BIN_DIR"
-        "$COMPOSER_HOME/vendor/bin"
         "${_keg_front[@]}"
         "$HOMEBREW_PREFIX/bin"
         "$HOMEBREW_PREFIX/sbin"
+        "$COMPOSER_HOME/vendor/bin"
         /usr/local/bin
         /usr/bin
         /bin
