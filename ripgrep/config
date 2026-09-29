@@ -5,3 +5,6 @@
 # OSC 8 超链接输出（终端 Cmd+Click 直接打开文件）
 --hyperlink-format
 file://{host}{path}:{line}
+
+# pattern 用到 look-around 或反向引用时自动切到 PCRE2
+--engine=auto
