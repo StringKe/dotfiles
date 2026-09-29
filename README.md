@@ -152,10 +152,8 @@ git pull --ff-only origin main
 
 | 改动文件 | 对应命令 | 说明 |
 |---|---|---|
-| init.zsh | bin/deploy.sh sync | 复制到 ~/.zsh/init.zsh |
-| zsh/zshenv | bin/deploy.sh init <CURRENT_ROOT> | 覆盖 ~/.zshenv (含占位符替换) |
-| zsh/zprofile, zsh/zshrc | bin/deploy.sh init <CURRENT_ROOT> | 直接覆盖 |
-| zsh/zimrc | bin/deploy.sh init <CURRENT_ROOT> + zimfw install | 模块清单变了 |
+| init.zsh, zsh/zshenv, zsh/zprofile, zsh/zshrc | bin/deploy.sh sync | 覆盖 zsh 入口与 ~/.zsh/init.zsh，STORAGE_ROOT 沿用已部署值 |
+| zsh/zimrc | bin/deploy.sh sync + zimfw install | 模块清单变了 |
 | templates/mise_config.toml | bin/deploy.sh init <CURRENT_ROOT> | 覆盖 ~/.config/mise/config.toml |
 | Brewfile | brew bundle install --file=$DOTFILES_ROOT/Brewfile | 装新软件 (vscode 扩展不再托管) |
 | bin/install-ai-cli.sh | bin/install-ai-cli.sh | claude-code / codex / grok-build / opencode 官方 curl 脚本变了才需要 |
@@ -226,7 +224,7 @@ chsh -s /opt/homebrew/bin/zsh
 ## 8. 提醒
 
 - 编辑 ~/.zsh_secrets 填密钥 (首次部署时 cp 自空白模板)
-- 仓库主人编辑 init.zsh 后跑 bin/deploy.sh sync 同步 ~/.zsh/init.zsh
+- 仓库主人编辑 init.zsh 或 zsh/* 后跑 bin/deploy.sh sync
 - ZSH_PROFILE=1 启用启动 timing 调试 (用完 unset 或删 ~/.zshenv 那行)
 ````
 
@@ -276,8 +274,8 @@ dotfiles/
 | 想改什么 | 编辑哪 | 同步方式 |
 |---|---|---|
 | 别名 / 函数 / 工具激活 / prompt | `init.zsh` | `bin/deploy.sh sync` |
-| zim 插件列表 | `zsh/zimrc` | 重新部署 + `zimfw install` |
-| 环境变量 | `zsh/zshenv`（**保留占位符**） | `bin/deploy.sh init <ROOT>` |
+| zim 插件列表 | `zsh/zimrc` | `bin/deploy.sh sync` + `zimfw install` |
+| 环境变量 | `zsh/zshenv`（**保留占位符**） | `bin/deploy.sh sync` |
 | 软件清单 | `Brewfile` | `brew bundle install` |
 | 终端主题 | `ghostty/config` | 重新部署 |
 | 提示符 | `starship/starship.toml` | 重新部署 |

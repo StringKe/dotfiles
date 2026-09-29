@@ -6,7 +6,7 @@
 #
 # 用法:
 #   bin/deploy.sh init <STORAGE_ROOT>    首次部署或重配（STORAGE_ROOT 是绝对路径）
-#   bin/deploy.sh sync                   只同步 init.zsh -> ~/.zsh/init.zsh
+#   bin/deploy.sh sync                   同步 zsh 入口与 init.zsh（沿用已部署的 STORAGE_ROOT）
 #   bin/deploy.sh check                  验证部署状态
 
 set -euo pipefail
@@ -25,7 +25,8 @@ usage() {
       其他配置仅当不存在时部署。
 
   bin/deploy.sh sync
-      只把 init.zsh 同步到 ~/.zsh/init.zsh（编辑 init.zsh 后用）。
+      覆盖 ~/.zshenv ~/.zshrc ~/.zprofile ~/.zimrc ~/.zsh/init.zsh（编辑 zsh 模板后用）。
+      STORAGE_ROOT 从已部署的 ~/.zshenv 读取；不动 mise 配置与其他工具配置。
 
   bin/deploy.sh check
       验证部署状态，列缺失文件与残留占位符。
@@ -205,9 +206,15 @@ cmd_init() {
 }
 
 cmd_sync() {
-    mkdir -p "$HOME/.zsh"
-    cp "$DOTFILES_ROOT/init.zsh" "$HOME/.zsh/init.zsh"
-    log "synced $DOTFILES_ROOT/init.zsh -> ~/.zsh/init.zsh"
+    local storage_root
+    storage_root=$(sed -n 's|^export CODE_LANGUAGES_HOME="\(.*\)/Languages"$|\1|p' "$HOME/.zshenv" 2>/dev/null)
+    [[ -z $storage_root ]] && { err "~/.zshenv 里读不到 CODE_LANGUAGES_HOME，先跑 init <STORAGE_ROOT>"; exit 1; }
+
+    deploy_template zsh/zshenv "$HOME/.zshenv" "$storage_root"
+    deploy_copy zsh/zshrc    "$HOME/.zshrc"
+    deploy_copy zsh/zprofile "$HOME/.zprofile"
+    deploy_copy zsh/zimrc    "$HOME/.zimrc"
+    deploy_copy init.zsh     "$HOME/.zsh/init.zsh"
     log "重开终端或 exec zsh 生效"
 }
 

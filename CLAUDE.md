@@ -59,7 +59,7 @@ AI 进入本仓库时，必须先确定属于哪个角色：
 # 首次部署或重配（STORAGE_ROOT 是绝对路径，如 /Volumes/Storage 或 $HOME）
 bin/deploy.sh init /Volumes/Storage
 
-# 编辑 init.zsh 后同步到 ~/.zsh/init.zsh
+# 编辑 init.zsh 或 zsh/* 后同步（沿用已部署的 STORAGE_ROOT，不动 mise 与其他工具配置）
 bin/deploy.sh sync
 
 # 安装第三方主题文件（btop / atuin）
@@ -117,11 +117,11 @@ dotfiles/
 
 | 仓库文件 | 部署目标 | 覆盖策略 | 处理方式 |
 |---|---|---|---|
-| `zsh/zshenv` | `~/.zshenv` | 重配覆盖 | sed 替换占位符 |
-| `zsh/zshrc` | `~/.zshrc` | 重配覆盖 | 直接复制 |
-| `zsh/zprofile` | `~/.zprofile` | 重配覆盖 | 直接复制 |
-| `zsh/zimrc` | `~/.zimrc` | 重配覆盖 | 直接复制 |
-| `init.zsh` | `~/.zsh/init.zsh` | `sync` 同步 | 直接复制 |
+| `zsh/zshenv` | `~/.zshenv` | init / sync 覆盖 | sed 替换占位符 |
+| `zsh/zshrc` | `~/.zshrc` | init / sync 覆盖 | 直接复制 |
+| `zsh/zprofile` | `~/.zprofile` | init / sync 覆盖 | 直接复制 |
+| `zsh/zimrc` | `~/.zimrc` | init / sync 覆盖 | 直接复制 |
+| `init.zsh` | `~/.zsh/init.zsh` | init / sync 覆盖 | 直接复制 |
 | `templates/mise_config.toml` | `~/.config/mise/config.toml` | 重配覆盖 | sed 替换占位符 |
 | `templates/zsh_secrets.template` | `~/.zsh_secrets` | 仅首次 | 复制 + chmod 600 |
 | `ghostty/config` | `~/Library/Application Support/com.mitchellh.ghostty/config` | 仅首次 | 直接复制 |
