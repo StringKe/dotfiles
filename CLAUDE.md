@@ -193,6 +193,8 @@ PATH 分层（先到的赢）：
 
 1Password SSH 签名（`gpg.format = ssh`，`gpg.ssh.program` 指向 1Password）。commit 默认 GPG 签名。GitHub credential 通过 `gh auth git-credential`。
 
+AI agent 的每条命令都是新的非交互进程，经 1Password 签名或 SSH 会逐次弹授权。机器上若有同一把 key 的本地私钥，可在本机 `~/.gitconfig` 覆盖 `gpg.ssh.program = ssh-keygen`、`user.signingkey = <私钥路径>`，并在 `~/.ssh/config` 的 `Host github.com` 设 `IdentityAgent none` 加 `IdentityFile`；git 仍走 SSH。这些是本机文件，不写进仓库模板。
+
 机制定义在仓库 `git/config`，本机 `~/.gitconfig` 通过 `[include]` 引用；`[user]` 身份和 `signingkey` 在本机主文件，不进仓库。修改通用配置编辑 `git/config` 即对所有机器生效。
 
 ## 主题：GitHub Light Colorblind（统一 light 配色 + 色盲友好）
