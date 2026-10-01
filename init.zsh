@@ -161,6 +161,15 @@ fi
 alias hh='atuin search -i'
 alias lg='lazygit'
 
+# 不带参数的 claude 默认跳过权限确认；带任何参数时原样透传。
+claude() {
+    if (( $# == 0 )); then
+        command claude --dangerously-skip-permissions --allow-dangerously-skip-permissions
+    else
+        command claude "$@"
+    fi
+}
+
 # AI CLI 自更新。安装器禁止改 ~/.zshrc。
 aiupdate() {
     CODEX_NON_INTERACTIVE=1 command codex update \
