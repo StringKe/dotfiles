@@ -36,7 +36,7 @@ install_grok_build() {
 
 install_opencode() {
     log "installing/updating opencode ..."
-    curl -fsSL https://opencode.ai/install | bash -s -- --no-modify-path
+    curl -fsSL https://opencode.ai/v2/install | bash -s -- --no-modify-path
 }
 
 case "${1:-all}" in
