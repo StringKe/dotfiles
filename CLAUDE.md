@@ -72,7 +72,7 @@ bin/deploy.sh check
 部署后续命令：
 ```bash
 brew bundle install --file=$DOTFILES_ROOT/Brewfile   # 软件安装
-bin/install-ai-cli.sh                                 # claude-code / codex / grok-build / opencode（官方 curl 脚本，不走 brew）
+bin/install-ai-cli.sh                                 # claude-code / grok-build / opencode / magpie（官方 curl 脚本，不走 brew）
 zimfw install                                         # zsh 模块
 mise install                                          # 语言运行时
 bin/apply-file-associations.sh                        # infat + duti + jsx/scss/vue ContentTag
@@ -87,7 +87,7 @@ dotfiles/
 │   ├── deploy.sh                      部署主脚本（CONSUMER 用）
 │   ├── apply-file-associations.sh     infat + duti 文件关联（CONSUMER 用）
 │   ├── install-themes.sh              第三方主题下载
-│   └── install-ai-cli.sh              claude-code / codex / grok-build / opencode 官方 curl 安装（CONSUMER 用）
+│   └── install-ai-cli.sh              claude-code / grok-build / opencode / magpie 官方 curl 安装（CONSUMER 用）
 ├── debug/
 │   └── profile.zsh         zsh 启动 profile 调试（ZSH_PROFILE=1 启用）
 ├── zsh/                    [TEMPLATE] zsh 入口文件
@@ -137,7 +137,7 @@ dotfiles/
 | `git/config` | (不复制) | - | `~/.gitconfig` 加 `[include] path = ...` |
 | `vscode/settings.json` | `~/Library/Application Support/Code/User/settings.json` | jq 深合并 | 本地字段保留, 仓库同名 key 覆盖 |
 | `Brewfile` | (不复制) | - | `brew bundle install --file=...` 直接读 |
-| `bin/install-ai-cli.sh` | (不复制) | 每次重跑 = 更新 | 官方 curl 脚本装 claude-code / codex / grok-build / opencode |
+| `bin/install-ai-cli.sh` | (不复制) | 每次重跑 = 更新 | 官方 curl 脚本装 claude-code / grok-build / opencode / magpie |
 
 ## Shell 加载顺序
 

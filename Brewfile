@@ -172,7 +172,7 @@ cask "freelens"        # Kubernetes 集群 GUI
 
 # ============================================================
 # AI CLI - 走官方 curl 安装, 不用 brew (自带后台自更新, 无需 brew upgrade)
-#   由 bin/install-ai-cli.sh 统一管理 (claude-code / codex / grok-build / opencode)
+#   由 bin/install-ai-cli.sh 统一管理 (claude-code / grok-build / opencode / magpie)
 # ============================================================
 
 # ============================================================
