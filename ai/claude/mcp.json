@@ -13,6 +13,17 @@
       "x-api-key": "${MCP_EXA_API_KEY}"
     }
   },
+  "gh_grep": {
+    "type": "http",
+    "url": "https://mcp.grep.app"
+  },
+  "openseo": {
+    "type": "http",
+    "url": "https://app.openseo.so/mcp",
+    "headers": {
+      "Authorization": "Bearer ${OPENSEO_API_KEY}"
+    }
+  },
   "rea": {
     "type": "stdio",
     "command": "npx",

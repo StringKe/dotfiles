@@ -450,6 +450,19 @@
                 "x-api-key": "{env:MCP_EXA_API_KEY}"
             }
         },
+        "gh_grep": {
+            "type": "remote",
+            "url": "https://mcp.grep.app",
+            "enabled": true
+        },
+        "openseo": {
+            "type": "remote",
+            "url": "https://app.openseo.so/mcp",
+            "enabled": true,
+            "headers": {
+                "Authorization": "Bearer {env:OPENSEO_API_KEY}"
+            }
+        },
         "rea": {
             "type": "local",
             "command": [
