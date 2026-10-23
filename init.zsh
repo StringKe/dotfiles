@@ -183,17 +183,29 @@ aiupdate() {
 if command -v trash &>/dev/null; then
     function rm() {
         local paths=()
-        local dashdash=false
+        local dashdash=false force=false
         for arg in "$@"; do
             if $dashdash; then
                 paths+=("$arg")
             elif [[ "$arg" == "--" ]]; then
                 dashdash=true
+            elif [[ "$arg" == --force || ( "$arg" == -[^-]* && "$arg" == *f* ) ]]; then
+                force=true
             elif [[ "$arg" != -* ]]; then
                 paths+=("$arg")
             fi
         done
-        (( ${#paths[@]} )) && command trash "${paths[@]}"
+        # -f：不存在的路径不报错
+        if $force; then
+            local p kept=()
+            for p in "${paths[@]}"; do
+                [[ -e $p || -L $p ]] && kept+=("$p")
+            done
+            paths=("${kept[@]}")
+        fi
+        (( ${#paths[@]} )) || return 0
+        # trash 不认 --，以 - 开头的路径补成 ./-x，避免被当成选项
+        command trash "${paths[@]/#-/./-}"
     }
 fi
 
@@ -208,13 +220,6 @@ function y() {
     fi
     command rm -f -- "$tmp"
 }
-
-# ============================================================
-# 加载敏感信息（~/.zsh_secrets 不纳入版本控制）
-# ============================================================
-if [[ -f ~/.zsh_secrets ]]; then
-    source ~/.zsh_secrets
-fi
 
 # ============================================================
 # Bun - 补全脚本

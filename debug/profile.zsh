@@ -2,7 +2,7 @@
 # [DEBUG TOOL] debug/profile.zsh - zsh 启动 profile 调试模块
 #
 # 不部署。由 ~/.zshenv 在 ZSH_PROFILE=1 时按 $DOTFILES_ROOT/debug/profile.zsh source。
-# AI 规则: 此文件是仓库内置调试工具，平时关闭无开销。AI 不修改本文件。
+# 平时关闭，无开销。
 #
 # 用法（临时，用完关闭）：
 #   1. 开新终端前 export ZSH_PROFILE=1
@@ -91,8 +91,9 @@ _prof_preexec_start() { typeset -gF _PROF_PREEXEC_T0=$EPOCHREALTIME; }
 
 # 在 prompt-ready 后一次性安装 wrapper（确保所有插件已注册完毕）
 _prof_install_wrappers() {
-    # 只装一次，装完把自己从 precmd 摘掉
+    # 只装一次：先把自己从 precmd 摘掉，否则会被包装进去，之后按原名摘不掉
     autoload -Uz add-zsh-hook
+    add-zsh-hook -d precmd _prof_install_wrappers
 
     # 包装现有 hook 函数
     _prof_wrap_hooks chpwd_functions cd
@@ -109,8 +110,6 @@ _prof_install_wrappers() {
 
     # preexec: head=start, tail=total
     preexec_functions=(_prof_preexec_start $preexec_functions _prof_preexec_total)
-
-    add-zsh-hook -d precmd _prof_install_wrappers
 }
 autoload -Uz add-zsh-hook
 add-zsh-hook precmd _prof_install_wrappers
