@@ -1,20 +1,15 @@
 # ============================================================
 # [TEMPLATE] zsh/zshenv - 环境变量（所有 shell 加载）
 #
-# 部署目标: ~/.zshenv（由 bin/deploy.sh init 处理占位符替换后写入）
+# 部署目标: ~/.zshenv（bin/deploy.sh init / sync 替换存储根与仓库路径两个占位符后写入）
 #
-# AI 规则:
-#   - 此文件是仓库模板，含两个占位符 __STORAGE_ROOT__ / __DOTFILES_ROOT__。
-#   - AI 部署时调用 bin/deploy.sh init <STORAGE_ROOT>，绝不手写 sed 命令。
-#   - 禁止把部署版（~/.zshenv 内绝对路径）回写到本文件。
-#   - 仅放环境变量和 PATH，不放别名 / 函数 / prompt 初始化。
-#   - 交互式 shell 配置 -> dotfiles/init.zsh -> ~/.zsh/init.zsh
-#   - 禁止 export STORAGE_ROOT。
+# - 部署版的绝对路径不回写本文件。
+# - 仅放环境变量和 PATH，不放别名 / 函数 / prompt 初始化；交互式配置在 init.zsh。
+# - 不 export STORAGE_ROOT。
 # ============================================================
 
 # ============================================================
-# 仓库路径（zimfw 用于加载 init.zsh 本地模块）
-# 部署时由 AI 将 __DOTFILES_ROOT__ 替换为 dotfiles 仓库绝对路径
+# 仓库路径（debug/profile.zsh 从仓库直接 source）
 # ============================================================
 export DOTFILES_ROOT="__DOTFILES_ROOT__"
 
@@ -30,9 +25,8 @@ if (( ${ZSH_PROFILE:-0} )) && [[ -f $DOTFILES_ROOT/debug/profile.zsh ]]; then
 fi
 
 # ============================================================
-# 存储根：以下两行 export 在仓库内为占位符，部署时由 AI 全文替换为绝对路径（见 README）。
-# 禁止 export STORAGE_ROOT 环境变量。固定子目录：Code/、Languages/
-# 换位置见 README「存储位置与迁移」
+# 存储根：仓库内为占位符，部署时由 bin/deploy.sh 替换为绝对路径。
+# 固定子目录：Code/、Languages/。换位置见 CLAUDE.md「数据迁移」
 # ============================================================
 export CODE_LANGUAGES_HOME="__STORAGE_ROOT__/Languages"
 
@@ -299,7 +293,7 @@ fi
 # grok-build（不由仓库安装）：关闭 telemetry / codebase upload，优先级高于其 config
 [[ -f $HOME/.grok/privacy.env ]] && source "$HOME/.grok/privacy.env"
 
-# MCP 密钥。文件不进 git。交互式 shell 的 init.zsh 会再 source 一次。
+# MCP 等密钥。文件不进 git；放在 zshenv 让非交互进程启动的 agent 也能读到。
 [[ -f $HOME/.zsh_secrets ]] && source "$HOME/.zsh_secrets"
 
 (( $+functions[_prof] )) && _prof "zshenv DONE"

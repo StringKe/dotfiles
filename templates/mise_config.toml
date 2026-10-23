@@ -1,11 +1,8 @@
 # [TEMPLATE] templates/mise_config.toml
-# 部署目标: ~/.config/mise/config.toml（由 bin/deploy.sh init 处理 __STORAGE_ROOT__ 替换）
+# 部署目标: ~/.config/mise/config.toml（bin/deploy.sh init 替换存储根占位符后覆盖写入）
 #
-# AI 规则:
-#   - 此文件是仓库模板，含 __STORAGE_ROOT__ 占位符。
-#   - AI 部署时调用 bin/deploy.sh init，绝不手写 sed 命令。
-#   - 文件必须放在 templates/ 而非仓库根，避免 mise 在 dotfiles 目录自动加载占位符。
-#   - [tools] 可按本机需求定制；[env] 路径由占位符替换生成。
+# - 放在 templates/ 而非仓库根，避免 mise 在 dotfiles 目录自动加载未替换的占位符。
+# - [tools] 以本模板为准，init 会覆盖本机 mise use -g 的改动；项目专用版本写在项目的 mise.toml。
 
 [tools]
 node = "latest"
