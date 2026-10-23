@@ -6,7 +6,7 @@
 
 IFS= read -r -d '' input || true
 
-fields=$(/opt/homebrew/bin/jq -r '
+fields=$(jq -r '
     def s: if . == null then "" else tostring end;
     def r: if . == null then "" else (round | tostring) end;
     [

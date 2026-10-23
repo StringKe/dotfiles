@@ -3,6 +3,7 @@
 #
 # 提示词、rules、hooks、statusline、个人 skills、worktree 插件、opencode 配置
 # 用符号链接指回仓库 ai/：在 ~ 里编辑等于改仓库，git status 可见。
+# 仓库里删除或改名的条目，对应的旧链接会被清掉。
 # ~/.claude/settings.json 由 Claude Code 运行时改写，用 jq 深合并（本地字段保留，仓库同名 key 覆盖）。
 # MCP 用 claude mcp add-json -s user 写进 ~/.claude.json；密钥按变量名引用 ~/.zsh_secrets。
 # 被替换的旧文件 / 目录放进废纸篓。
@@ -17,8 +18,11 @@ AI="$DOTFILES_ROOT/ai"
 
 log() { printf '  %s\n' "$*"; }
 
+linked=()
+
 link() {
     local src=$1 dst=$2
+    linked+=("$dst")
     mkdir -p "$(dirname "$dst")"
     if [[ -L $dst && $(readlink "$dst") == "$src" ]]; then
         log "ok      $dst"
@@ -41,15 +45,46 @@ merge_claude_settings() {
         return
     fi
     local tmp="$dst.tmp.$$"
-    jq -s '(.[0] // {}) * (.[1] // {})' "$dst" "$src" > "$tmp"
+    if ! jq -s '(.[0] // {}) * (.[1] // {})' "$dst" "$src" > "$tmp"; then
+        rm -f "$tmp"
+        log "error   $dst 不是合法 JSON，修正后重跑"
+        return 1
+    fi
     mv "$tmp" "$dst"
     log "merged  $dst"
 }
 
+# 仓库里删除或改名的条目：清掉本脚本以前建的、本次不再建的指回 ai/ 的链接
+prune_links() {
+    local dir entry keep
+    for dir in "$HOME/.claude/rules" "$HOME/.claude/hooks" "$HOME/.claude/skills" \
+        "$HOME/.agents/skills" "$HOME/.agents/plugins" "$HOME/.config/opencode/skills"; do
+        [[ -d $dir ]] || continue
+        for entry in "$dir"/*; do
+            [[ -L $entry && $(readlink "$entry") == "$AI/"* ]] || continue
+            keep=false
+            for l in "${linked[@]}"; do [[ $l == "$entry" ]] && { keep=true; break; }; done
+            if ! $keep; then
+                trash "$entry"
+                log "pruned  $entry"
+            fi
+        done
+    done
+}
+
 add_claude_mcp() {
     local name json
+    local var missing
     for name in $(jq -r 'keys[]' "$AI/claude/mcp.json"); do
         json=$(jq -c --arg home "$HOME" --arg n "$name" '.[$n] | walk(if type == "string" then gsub("\\$\\{HOME\\}"; $home) else . end)' "$AI/claude/mcp.json")
+        missing=""
+        for var in $(jq -r '[.. | strings | scan("\\$\\{([A-Z0-9_]+)\\}")[0]] | unique[]' <<<"$json"); do
+            [[ -n ${!var:-} ]] || missing+=" $var"
+        done
+        if [[ -n $missing ]]; then
+            log "skip    mcp $name（~/.zsh_secrets 缺少$missing）"
+            continue
+        fi
         claude mcp remove -s user "$name" >/dev/null 2>&1 || true
         claude mcp add-json -s user "$name" "$json" >/dev/null
         log "mcp     $name"
@@ -77,13 +112,13 @@ for d in "$AI"/skills/*/; do
     link "$d" "$HOME/.config/opencode/skills/${d##*/}"
 done
 
-# 个人插件：Claude Code 按 skills 目录里的插件加载；opencode 只认 skill，逐个链接
+# 个人插件：~/.agents/plugins 放整个插件；Claude Code 与 opencode 的 skills 目录只认单个 skill，逐个链接
 for p in "$AI"/plugins/*/; do
     p=${p%/}
     link "$p" "$HOME/.agents/plugins/${p##*/}"
-    link "$p" "$HOME/.claude/skills/${p##*/}"
     for s in "$p"/skills/*/; do
         s=${s%/}
+        link "$s" "$HOME/.claude/skills/${s##*/}"
         link "$s" "$HOME/.config/opencode/skills/${s##*/}"
     done
 done
@@ -92,12 +127,14 @@ done
 link "$AI/opencode/opencode.jsonc" "$HOME/.config/opencode/opencode.jsonc"
 link "$AI/opencode/tui.json" "$HOME/.config/opencode/tui.json"
 
+prune_links
+
 # Claude Code 设置与 MCP
 merge_claude_settings
 if command -v claude >/dev/null 2>&1; then
     add_claude_mcp
 else
-    log "skip    MCP（claude 未安装，先跑 bin/install-ai-cli.sh）"
+    log "skip    MCP（claude 不在 PATH：未安装，或装完后还没 exec zsh）"
 fi
 
 # 第三方 skill：Rex 自带安装器；ego-browser 随 ego lite 安装

@@ -11,7 +11,7 @@
 #       工具经 shell 快照继承该函数，但 `command rm`、`/bin/rm`、`bash -c`、xargs、
 #       find -exec 以及其他运行时的非交互 bash 仍是真删。此 hook 在工具层兜底。
 #
-# 行为: 读 stdin JSON 的 shell 命令字段，rm 处在命令位置时 exit 2 阻断。
+# 行为: 读 stdin JSON 的 shell 命令字段，rm / unlink 处在命令位置或出现 find -delete 时 exit 2 阻断。
 # 逃生口: 命令以 RM_OK=1 开头时放行(用户明确授权真删后才加, AI 不得自行添加)。
 #
 # trash 工具: macOS 14+ 自带 /usr/bin/trash, 无需额外安装。
@@ -62,13 +62,15 @@ case "$trimmed" in
 esac
 
 assign='([A-Za-z_][A-Za-z0-9_]*=[^[:space:]]*[[:space:]]+)*'
-wrap='((sudo|doas|command|builtin|exec|env|nohup|time|nice|xargs|parallel|watch|then|do|else|if|while|until|!)([[:space:]]+-[^[:space:]]*)*[[:space:]]+)*'
+# 包装命令的选项可带一个参数（sudo -u root rm）
+wrap='((sudo|doas|command|builtin|exec|env|nohup|time|nice|xargs|parallel|watch|then|do|else|if|while|until|!)([[:space:]]+-[^[:space:]]*([[:space:]]+[^-[:space:];&|][^[:space:];&|]*)?)*[[:space:]]+)*'
 path='([^[:space:];&|(){}'"'"'"]*/)?'
-prefix="[[:space:]]*${assign}${wrap}${assign}${path}g?rm"
+prefix="[[:space:]]*${assign}${wrap}${assign}${path}(g?rm|unlink)"
 end="([[:space:];&|)}'\"\`]|\$)"
 p_cmd="(^|[;&|({\`]|\\\$\\(|-exec[[:space:]])${prefix}${end}"
 p_subst="(\\\$\\(|\`)${prefix}${end}"
 p_nested="((^|[[:space:]/])(sh|bash|zsh|dash)([[:space:]]+-[A-Za-z]+)*[[:space:]]+-[A-Za-z]*c|eval|ssh[[:space:]][^;&|'\"]*)[[:space:]]+['\"]([^'\"]*([;&|({\`]|\\\$\\())?${prefix}${end}"
+p_find_delete="(^|[;&|({\`]|\\\$\\()[[:space:]]*${assign}${wrap}${path}find[[:space:]][^;&|]*[[:space:]]-delete([[:space:];&|)]|\$)"
 
 # 引号内是数据，去掉后再找命令位置；会被当命令执行的字符串（sh -c、eval、ssh、命令替换）在原文上单独检查。
 unquoted=$(printf '%s' "$cmd" | sed -E "s/'[^']*'/''/g; s/\"[^\"]*\"/\"\"/g")
@@ -80,10 +82,10 @@ tmp_re='^(/tmp/|/private/tmp/|/var/folders/|\$TMPDIR/?|\$\{TMPDIR\}/?|\$CLAUDE_J
 tmp_only() {
     local calls call arg found=0
     set -f
-    calls=$(printf '%s' "$cmd" | grep -Eo "(^|[^[:alnum:]_.-])g?rm([[:space:]]+${tok})*([^[:alnum:]_.-]|$)") || return 1
+    calls=$(printf '%s' "$cmd" | grep -Eo "(^|[^[:alnum:]_.-])(g?rm|unlink)([[:space:]]+${tok})*([^[:alnum:]_.-]|$)") || return 1
     while IFS= read -r call; do
         found=0
-        for arg in $(printf '%s' "${call#*rm}" | grep -Eo "[[:space:]]${tok}" | tr -d "'\""); do
+        for arg in $(printf '%s' "$call" | sed -E 's/^[^[:alnum:]_.-]?(g?rm|unlink)//' | grep -Eo "[[:space:]]${tok}" | tr -d "'\""); do
             case "$arg" in -*) continue ;; esac
             case "$arg" in *..*) return 1 ;; esac
             printf '%s' "$arg" | grep -Eq "$tmp_re" || return 1
@@ -92,6 +94,15 @@ tmp_only() {
         [ "$found" -eq 1 ] || return 1
     done <<< "$calls"
 }
+
+if printf '%s' "$unquoted" | grep -Eq -e "$p_find_delete"; then
+    cat >&2 <<'MSG'
+[guard-rm] 拦截: find -delete 会真删文件。
+请改用: find ... -exec trash {} +
+确需不可恢复真删且用户已明确授权时, 命令前加 RM_OK=1。
+MSG
+    exit 2
+fi
 
 if { printf '%s' "$unquoted" | grep -Eq -e "$p_cmd" \
     || printf '%s' "$cmd" | grep -Eq -e "$p_subst" -e "$p_nested"; } && ! tmp_only; then
