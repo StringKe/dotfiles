@@ -32,7 +32,7 @@ bin/deploy.sh init /Volumes/Storage
 # 软件
 brew bundle install --file=$PWD/Brewfile
 
-# AI CLI（claude-code / grok-build / opencode / magpie，官方 curl 脚本，不走 brew）
+# AI CLI（claude-code / opencode v2，官方 curl 脚本，不走 brew）
 bin/install-ai-cli.sh
 
 # 应用 shell（启动新 shell）
@@ -156,7 +156,7 @@ git pull --ff-only origin main
 | zsh/zimrc | bin/deploy.sh sync + zimfw install | 模块清单变了 |
 | templates/mise_config.toml | bin/deploy.sh init <CURRENT_ROOT> | 覆盖 ~/.config/mise/config.toml |
 | Brewfile | brew bundle install --file=$DOTFILES_ROOT/Brewfile | 装新软件 (vscode 扩展不再托管) |
-| bin/install-ai-cli.sh | bin/install-ai-cli.sh | claude-code / grok-build / opencode / magpie 官方 curl 脚本变了才需要 |
+| bin/install-ai-cli.sh | bin/install-ai-cli.sh | claude-code / opencode v2 官方 curl 脚本变了才需要 |
 | ghostty/, starship/, btop/, atuin/, yazi/, bat/ | bin/deploy.sh init <CURRENT_ROOT> | 仅首次部署文件, 已存在不覆盖 (见 5c) |
 | ripgrep/, git/ignore | bin/deploy.sh init <CURRENT_ROOT> | 同上 |
 | infat/ | bin/deploy.sh init <CURRENT_ROOT> + bin/apply-file-associations.sh | 每次 init 覆盖配置；PhpStorm 抢走的扩展由 apply 脚本走 duti / ContentTag |
@@ -236,7 +236,7 @@ dotfiles/
 │   ├── deploy.sh                      部署主脚本
 │   ├── apply-file-associations.sh     infat + duti 文件关联
 │   ├── install-themes.sh              第三方主题下载（btop / atuin）
-│   └── install-ai-cli.sh              claude-code / grok-build / opencode / magpie 官方 curl 安装
+│   └── install-ai-cli.sh              claude-code / opencode v2 官方 curl 安装
 ├── debug/
 │   └── profile.zsh         ZSH_PROFILE=1 启用的启动 timing 调试
 ├── zsh/                    [TEMPLATE] zsh 入口

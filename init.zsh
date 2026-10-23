@@ -172,8 +172,7 @@ claude() {
 
 # AI CLI 自更新。安装器禁止改 ~/.zshrc。
 aiupdate() {
-    command grok update \
-        && command claude update \
+    command claude update \
         && command opencode upgrade --method curl
 }
 

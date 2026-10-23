@@ -301,9 +301,6 @@ if [[ -d $HOMEBREW_PREFIX/share/zsh/functions ]]; then
     fpath=($HOMEBREW_PREFIX/share/zsh/functions $fpath)
 fi
 
-# Grok Build CLI：关闭 telemetry / codebase upload（优先级高于 config）
-[[ -f $HOME/.grok/privacy.env ]] && source "$HOME/.grok/privacy.env"
-
 # MCP 密钥。文件不进 git。交互式 shell 的 init.zsh 会再 source 一次。
 [[ -f $HOME/.zsh_secrets ]] && source "$HOME/.zsh_secrets"
 
