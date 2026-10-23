@@ -3,7 +3,7 @@
 # AI 部署时复制此文件（仅当目标不存在），不修改本文件。
 
 # 主题：bat 没有内置 GitHub Light Colorblind 主题。
-# 用 "ansi" 让 bat 走终端 ANSI 配色（自动跟随 ghostty 的 GitHub Light Colorblind），
+# 用 "ansi" 让 bat 走终端 ANSI 配色（自动跟随 Rex 的终端主题），
 # 保证视觉一致 + colorblind 安全（语法高亮颜色由 ANSI 16 色推导）。
 --theme="ansi"
 

@@ -6,7 +6,7 @@
 
 **本仓库 ≠ 用户的 home 配置**。
 
-- 仓库内所有 `zsh/*` / `ghostty/config` / `starship/starship.toml` / `templates/*` 等都是**模板源**。
+- 仓库内所有 `zsh/*` / `rex/*` / `starship/starship.toml` / `templates/*` 等都是**模板源**。
 - 实际生效的是 `~/.zshenv` / `~/.config/...` 等用户 home 内的**部署产物**。
 - 部署通过 `bin/deploy.sh` 完成（复制 + sed 替换占位符），仓库内文件不直接被用户 shell 读取（唯一例外见下）。
 
@@ -76,6 +76,7 @@ bin/install-ai-cli.sh                                 # claude-code / opencode v
 zimfw install                                         # zsh 模块
 mise install                                          # 语言运行时
 bin/apply-file-associations.sh                        # infat + duti + jsx/scss/vue ContentTag
+bin/apply-rex-defaults.sh                             # Rex 外观（重启 Rex App 生效）
 chsh -s /opt/homebrew/bin/zsh                         # 默认 shell
 ```
 
@@ -86,6 +87,7 @@ dotfiles/
 ├── bin/
 │   ├── deploy.sh                      部署主脚本（CONSUMER 用）
 │   ├── apply-file-associations.sh     infat + duti 文件关联（CONSUMER 用）
+│   ├── apply-rex-defaults.sh          Rex Workspace.* 外观设置（CONSUMER 用）
 │   ├── install-themes.sh              第三方主题下载
 │   └── install-ai-cli.sh              claude-code / opencode v2 官方 curl 安装（CONSUMER 用）
 ├── debug/
@@ -99,7 +101,7 @@ dotfiles/
 ├── templates/
 │   ├── mise_config.toml    mise 全局配置（含 __STORAGE_ROOT__）
 │   └── zsh_secrets.template 空白密钥模板
-├── ghostty/config          [TEMPLATE] 终端配置
+├── rex/                    [TEMPLATE] 终端主题 + Workspace.* 外观设置
 ├── starship/starship.toml  [TEMPLATE] 提示符
 ├── btop/btop.conf          [TEMPLATE] 系统监控
 ├── yazi/                   [TEMPLATE] 文件管理器
@@ -124,7 +126,8 @@ dotfiles/
 | `init.zsh` | `~/.zsh/init.zsh` | init / sync 覆盖 | 直接复制 |
 | `templates/mise_config.toml` | `~/.config/mise/config.toml` | 重配覆盖 | sed 替换占位符 |
 | `templates/zsh_secrets.template` | `~/.zsh_secrets` | 仅首次 | 复制 + chmod 600 |
-| `ghostty/config` | `~/Library/Application Support/com.mitchellh.ghostty/config` | 仅首次 | 直接复制 |
+| `rex/themes/*` | `~/.config/rex/themes/*` | init 覆盖 | 直接复制 |
+| `rex/workspace.defaults` | defaults 域 `com.superlogical.rex` 的 `Workspace.*` | 每次 `bin/apply-rex-defaults.sh` 覆盖 | `defaults write`，重启 Rex App 生效 |
 | `starship/starship.toml` | `~/.config/starship.toml` | 仅首次 | 直接复制 |
 | `btop/btop.conf` | `~/.config/btop/btop.conf` | 仅首次 | 直接复制 |
 | `yazi/keymap.toml` | `~/.config/yazi/keymap.toml` | 仅首次 | 直接复制 |
@@ -204,7 +207,7 @@ AI agent 的每条命令都是新的非交互进程，经 1Password 签名或 SS
 
 | 工具 | 配置位置 | 主题来源 |
 |---|---|---|
-| ghostty | `ghostty/config` | 内置（`theme = GitHub Light Colorblind`） |
+| rex | `rex/themes/GitHub Light Colorblind`（Ghostty 格式调色板），在 Rex 设置里选用；当前 `rex/workspace.defaults` 记录的是 `merino-light` | 仓库自带主题文件 |
 | starship | `starship/starship.toml` | 不指定 palette，跟随终端 ANSI 配色 |
 | bat | `bat/config` | `--theme="ansi"` 跟随终端 ANSI 配色 |
 | fzf | `init.zsh` 内 `FZF_DEFAULT_OPTS` | 手写 |
@@ -213,7 +216,7 @@ AI agent 的每条命令都是新的非交互进程，经 1Password 签名或 SS
 | atuin | `atuin/config.toml` | 不指定主题，fallback 跟随终端 ANSI |
 | vscode | `vscode/settings.json` 设 `workbench.colorTheme: "GitHub Light Colorblind"`（扩展 `GitHub.github-vscode-theme` 需经 VS Code 内置 Settings Sync / 手动安装，不再由 Brewfile 托管） | 扩展自带 |
 
-修改主题：编辑对应配置文件（ghostty/starship/btop/yazi/init.zsh fzf 段），跑 `bin/deploy.sh init <ROOT>` 重新部署 + `bin/install-themes.sh` 复制 btop 主题。
+修改主题：编辑对应配置文件（rex/starship/btop/yazi/init.zsh fzf 段），跑 `bin/deploy.sh init <ROOT>` 重新部署 + `bin/install-themes.sh` 复制 btop 主题；Rex 外观改 `rex/workspace.defaults` 后跑 `bin/apply-rex-defaults.sh` 并重启 Rex App。
 
 ## 调试 / Profile
 

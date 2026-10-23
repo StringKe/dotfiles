@@ -135,7 +135,7 @@ cmd_init() {
     deploy_template templates/mise_config.toml "$HOME/.config/mise/config.toml" "$storage_root"
 
     # 其他工具配置（不存在时部署，已存在则跳过避免覆盖用户自定义）
-    deploy_if_absent ghostty/config        "$HOME/Library/Application Support/com.mitchellh.ghostty/config"
+    deploy_copy "rex/themes/GitHub Light Colorblind" "$HOME/.config/rex/themes/GitHub Light Colorblind"
     deploy_if_absent starship/starship.toml "$HOME/.config/starship.toml"
     deploy_if_absent ripgrep/config        "$HOME/.config/ripgrep/config"
     deploy_if_absent yazi/keymap.toml      "$HOME/.config/yazi/keymap.toml"
@@ -202,7 +202,8 @@ cmd_init() {
     log "  3. zimfw install              # 安装 zsh 模块"
     log "  4. mise install               # 安装语言运行时"
     log "  5. $DOTFILES_ROOT/bin/apply-file-associations.sh"
-    log "  6. chsh -s /opt/homebrew/bin/zsh"
+    log "  6. $DOTFILES_ROOT/bin/apply-rex-defaults.sh   # 重启 Rex App 生效"
+    log "  7. chsh -s /opt/homebrew/bin/zsh"
 }
 
 cmd_sync() {

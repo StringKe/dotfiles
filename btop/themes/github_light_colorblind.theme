@@ -1,5 +1,5 @@
 # GitHub Light Colorblind theme for btop
-# 配色来源: ghostty 内置 'GitHub Light Colorblind' + primer/primitives
+# 配色来源: rex/themes/GitHub Light Colorblind + primer/primitives
 # orange (#b35900) 替代 red, blue (#0969da) 替代 green，避红绿色盲混淆
 
 theme[main_bg]="#ffffff"

@@ -2,8 +2,8 @@
 # 部署目标: ~/.config/yazi/theme.toml
 # AI 部署时复制此文件（仅当目标不存在），不修改本文件。
 #
-# 用 ANSI 颜色名而非 hex：颜色由终端主题渲染（ghostty 的 GitHub Light Colorblind
-# 已把 ANSI red 映射为橙色，green 为蓝色，自动色盲友好）。
+# 用 ANSI 颜色名而非 hex：颜色由终端主题渲染（Rex 用 rex/themes 的 GitHub Light Colorblind
+# 时 ANSI red 映射为橙色，green 为蓝色，自动色盲友好）。
 # 不写死 hex 避免和终端主题双重映射。
 
 [mgr]

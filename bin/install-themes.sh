@@ -11,7 +11,7 @@
 #   bin/install-themes.sh btop     仅安装 btop 主题
 #
 # 工具内置 GitHub Light Colorblind / 跟终端配色（无需下载）:
-#   - ghostty   (theme = GitHub Light Colorblind, 内置)
+#   - rex       (rex/themes/GitHub Light Colorblind，由 deploy.sh 复制)
 #   - starship  (palette 在 starship.toml 内手写)
 #   - fzf       (FZF_DEFAULT_OPTS 在 init.zsh 内手写)
 #   - bat       (--theme="ansi"，跟随终端 ANSI 配色)

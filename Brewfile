@@ -159,8 +159,8 @@ brew "qrencode"        # 二维码生成
 
 # ============================================================
 # GUI - 终端 / 编辑器
+# 终端用 Rex Beta（无 brew cask，见 https://www.superlogical.com/rex/docs/installation）
 # ============================================================
-cask "ghostty"
 cask "visual-studio-code"
 cask "jetbrains-toolbox"
 

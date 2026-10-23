@@ -4,7 +4,7 @@ macOS 开发环境配置的**只读模板仓库**。
 
 仓库内文件是模板源，通过 `bin/deploy.sh` 复制（+ 占位符替换）到用户 home。仓库不被用户 shell 直接读取（唯一例外：`git/config` 由 `~/.gitconfig` 的 `[include]` 引用）。
 
-主题统一 **GitHub Light Colorblind**（橙色替代红，蓝色替代绿，避红绿色盲混淆），覆盖 ghostty / starship / btop / yazi / atuin / bat / fzf / vscode。
+主题统一 **GitHub Light Colorblind**（橙色替代红，蓝色替代绿，避红绿色盲混淆），覆盖 rex / starship / btop / yazi / atuin / bat / fzf / vscode。终端用 Rex Beta（无 brew cask，安装见 https://www.superlogical.com/rex/docs/installation）。
 
 ## 前置准备
 
@@ -47,6 +47,9 @@ bin/install-themes.sh
 
 # 文件关联
 bin/apply-file-associations.sh
+
+# Rex 外观（重启 Rex App 生效）
+bin/apply-rex-defaults.sh
 
 # 默认 shell
 grep -qF /opt/homebrew/bin/zsh /etc/shells || echo /opt/homebrew/bin/zsh | sudo tee -a /etc/shells
@@ -157,7 +160,9 @@ git pull --ff-only origin main
 | templates/mise_config.toml | bin/deploy.sh init <CURRENT_ROOT> | 覆盖 ~/.config/mise/config.toml |
 | Brewfile | brew bundle install --file=$DOTFILES_ROOT/Brewfile | 装新软件 (vscode 扩展不再托管) |
 | bin/install-ai-cli.sh | bin/install-ai-cli.sh | claude-code / opencode v2 官方 curl 脚本变了才需要 |
-| ghostty/, starship/, btop/, atuin/, yazi/, bat/ | bin/deploy.sh init <CURRENT_ROOT> | 仅首次部署文件, 已存在不覆盖 (见 5c) |
+| rex/themes/ | bin/deploy.sh init <CURRENT_ROOT> | 每次 init 覆盖 ~/.config/rex/themes |
+| rex/workspace.defaults | bin/apply-rex-defaults.sh | 写 Workspace.* 外观设置, 重启 Rex App 生效 |
+| starship/, btop/, atuin/, yazi/, bat/ | bin/deploy.sh init <CURRENT_ROOT> | 仅首次部署文件, 已存在不覆盖 (见 5c) |
 | ripgrep/, git/ignore | bin/deploy.sh init <CURRENT_ROOT> | 同上 |
 | infat/ | bin/deploy.sh init <CURRENT_ROOT> + bin/apply-file-associations.sh | 每次 init 覆盖配置；PhpStorm 抢走的扩展由 apply 脚本走 duti / ContentTag |
 | git/config | 无操作 | ~/.gitconfig [include] 引用, 自动生效 |
@@ -167,7 +172,7 @@ git pull --ff-only origin main
 
 ### 5c. 主题或仅首次覆盖类文件改动 (重要)
 
-ghostty / starship / btop / atuin / yazi / bat / ripgrep 走 deploy_if_absent (已存在跳过)。如果仓库改了它们 (如主题切换), 用户本机老版本不会被覆盖。infat 每次 init 覆盖。
+starship / btop / atuin / yazi / bat / ripgrep 走 deploy_if_absent (已存在跳过)。如果仓库改了它们 (如主题切换), 用户本机老版本不会被覆盖。infat 每次 init 覆盖。
 
 infat 在 macOS Tahoe 上无法设置已被其他 app 抢注的扩展名 (LaunchServices error -50)。PhpStorm 声明了 php / phtml / js / css / `.*`。跑:
 ```bash
@@ -192,7 +197,7 @@ bin/install-themes.sh
 
 ```bash
 exec zsh                                  # 重载 shell, 所有 zsh/* 改动生效
-ghostty +reload-config 2>/dev/null || true # ghostty 主题改动
+bin/apply-rex-defaults.sh                 # rex/workspace.defaults 改动, 重启 Rex App 生效
 ```
 
 跳过 6, 直接到 7 验证。
@@ -218,7 +223,7 @@ chsh -s /opt/homebrew/bin/zsh
 - echo $DOTFILES_ROOT 输出仓库绝对路径
 - ~/.zshrc 末尾含 source ~/.zsh/init.zsh
 - ~/.zim/modules/ 含 zsh-syntax-highlighting / autosuggestions / fzf-tab 等
-- ghostty 主题: grep '^theme' "$HOME/Library/Application Support/com.mitchellh.ghostty/config" 输出 GitHub Light Colorblind
+- Rex 主题文件: ~/.config/rex/themes/GitHub Light Colorblind 存在; defaults read com.superlogical.rex Workspace.terminalFontName 输出 Maple Mono NF CN
 - starship: 不指定 palette, 跟随终端 ANSI 配色 (见 starship/starship.toml 注释)
 
 ## 8. 提醒
@@ -242,7 +247,7 @@ dotfiles/
 ├── zsh/                    [TEMPLATE] zsh 入口
 ├── init.zsh                [TEMPLATE] 交互式配置 -> ~/.zsh/init.zsh
 ├── templates/              [TEMPLATE] 含占位符的模板
-├── ghostty/                [TEMPLATE] 终端
+├── rex/                    [TEMPLATE] 终端主题 + Workspace.* 外观设置
 ├── starship/               [TEMPLATE] 提示符
 ├── btop/                   [TEMPLATE] 系统监控
 ├── yazi/                   [TEMPLATE] 文件管理器
@@ -277,7 +282,7 @@ dotfiles/
 | zim 插件列表 | `zsh/zimrc` | `bin/deploy.sh sync` + `zimfw install` |
 | 环境变量 | `zsh/zshenv`（**保留占位符**） | `bin/deploy.sh sync` |
 | 软件清单 | `Brewfile` | `brew bundle install` |
-| 终端主题 | `ghostty/config` | 重新部署 |
+| 终端主题 / 外观 | `rex/themes/`、`rex/workspace.defaults` | 重新部署 + `bin/apply-rex-defaults.sh` |
 | 提示符 | `starship/starship.toml` | 重新部署 |
 | Git 通用配置 | `git/config` | 自动生效（`[include]` 引用） |
 

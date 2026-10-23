@@ -9,7 +9,7 @@ command_timeout    = 10000
 continuation_prompt = "[.](bright-black) "
 
 # 不指定 palette / 不重定义颜色：starship symbols 用 ANSI 颜色名 (red/green/blue 等)，
-# 由终端 (ghostty 的 GitHub Light Colorblind 主题) 渲染为色盲友好配色。
+# 由终端主题渲染（Rex 用 rex/themes 的 GitHub Light Colorblind 时为色盲友好配色）。
 
 # ── 提示符 ──────────────────────────────────────────────────
 [character]

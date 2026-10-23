@@ -1,0 +1,28 @@
+# [TEMPLATE] rex/workspace.defaults
+# 部署方式: bin/apply-rex-defaults.sh 逐行 defaults write com.superlogical.rex Workspace.<key>
+# 格式: <key>\t<类型 string|bool|int|float>\t<值>
+# Rex 运行时不读这些改动，重启 App 才生效。
+appearance	string	light
+lightThemeID	string	merino-light
+darkThemeID	string	merino-dark
+interfaceStyle	string	blendTheme
+paneDensity	string	comfortable
+inactivePaneFadeMode	string	both
+usesPaneGlass	bool	true
+usesStandardInactiveWindowPaneStyles	bool	false
+sidebarPosition	string	left
+sidebarShowsActivity	bool	false
+tabStyle	string	vertical
+tabIconCount	int	3
+tabIconTintMode	string	off
+terminalFontName	string	Maple Mono NF CN
+terminalFontPointSize	float	14
+terminalFontStyle	string	SemiBold
+terminalAllowsLigatures	bool	true
+terminalCopyOnSelect	bool	true
+terminalOptionKeyBehavior	string	leftActsAsAlt
+terminalPaddingColor	string	extend
+allowsTerminalNotifications	bool	true
+showsProgramActivityNotifications	bool	true
+showsIdleProgramsInActivity	bool	true
+playsProgramActivitySounds	bool	false

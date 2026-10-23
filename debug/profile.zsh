@@ -6,7 +6,7 @@
 #
 # 用法（临时，用完关闭）：
 #   1. 开新终端前 export ZSH_PROFILE=1
-#      - ghostty: 临时在 .zshenv 加一行 `export ZSH_PROFILE=1`
+#      - 新开 Rex tab: 临时在 .zshenv 加一行 `export ZSH_PROFILE=1`
 #      - 或命令行：`ZSH_PROFILE=1 zsh -l`
 #   2. 操作终端（cd / clear / 跑命令），观察 stderr 的 [prof*] 行
 #   3. 关闭：unset ZSH_PROFILE，或删 .zshenv 那行
