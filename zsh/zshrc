@@ -3,12 +3,8 @@
 #
 # 部署目标: ~/.zshrc（由 bin/deploy.sh 复制）
 #
-# AI 规则:
-#   - 此文件是仓库模板。AI 部署时复制到 ~/.zshrc，不修改本文件。
-#   - 此文件只负责 zimfw 引导 + 加载 ~/.zsh/init.zsh，不放具体配置。
-#   - 别名/函数/工具激活 -> dotfiles/init.zsh -> ~/.zsh/init.zsh
-#   - zim 插件列表 -> dotfiles/zsh/zimrc -> ~/.zimrc
-#   - 环境变量 / PATH -> dotfiles/zsh/zshenv -> ~/.zshenv
+# 只负责 zimfw 引导 + 加载 ~/.zsh/init.zsh，不放具体配置：
+# 别名/函数/工具激活在 init.zsh，zim 插件在 zsh/zimrc，环境变量 / PATH 在 zsh/zshenv。
 # ============================================================
 
 (( $+functions[_prof] )) && _prof "zshrc start"

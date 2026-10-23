@@ -1,6 +1,5 @@
 # [TEMPLATE] starship/starship.toml
 # 部署目标: ~/.config/starship.toml
-# AI 部署时复制此文件，不修改本文件。
 
 "$schema" = 'https://starship.rs/config-schema.json'
 

@@ -3,10 +3,7 @@
 #
 # 部署目标: ~/.zimrc（由 bin/deploy.sh 复制）
 #
-# AI 规则:
-#   - 此文件是仓库模板。AI 部署时复制到 ~/.zimrc，不修改本文件。
-#   - 添加 zsh 插件 -> 编辑本文件后跑 bin/deploy.sh init 或 zimfw install。
-#   - 别名/函数/工具激活 -> dotfiles/init.zsh，不放此处。
+# 加插件后跑 bin/deploy.sh sync 与 zimfw install；别名、函数、工具激活放 init.zsh。
 # ============================================================
 
 # 核心行为（setopt auto_cd, pushd, extended_glob 等）

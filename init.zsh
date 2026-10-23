@@ -1,15 +1,8 @@
 # ============================================================
 # [TEMPLATE] init.zsh - 交互式 shell 全部配置
 #
-# 部署目标: ~/.zsh/init.zsh
-#   - 首次部署: bin/deploy.sh init <STORAGE_ROOT>
-#   - 编辑后同步: bin/deploy.sh sync
-#
-# AI 规则:
-#   - 此文件是仓库模板，AI 部署时复制到 ~/.zsh/init.zsh，不修改本文件。
-#   - 由 ~/.zshrc 末尾 `source ~/.zsh/init.zsh` 加载。
-#   - 仓库主人编辑此文件后跑 `bin/deploy.sh sync`。
-#   - 别名 / 函数 / 工具激活 / fzf-tab zstyle / prompt 全在此。
+# 部署目标: ~/.zsh/init.zsh（bin/deploy.sh init / sync 复制），由 ~/.zshrc 末尾 source。
+# 别名 / 函数 / 工具激活 / fzf-tab zstyle / prompt 全在此。
 # ============================================================
 
 (( $+functions[_prof] )) && _prof "init.zsh start"

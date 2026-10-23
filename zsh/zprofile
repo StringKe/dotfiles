@@ -3,11 +3,8 @@
 #
 # 部署目标: ~/.zprofile（由 bin/deploy.sh 复制）
 #
-# AI 规则:
-#   - 此文件是仓库模板，AI 部署时复制，不修改本文件。
-#   - 只放登录时执行一次的环境配置（Homebrew env / mise shims）。
-#   - 不放别名 / 函数 / prompt 初始化（-> dotfiles/init.zsh）。
-#   - 不放交互式工具激活（-> dotfiles/init.zsh）。
+# 只放登录时执行一次的环境配置（Homebrew env / mise shims）；
+# 别名、函数、prompt 和交互式工具激活放 init.zsh。
 # ============================================================
 
 (( $+functions[_prof] )) && _prof "zprofile start"

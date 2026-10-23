@@ -1,6 +1,5 @@
 # [TEMPLATE] infat/config.toml - macOS 文件关联
 # 部署目标: ~/.config/infat/config.toml
-# AI 部署时复制此文件，不修改本文件。
 # 应用配置: bin/apply-file-associations.sh
 # （infat 只能覆盖本文件里的项；其余扩展由该脚本走 duti / LSHandlerContentTag）
 #
