@@ -32,7 +32,7 @@ usage() {
   bin/deploy.sh check
       验证部署状态：缺失文件、残留占位符、AI 配置链接与 MCP、~/.zsh_secrets 权限。
 
-后续步骤（brew bundle / zimfw / mise / AI CLI 等）见 README.md「部署」。
+完整安装（brew bundle / zimfw / mise / AI CLI 等）用 bin/setup.sh，它会调用本脚本。
 EOF
 }
 
@@ -69,7 +69,7 @@ deploy_if_absent() {
         if cmp -s "$DOTFILES_ROOT/$src" "$dst"; then
             log "ok      $dst"
         else
-            log "differs $dst（与仓库不同；要用仓库版先 trash 再跑 sync）"
+            log "differs ${dst}（与仓库不同；要用仓库版先 trash 再跑 sync）"
         fi
         return
     fi
@@ -107,6 +107,10 @@ deploy_tool_configs() {
 deploy_vscode_settings() {
     local src="$DOTFILES_ROOT/vscode/settings.json"
     local dst="$HOME/Library/Application Support/Code/User/settings.json"
+    if [[ ! -d "/Applications/Visual Studio Code.app" ]]; then
+        log "skip    VS Code 设置（未安装 VS Code）"
+        return
+    fi
     mkdir -p "$(dirname "$dst")"
     if [[ ! -f $dst ]]; then
         cp "$src" "$dst"
@@ -204,7 +208,7 @@ cmd_init() {
     log "ensured $storage_root/{Code/SelfCode, Languages/*}"
 
     log ""
-    log "deploy 完成。后续步骤见 README.md「部署」。"
+    log "deploy 完成。"
 }
 
 cmd_sync() {
@@ -255,21 +259,24 @@ cmd_check() {
         log "WARN   ~/.gitconfig 未通过 [include] 引用 $DOTFILES_ROOT/git/config"
     fi
 
-    # AI 配置（bin/setup-ai.sh 负责部署）
-    if [[ $(readlink "$HOME/.claude/CLAUDE.md" 2>/dev/null) == "$DOTFILES_ROOT/ai/AGENTS.md" ]]; then
-        log "OK     ~/.claude/CLAUDE.md -> ai/AGENTS.md"
-    else
-        log "FAIL   ~/.claude/CLAUDE.md 未链接到 ai/AGENTS.md（跑 bin/setup-ai.sh）"
-        errors=$((errors + 1))
-    fi
-    if [[ -f $HOME/.claude.json ]]; then
-        local name
-        for name in $(jq -r 'keys[]' "$DOTFILES_ROOT/ai/claude/mcp.json"); do
-            if ! jq -e --arg n "$name" '.mcpServers | has($n)' "$HOME/.claude.json" >/dev/null; then
-                log "FAIL   MCP $name 未注册（在 ~/.zsh_secrets 填好它的 key 后跑 bin/setup-ai.sh）"
-                errors=$((errors + 1))
-            fi
-        done
+    # AI 配置（bin/setup-ai.sh 负责部署）；bin/setup.sh 记录的模块里没有 ai 时跳过
+    local modules="$HOME/.config/dotfiles/modules"
+    if [[ ! -f $modules ]] || grep -qx ai "$modules"; then
+        if [[ $(readlink "$HOME/.claude/CLAUDE.md" 2>/dev/null) == "$DOTFILES_ROOT/ai/AGENTS.md" ]]; then
+            log "OK     ~/.claude/CLAUDE.md -> ai/AGENTS.md"
+        else
+            log "FAIL   ~/.claude/CLAUDE.md 未链接到 ai/AGENTS.md（跑 bin/setup-ai.sh）"
+            errors=$((errors + 1))
+        fi
+        if [[ -f $HOME/.claude.json ]]; then
+            local name
+            for name in $(jq -r 'keys[]' "$DOTFILES_ROOT/ai/claude/mcp.json"); do
+                if ! jq -e --arg n "$name" '.mcpServers | has($n)' "$HOME/.claude.json" >/dev/null; then
+                    log "FAIL   MCP $name 未注册（在 ~/.zsh_secrets 填好它的 key 后跑 bin/setup-ai.sh）"
+                    errors=$((errors + 1))
+                fi
+            done
+        fi
     fi
 
     log ""
