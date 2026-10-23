@@ -233,12 +233,6 @@ if [[ -f $HOME/.vite-plus/env ]]; then
 fi
 (( $+functions[_prof] )) && _prof "Vite+"
 
-# ngrok caveats 会让人写进 ~/.zshrc。补全脚本含 bash `type -t`，丢弃其噪声。
-if command -v ngrok &>/dev/null; then
-    eval "$(ngrok completion)" 2>/dev/null || true
-fi
-(( $+functions[_prof] )) && _prof "ngrok completion"
-
 # ============================================================
 # Starship - 提示符（最后加载，接管 precmd）
 # ============================================================
