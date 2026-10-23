@@ -2,3 +2,5 @@
 # 部署目标: ~/.config/git/ignore（仅当不存在时由 bin/deploy.sh init 复制）
 
 **/.claude/settings.local.json
+**/.claude/worktrees/
+**/.local/work/

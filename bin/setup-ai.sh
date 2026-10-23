@@ -112,5 +112,11 @@ if [[ -d $ego_skill ]]; then
     link "$ego_skill" "$HOME/.config/opencode/skills/ego-browser"
 fi
 
+# 公开仓库：链接文件在 ~ 里编辑后提交，先过 gitleaks
+if command -v pre-commit >/dev/null 2>&1; then
+    (cd "$DOTFILES_ROOT" && pre-commit install >/dev/null)
+    log "hook    pre-commit (gitleaks)"
+fi
+
 log ""
 log "MCP 的 key / token 按 templates/zsh_secrets.template 在 ~/.zsh_secrets 填写"

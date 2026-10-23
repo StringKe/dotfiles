@@ -1,0 +1,7 @@
+# 公开仓库：ai/ 下的文件经符号链接在 ~ 里编辑，提交前用 gitleaks 拦截明文密钥。
+# 启用: pre-commit install（bin/setup-ai.sh 会执行）
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks

@@ -250,10 +250,15 @@ AI CLI 只装 claude-code 和 opencode v2（`bin/install-ai-cli.sh`），配置�
 - 全局提示词只有一份 `ai/AGENTS.md`，Claude Code 读 `~/.claude/CLAUDE.md`，opencode 读 `~/.config/opencode/AGENTS.md`，都链接到它。
 - 个人 skill 放 `ai/skills/<名>/SKILL.md`，个人插件放 `ai/plugins/<名>/`，加完重跑 `bin/setup-ai.sh`。
 - MCP 两边保持同一组：context7、exa、gh_grep、openseo、sentry、fingerprint、rea（逆向）、paper（前端设计）。一律用 API key / token 认证，不走 OAuth，也不装同名 Claude 插件：OAuth 的 refresh token 在多会话并发时容易失效，导致反复要求登录。sentry 用 `Sentry-Bearer` 个人 token；fingerprint 托管端点只支持 OAuth，改用 mise 安装的本地 `fingerprint-mcp-server`（private 模式，`--region ap`）。Claude Code 的定义在 `ai/claude/mcp.json`，opencode 的在 `ai/opencode/opencode.jsonc` 的 `mcp` 段，改一边要同步另一边。
-- 密钥只按变量名引用（Claude Code 写 `${MCP_*}`，opencode 写 `{env:MCP_*}`），值在 `~/.zsh_secrets`。`zsh/zshenv` 会 source 该文件，非交互进程启动的 agent 也能读到。
+- 密钥只按变量名引用（Claude Code 写 `${VAR}`，opencode 写 `{env:VAR}`），变量清单见 `templates/zsh_secrets.template`，值在 `~/.zsh_secrets`。`zsh/zshenv` 会 source 该文件，非交互进程启动的 agent 也能读到。
 - `~/.claude/settings.json` 里机器相关的键（`processWrapper`）不进仓库，合并时保留本机值。
+- 个人账号相关、不宜公开的配置留在本机、不进仓库：opencode 的模型 provider 放 `~/.config/opencode/opencode.json`（opencode 会与链接进来的 `opencode.jsonc` 合并加载）；只适用本机的 agent 规则放 `~/.claude/rules/` 下的非仓库文件。
 - 第三方 skill 不进仓库：Rex 用 `rex skill setup` 安装（setup-ai 会调用），ego-browser 链接到 ego lite 自带目录，lark / impeccable / reverse-engineer-anything 用各自的安装器。
 
 ## 敏感信息
 
-`~/.zsh_secrets` 不进版本控制（`.gitignore` 排除）。从 `templates/zsh_secrets.template` 复制创建，权限 600。AI 不得把部署版内容回写模板。
+本仓库公开。不提交密钥、账号、公司和内网信息、本机绝对路径和私有项目名。
+
+- `~/.zsh_secrets` 在仓库外，不进版本控制；`.gitignore` 里的 `.zsh_secrets` 防止把副本误放进仓库。从 `templates/zsh_secrets.template` 复制创建，权限 600。AI 不得把部署版内容回写模板。
+- 提交前由 pre-commit 跑 gitleaks（`.pre-commit-config.yaml`）。hook 由 `bin/setup-ai.sh` 执行 `pre-commit install` 安装到本仓库 `.git/hooks`，这是 CONSUMER 模式下唯一允许写入仓库目录的操作。
+- 已推送的历史不改写；发现历史里有凭据时轮换凭据。

@@ -2,3 +2,5 @@
 *.swp
 .zsh_secrets
 *.zwc
+.claude/worktrees/
+.local/

@@ -197,5 +197,5 @@
 - 读或搜一个具体文件前，路径拿不准就先 `rg --files <dir> -g '*Name*'` 定位，不凭记忆拼路径。`.claude/worktrees/` 下的 worktree 通常没有 `vendor/`、`node_modules/`，只读查依赖源码时去主检出的同一相对路径；跑测试需要依赖时复制一份真实目录，不建符号链接（composer 的 classmap 是绝对路径，会加载主检出的代码）。
 - 等待用 Bash 的 `run_in_background` 或 Monitor 的 until 循环，不写 `sleep N; <cmd>`，harness 会拦截。
 - worktree 隔离会话里命令形状要能被静态核验：一条命令做一件事，不 `cd` 出 worktree，不用 `git -C` 指向主检出，参数不用 `$'...'` 和 `{a,b}` brace 展开，不把命令名放进变量。被拒后拆成简单命令，不换一种更绕的写法重试。
-- git 一律走 SSH，不改成 https。本机 github.com 的 SSH（`~/.ssh/config`）和 commit 签名（`~/.gitconfig` 的 `gpg.ssh.program = ssh-keygen`）都直接用 `~/.ssh/id_ed25519`，不经 1Password，不会弹授权；其他主机仍走 1Password agent。`ssh-add -l` 报 `no identities` 不代表不能签名或推送，不用它探测，要确认用 `ssh -T git@github.com` 或 `git ls-remote`。
+- git 一律走 SSH，不改成 https。签名和 SSH 用哪把 key 以本机 `~/.gitconfig`（`gpg.ssh.program`）与 `~/.ssh/config` 为准。`ssh-add -l` 报 `no identities` 不代表不能签名或推送，不用它探测，要确认用 `ssh -T git@github.com` 或 `git ls-remote`。
 - 远端主机不假定装了 `rg`、`jq`、`bc`，ssh 进去的命令用 POSIX 工具。
