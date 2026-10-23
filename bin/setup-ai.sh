@@ -82,7 +82,7 @@ add_claude_mcp() {
             [[ -n ${!var:-} ]] || missing+=" $var"
         done
         if [[ -n $missing ]]; then
-            log "skip    mcp $name（~/.zsh_secrets 缺少$missing）"
+            log "skip    mcp ${name}（~/.zsh_secrets 缺少${missing}）"
             continue
         fi
         claude mcp remove -s user "$name" >/dev/null 2>&1 || true
