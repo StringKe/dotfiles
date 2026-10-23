@@ -1,0 +1,101 @@
+{
+  "syncClaudeAiPlugins": false,
+  "env": {
+    "ENABLE_TOOL_SEARCH": "true",
+    "CLAUDE_CODE_DISABLE_ARTIFACT": "1"
+  },
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
+  "permissions": {
+    "deny": [
+      "Artifact",
+      "RemoteTrigger",
+      "Skill(schedule)"
+    ],
+    "defaultMode": "bypassPermissions"
+  },
+  "model": "opus",
+  "disableClaudeAiConnectors": true,
+  "skillOverrides": {
+    "schedule": "off"
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh -c 'rex __internal session-start --agent claude 2>/dev/null || true'",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/guard-rm.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/guard-shell-habits.sh"
+          }
+        ]
+      }
+    ]
+  },
+  "worktree": {
+    "baseRef": "fresh"
+  },
+  "disableRemoteControl": true,
+  "enableArtifact": false,
+  "statusLine": {
+    "type": "command",
+    "command": "bash ~/.claude/statusline-command.sh"
+  },
+  "language": "Simplified Chinese",
+  "sandbox": {
+    "enabled": false
+  },
+  "feedbackDrafts": "off",
+  "spinnerTipsEnabled": false,
+  "effortLevel": "medium",
+  "modelSettings": {
+    "claude-opus-5-5": {
+      "effortLevel": "high"
+    }
+  },
+  "ultracode": true,
+  "advisorModel": "fable",
+  "promptSuggestionEnabled": false,
+  "askUserQuestionTimeout": "5m",
+  "dialogExpiry": "60s",
+  "pluginConfigs": {
+    "agents-md@builtin": {
+      "options": {
+        "instructionFiles": "claude-md-and-agents-md"
+      }
+    },
+    "cc-plugin-agents-md@builtin": {
+      "options": {
+        "instructionFiles": "claude-md-and-agents-md"
+      }
+    }
+  },
+  "tui": "fullscreen",
+  "timeFormat": "24-hour",
+  "skipDangerousModePermissionPrompt": true,
+  "theme": "auto",
+  "editorMode": "normal",
+  "verbose": false,
+  "switchModelsOnFlag": true,
+  "remoteControlAtStartup": false,
+  "crossSessionInbound": "accept",
+  "inputNeededNotifEnabled": true,
+  "agentPushNotifEnabled": true
+}

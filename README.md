@@ -35,6 +35,9 @@ brew bundle install --file=$PWD/Brewfile
 # AI CLI（claude-code / opencode v2，官方 curl 脚本，不走 brew）
 bin/install-ai-cli.sh
 
+# AI 提示词 / skills / hooks / 插件 / MCP（先在 ~/.zsh_secrets 填 MCP_CONTEXT7_API_KEY、MCP_EXA_API_KEY）
+bin/setup-ai.sh
+
 # 应用 shell（启动新 shell）
 exec zsh
 
@@ -70,7 +73,7 @@ bin/deploy.sh check
 
 你是 CONSUMER。允许:
 - 读 DOTFILES_ROOT 任何文件
-- 调用 DOTFILES_ROOT/bin/deploy.sh, DOTFILES_ROOT/bin/install-themes.sh, DOTFILES_ROOT/bin/install-ai-cli.sh
+- 调用 DOTFILES_ROOT/bin/deploy.sh, DOTFILES_ROOT/bin/install-themes.sh, DOTFILES_ROOT/bin/install-ai-cli.sh, DOTFILES_ROOT/bin/setup-ai.sh, DOTFILES_ROOT/bin/apply-rex-defaults.sh
 - 修改 ~/ 下的部署产物 (~/.zshenv / ~/.config/...)
 - 运行 brew / zimfw / mise / infat / git pull 等外部工具
 
@@ -160,6 +163,8 @@ git pull --ff-only origin main
 | templates/mise_config.toml | bin/deploy.sh init <CURRENT_ROOT> | 覆盖 ~/.config/mise/config.toml |
 | Brewfile | brew bundle install --file=$DOTFILES_ROOT/Brewfile | 装新软件 (vscode 扩展不再托管) |
 | bin/install-ai-cli.sh | bin/install-ai-cli.sh | claude-code / opencode v2 官方 curl 脚本变了才需要 |
+| ai/claude/settings.json, ai/claude/mcp.json, bin/setup-ai.sh | bin/setup-ai.sh | 合并 Claude Code 设置、重建 MCP |
+| ai/ 下新增或删除的文件 | bin/setup-ai.sh | 补链接；已有链接的文件改动自动生效 |
 | rex/themes/ | bin/deploy.sh init <CURRENT_ROOT> | 每次 init 覆盖 ~/.config/rex/themes |
 | rex/workspace.defaults | bin/apply-rex-defaults.sh | 写 Workspace.* 外观设置, 重启 Rex App 生效 |
 | starship/, btop/, atuin/, yazi/, bat/ | bin/deploy.sh init <CURRENT_ROOT> | 仅首次部署文件, 已存在不覆盖 (见 5c) |
@@ -208,11 +213,13 @@ bin/apply-rex-defaults.sh                 # rex/workspace.defaults 改动, 重�
 bin/deploy.sh init <NEW_ROOT>
 brew bundle install --file=$DOTFILES_ROOT/Brewfile
 bin/install-ai-cli.sh
+bin/setup-ai.sh
 bin/install-themes.sh
 exec zsh
 zimfw install
 mise install
 bin/apply-file-associations.sh
+bin/apply-rex-defaults.sh
 grep -qF /opt/homebrew/bin/zsh /etc/shells || echo /opt/homebrew/bin/zsh | sudo tee -a /etc/shells
 chsh -s /opt/homebrew/bin/zsh
 ```
@@ -225,6 +232,7 @@ chsh -s /opt/homebrew/bin/zsh
 - ~/.zim/modules/ 含 zsh-syntax-highlighting / autosuggestions / fzf-tab 等
 - Rex 主题文件: ~/.config/rex/themes/GitHub Light Colorblind 存在; defaults read com.superlogical.rex Workspace.terminalFontName 输出 Maple Mono NF CN
 - starship: 不指定 palette, 跟随终端 ANSI 配色 (见 starship/starship.toml 注释)
+- AI: ~/.claude/CLAUDE.md 是指向 DOTFILES_ROOT/ai/AGENTS.md 的符号链接; claude mcp list 与 opencode mcp list 都含 context7 / exa / rea / paper 且已连接
 
 ## 8. 提醒
 
@@ -240,8 +248,16 @@ dotfiles/
 ├── bin/
 │   ├── deploy.sh                      部署主脚本
 │   ├── apply-file-associations.sh     infat + duti 文件关联
+│   ├── apply-rex-defaults.sh          Rex Workspace.* 外观设置
 │   ├── install-themes.sh              第三方主题下载（btop / atuin）
-│   └── install-ai-cli.sh              claude-code / opencode v2 官方 curl 安装
+│   ├── install-ai-cli.sh              claude-code / opencode v2 官方 curl 安装
+│   └── setup-ai.sh                    AI 提示词 / skills / hooks / 插件 / MCP 部署
+├── ai/                     [LINKED] AI 配置，符号链接到 ~（settings.json 走 jq 合并，MCP 走 claude mcp add-json）
+│   ├── AGENTS.md           全局提示词（Claude Code 与 opencode 共用）
+│   ├── claude/             rules / hooks / statusline / settings.json / mcp.json
+│   ├── opencode/           opencode.jsonc / tui.json
+│   ├── skills/             个人 skills
+│   └── plugins/            个人插件（worktree）
 ├── debug/
 │   └── profile.zsh         ZSH_PROFILE=1 启用的启动 timing 调试
 ├── zsh/                    [TEMPLATE] zsh 入口
@@ -284,6 +300,8 @@ dotfiles/
 | 软件清单 | `Brewfile` | `brew bundle install` |
 | 终端主题 / 外观 | `rex/themes/`、`rex/workspace.defaults` | 重新部署 + `bin/apply-rex-defaults.sh` |
 | 提示符 | `starship/starship.toml` | 重新部署 |
+| 全局提示词 / skills / hooks | `ai/AGENTS.md`、`ai/skills/`、`ai/claude/hooks/` | 已链接的文件即时生效；新增文件跑 `bin/setup-ai.sh` |
+| MCP | `ai/claude/mcp.json` + `ai/opencode/opencode.jsonc` 的 `mcp` 段（两边同步） | `bin/setup-ai.sh` |
 | Git 通用配置 | `git/config` | 自动生效（`[include]` 引用） |
 
 不论 MAINTAINER 还是 CONSUMER，**绝不**:

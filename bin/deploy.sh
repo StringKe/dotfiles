@@ -203,7 +203,8 @@ cmd_init() {
     log "  4. mise install               # 安装语言运行时"
     log "  5. $DOTFILES_ROOT/bin/apply-file-associations.sh"
     log "  6. $DOTFILES_ROOT/bin/apply-rex-defaults.sh   # 重启 Rex App 生效"
-    log "  7. chsh -s /opt/homebrew/bin/zsh"
+    log "  7. $DOTFILES_ROOT/bin/install-ai-cli.sh && $DOTFILES_ROOT/bin/setup-ai.sh"
+    log "  8. chsh -s /opt/homebrew/bin/zsh"
 }
 
 cmd_sync() {

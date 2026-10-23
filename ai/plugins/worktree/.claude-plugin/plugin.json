@@ -1,0 +1,7 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "worktree",
+  "version": "1.0.0",
+  "description": "用 /worktree-start 从 origin 默认分支建 .claude/worktrees，用 /worktree-done 提交、快进推送并删除本会话的 worktree。",
+  "keywords": ["git", "worktree"]
+}

@@ -1,0 +1,29 @@
+{
+  "context7": {
+    "type": "http",
+    "url": "https://mcp.context7.com/mcp",
+    "headers": {
+      "Authorization": "Bearer ${MCP_CONTEXT7_API_KEY}"
+    }
+  },
+  "exa": {
+    "type": "http",
+    "url": "https://mcp.exa.ai/mcp?tools=web_search_exa,web_fetch_exa,web_search_advanced_exa",
+    "headers": {
+      "x-api-key": "${MCP_EXA_API_KEY}"
+    }
+  },
+  "rea": {
+    "type": "stdio",
+    "command": "npx",
+    "args": ["-y", "rea-agents@6.4.0", "mcp"],
+    "env": {
+      "HOPPER_LAUNCHER_PATH": "${HOME}/Applications/Hopper Disassembler.app/Contents/MacOS/hopper"
+    }
+  },
+  "paper": {
+    "type": "stdio",
+    "command": "${HOME}/.paper/bin/paper",
+    "args": ["mcp"]
+  }
+}

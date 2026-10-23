@@ -8,9 +8,12 @@
 
 - 仓库内所有 `zsh/*` / `rex/*` / `starship/starship.toml` / `templates/*` 等都是**模板源**。
 - 实际生效的是 `~/.zshenv` / `~/.config/...` 等用户 home 内的**部署产物**。
-- 部署通过 `bin/deploy.sh` 完成（复制 + sed 替换占位符），仓库内文件不直接被用户 shell 读取（唯一例外见下）。
+- 部署通过 `bin/deploy.sh` 完成（复制 + sed 替换占位符），仓库内文件不直接被用户 shell 读取（例外见下）。
 
-**唯一例外**: `git/config` 通过 `~/.gitconfig` 的 `[include] path` 引用，不复制。修改即对所有引用它的机器生效。
+**例外**:
+
+- `git/config` 通过 `~/.gitconfig` 的 `[include] path` 引用，不复制。修改即对所有引用它的机器生效。
+- `ai/` 下的全局提示词、rules、hooks、statusline、个人 skills、个人插件和 opencode 配置由 `bin/setup-ai.sh` 符号链接到 `~`。在 `~/.claude/CLAUDE.md` 等位置的编辑会直接改到仓库，其他会话改了这些文件会在本仓库显示为未提交改动。CONSUMER 模式下不提交这些改动。
 
 ## AI 角色边界（HARD RULES）
 
@@ -22,7 +25,7 @@ AI 进入本仓库时，必须先确定属于哪个角色：
 
 允许：
 - 读仓库任何文件
-- 调用 `bin/deploy.sh` / `bin/install-themes.sh` / `bin/install-ai-cli.sh`
+- 调用 `bin/deploy.sh` / `bin/install-themes.sh` / `bin/install-ai-cli.sh` / `bin/setup-ai.sh` / `bin/apply-rex-defaults.sh`
 - 修改 `~` 内的部署产物（`~/.zshenv` / `~/.config/...`）
 - 运行 `brew bundle install` / `zimfw install` / `mise install` 等外部工具
 
@@ -73,6 +76,7 @@ bin/deploy.sh check
 ```bash
 brew bundle install --file=$DOTFILES_ROOT/Brewfile   # 软件安装
 bin/install-ai-cli.sh                                 # claude-code / opencode v2（官方 curl 脚本，不走 brew）
+bin/setup-ai.sh                                       # 提示词 / skills / hooks / 插件 / MCP（密钥先填 ~/.zsh_secrets）
 zimfw install                                         # zsh 模块
 mise install                                          # 语言运行时
 bin/apply-file-associations.sh                        # infat + duti + jsx/scss/vue ContentTag
@@ -89,7 +93,14 @@ dotfiles/
 │   ├── apply-file-associations.sh     infat + duti 文件关联（CONSUMER 用）
 │   ├── apply-rex-defaults.sh          Rex Workspace.* 外观设置（CONSUMER 用）
 │   ├── install-themes.sh              第三方主题下载
-│   └── install-ai-cli.sh              claude-code / opencode v2 官方 curl 安装（CONSUMER 用）
+│   ├── install-ai-cli.sh              claude-code / opencode v2 官方 curl 安装（CONSUMER 用）
+│   └── setup-ai.sh                    AI 提示词 / skills / hooks / 插件 / MCP 部署（CONSUMER 用）
+├── ai/                     [LINKED] AI 配置（符号链接到 ~，见「AI 配置」）
+│   ├── AGENTS.md           全局提示词（Claude Code 与 opencode 共用）
+│   ├── claude/             rules / hooks / statusline / settings.json（jq 合并）/ mcp.json
+│   ├── opencode/           opencode.jsonc / tui.json
+│   ├── skills/             个人 skills：work-context / writing-style / context7-mcp
+│   └── plugins/            个人插件：worktree（/worktree-start、/worktree-done）
 ├── debug/
 │   └── profile.zsh         zsh 启动 profile 调试（ZSH_PROFILE=1 启用）
 ├── zsh/                    [TEMPLATE] zsh 入口文件
@@ -141,6 +152,13 @@ dotfiles/
 | `vscode/settings.json` | `~/Library/Application Support/Code/User/settings.json` | jq 深合并 | 本地字段保留, 仓库同名 key 覆盖 |
 | `Brewfile` | (不复制) | - | `brew bundle install --file=...` 直接读 |
 | `bin/install-ai-cli.sh` | (不复制) | 每次重跑 = 更新 | 官方 curl 脚本装 claude-code / opencode v2 |
+| `ai/AGENTS.md` | `~/.claude/CLAUDE.md`、`~/.config/opencode/AGENTS.md` | setup-ai 链接 | 符号链接 |
+| `ai/claude/rules/*`、`ai/claude/hooks/*`、`ai/claude/statusline-command.sh` | `~/.claude/` 同名路径 | setup-ai 链接 | 符号链接 |
+| `ai/skills/*` | `~/.agents/skills/`、`~/.claude/skills/`、`~/.config/opencode/skills/` | setup-ai 链接 | 符号链接 |
+| `ai/plugins/*` | `~/.agents/plugins/`、`~/.claude/skills/`；插件内 skill 链到 `~/.config/opencode/skills/` | setup-ai 链接 | 符号链接 |
+| `ai/opencode/*` | `~/.config/opencode/` | setup-ai 链接 | 符号链接 |
+| `ai/claude/settings.json` | `~/.claude/settings.json` | jq 深合并 | 本地字段保留, 仓库同名 key 覆盖 |
+| `ai/claude/mcp.json` | `~/.claude.json` 的 user 级 `mcpServers` | 每次 setup-ai 重建同名条目 | `claude mcp add-json -s user`，`${HOME}` 部署时展开，密钥保留 `${MCP_*}` |
 
 ## Shell 加载顺序
 
@@ -229,6 +247,17 @@ ZSH_PROFILE=1 zsh -i -l -c exit
 # 长期开启（编辑 ~/.zshenv 加 export ZSH_PROFILE=1，再开新窗口）
 # 关闭：删除 ~/.zshenv 那行
 ```
+
+## AI 配置
+
+AI CLI 只装 claude-code 和 opencode v2（`bin/install-ai-cli.sh`），配置由 `bin/setup-ai.sh` 部署。
+
+- 全局提示词只有一份 `ai/AGENTS.md`，Claude Code 读 `~/.claude/CLAUDE.md`，opencode 读 `~/.config/opencode/AGENTS.md`，都链接到它。
+- 个人 skill 放 `ai/skills/<名>/SKILL.md`，个人插件放 `ai/plugins/<名>/`，加完重跑 `bin/setup-ai.sh`。
+- MCP 两边保持同一组：context7、exa、rea（逆向）、paper（前端设计）。Claude Code 的定义在 `ai/claude/mcp.json`，opencode 的在 `ai/opencode/opencode.jsonc` 的 `mcp` 段，改一边要同步另一边。
+- 密钥只按变量名引用（Claude Code 写 `${MCP_*}`，opencode 写 `{env:MCP_*}`），值在 `~/.zsh_secrets`。`zsh/zshenv` 会 source 该文件，非交互进程启动的 agent 也能读到。
+- `~/.claude/settings.json` 里机器相关的键（`processWrapper`）和插件开关（`enabledPlugins`）不进仓库，合并时保留本机值。
+- 第三方 skill 不进仓库：Rex 用 `rex skill setup` 安装（setup-ai 会调用），ego-browser 链接到 ego lite 自带目录，lark / impeccable / reverse-engineer-anything 用各自的安装器。
 
 ## 敏感信息
 
