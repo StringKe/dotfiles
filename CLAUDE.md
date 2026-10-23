@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-本仓库是 macOS 开发环境配置的**只读模板**。本文档定义 AI 在本仓库内工作时的角色、边界和部署流程。部署步骤的命令清单以 README.md「部署」为准。
+本仓库是 macOS 开发环境配置的**只读模板**。本文档定义 AI 在本仓库内工作时的角色、边界和部署流程。安装与配置统一走 `bin/setup.sh`（按模块，模块清单见 README「模块」）。
 
 ## 仓库定位（重要）
 
@@ -26,7 +26,7 @@ AI 进入本仓库时，必须先确定属于哪个角色：
 
 允许：
 - 读仓库任何文件
-- 调用 `bin/deploy.sh` / `bin/install-ai-cli.sh` / `bin/setup-ai.sh` / `bin/apply-file-associations.sh` / `bin/apply-rex-defaults.sh`
+- 调用 `bin/setup.sh` / `bin/deploy.sh` / `bin/install-ai-cli.sh` / `bin/setup-ai.sh` / `bin/apply-file-associations.sh` / `bin/apply-rex-defaults.sh`
 - 修改 `~` 内的部署产物（`~/.zshenv` / `~/.config/...`）
 - 运行 `brew bundle install` / `zimfw install` / `mise install` / `git pull --ff-only` 等外部工具
 
@@ -37,7 +37,7 @@ AI 进入本仓库时，必须先确定属于哪个角色：
 - 修改 `~` 下指向 `$DOTFILES_ROOT/ai` 的符号链接（如 `~/.claude/CLAUDE.md`、`~/.config/opencode/opencode.jsonc`），它们是仓库文件
 - 把部署版的绝对路径（如 `/Volumes/Storage/...`）回写到 `zsh/zshenv` 模板
 - 自己写 sed 做占位符替换（必须调用 `bin/deploy.sh`）
-- **`brew bundle cleanup` 含 `--force`**：本仓库 Brewfile 是模板而非本机全集，cleanup 会卸光本机所有未在模板里的软件（包括 MAS、第三方 tap、手动 brew install）。清理孤儿用 `brew autoremove`；单独卸用 `brew uninstall <名>`。AI 提及"清理 brew"任何场景，都要先确认非 cleanup 命令
+- **`brew bundle cleanup` 含 `--force`**：`brew/*.Brewfile` 是按模块拆分的模板而非本机全集，cleanup 会卸光本机所有未在模板里的软件（包括 MAS、第三方 tap、手动 brew install）。清理孤儿用 `brew autoremove`；单独卸用 `brew uninstall <名>`。AI 提及"清理 brew"任何场景，都要先确认非 cleanup 命令
 
 `bin/setup-ai.sh` 会执行 `pre-commit install`，在仓库 `.git/hooks` 写入 gitleaks hook。这是 CONSUMER 模式下唯一会写入仓库目录的操作。
 
@@ -62,7 +62,7 @@ AI 进入本仓库时，必须先确定属于哪个角色：
 
 ### 1. 定位 DOTFILES_ROOT
 
-依次检测含 Brewfile 的目录：`$HOME/Code/SelfCode/dotfiles`、`/Volumes/Storage/Code/SelfCode/dotfiles`、`$HOME/Code/` 下的 Brewfile。均无则让用户按 README「前置准备」先 clone。
+依次检测含 `bin/setup.sh` 的目录：`$HOME/Code/SelfCode/dotfiles`、`/Volumes/Storage/Code/SelfCode/dotfiles`。均无则让用户按 README「快速开始」先 clone。
 
 ### 2. 判定场景
 
@@ -79,10 +79,12 @@ AI 进入本仓库时，必须先确定属于哪个角色：
 
 | 场景 | 条件 | 动作 |
 |---|---|---|
-| A 首次 | 无 CURRENT_ROOT | 按 README「部署」全部步骤执行，`bin/deploy.sh init NEW_ROOT` |
-| B 重配 | CURRENT_ROOT == NEW_ROOT | 同 A |
-| C 迁移 | CURRENT_ROOT != NEW_ROOT | 先迁数据（见 3），再同 A |
+| A 首次 | 无 CURRENT_ROOT | 和用户确认模块后 `bin/setup.sh --modules <...> --storage-root NEW_ROOT` |
+| B 重配 | CURRENT_ROOT == NEW_ROOT | `bin/setup.sh --storage-root NEW_ROOT`（沿用 `~/.config/dotfiles/modules` 里的模块） |
+| C 迁移 | CURRENT_ROOT != NEW_ROOT | 先迁数据（见 3），再同 B |
 | D 更新 | 已部署 | 见 4 |
+
+AI 运行时 stdin 不是终端，`bin/setup.sh` 不会进交互选择，必须用 `--modules` 指定或沿用已保存的模块；`git`、`shell` 模块里需要输入的步骤会跳过并提示手动命令。
 
 ### 3. 数据迁移（仅场景 C）
 
@@ -92,12 +94,12 @@ AI 进入本仓库时，必须先确定属于哪个角色：
 
 1. `git fetch origin`，`git log --oneline HEAD..origin/main` 为空则已是最新，结束。
 2. 工作区有未提交改动时告知用户先处理，不强行覆盖；否则 `git pull --ff-only origin main`。
-3. `git diff --name-only HEAD@{1}..HEAD` 看改了哪些文件，按下面「部署目标对照」表的「改动后要跑」列执行。多行命中时各跑一次。
+3. 跑 `bin/setup.sh`（沿用已保存的模块）。它覆盖了下面「部署目标对照」表的全部动作；只想做局部同步时按表的「改动后要跑」列单独执行。
 4. 跑 5 的验证。
 
 ### 5. 验证
 
-`bin/deploy.sh check` 必须 PASS（它校验 zsh/mise/git 文件、占位符、Rex 主题、infat、`~/.zsh_secrets` 权限、`~/.claude/CLAUDE.md` 链接和 MCP 注册）。另外确认：
+`bin/deploy.sh check` 必须 PASS（它校验 zsh/mise/git 文件、占位符、Rex 主题、infat、`~/.zsh_secrets` 权限；选了 ai 模块时还校验 `~/.claude/CLAUDE.md` 链接和 MCP 注册）。另外确认：
 
 - `~/.zim/modules/` 含 zimrc 里声明的模块
 - `claude mcp list` 与 `opencode mcp list` 列出 `ai/claude/mcp.json` 里的全部 MCP 且已连接（paper 需要已装 Paper 应用，rea 的 Hopper 工具需要已装 Hopper）
@@ -119,7 +121,7 @@ AI 进入本仓库时，必须先确定属于哪个角色：
 | `starship/starship.toml`、`btop/btop.conf`、`yazi/*.toml`、`atuin/config.toml`、`bat/config`、`ripgrep/config`、`git/ignore` | `~/.config/` 对应路径 | 仅不存在时复制；已存在且不同时 sync 输出 `differs` | `bin/deploy.sh sync`，按 `differs` 提示处理 |
 | `vscode/settings.json` | `~/Library/Application Support/Code/User/settings.json` | init 时 jq 深合并（本地字段保留，同名 key 覆盖）；本机文件含注释时列出要手工同步的键 | `bin/deploy.sh init <CURRENT_ROOT>` |
 | `git/config` | （不复制）`~/.gitconfig` 的 `[include]` | 自动生效 | 无 |
-| `Brewfile` | （不复制）`brew bundle` 直接读 | - | `brew bundle install --file=$DOTFILES_ROOT/Brewfile` |
+| `brew/<模块>.Brewfile` | （不复制）`brew bundle` 直接读 | 按选中的模块安装 | `bin/setup.sh`；新增模块要同时加进 `bin/setup.sh` 的 `MODULES` |
 | `bin/install-ai-cli.sh` | （不复制） | 重跑即更新 | `bin/install-ai-cli.sh` |
 | `ai/AGENTS.md` | `~/.claude/CLAUDE.md`、`~/.config/opencode/AGENTS.md` | setup-ai 符号链接 | 无（已链接即时生效） |
 | `ai/claude/rules/*`、`ai/claude/hooks/*`、`ai/claude/statusline-command.sh` | `~/.claude/` 同名路径 | setup-ai 符号链接 | 新增或删除文件时 `bin/setup-ai.sh` |
@@ -176,7 +178,7 @@ PATH 分层（先到的赢）：
 
 机制定义在仓库 `git/config`：SSH 签名（`gpg.format = ssh`，`gpg.ssh.program` 指向 1Password），`commit.gpgsign = true`；GitHub credential 走 `gh auth git-credential`；清空 `core.askPass`；`safe.directory = *`（关闭目录属主检查，对所有 include 它的机器生效）。
 
-本机 `~/.gitconfig` 通过 `[include]` 引用它；`[user]` 身份和 `signingkey` 在本机主文件，不进仓库。新机器的设置步骤见 README「部署」。
+本机 `~/.gitconfig` 通过 `[include]` 引用它；`[user]` 身份和 `signingkey` 在本机主文件，不进仓库。新机器上由 `bin/setup.sh` 的 git 模块询问并设置。
 
 AI agent 的每条命令都是新的非交互进程，经 1Password 签名或 SSH 会逐次弹授权。机器上若有同一把 key 的本地私钥，可在本机 `~/.gitconfig` 覆盖 `gpg.ssh.program = ssh-keygen`、`user.signingkey = <私钥路径>`，并在 `~/.ssh/config` 的 `Host github.com` 设 `IdentityAgent none` 加 `IdentityFile`；git 仍走 SSH。这些是本机文件，不写进仓库。
 
