@@ -24,6 +24,22 @@
       "Authorization": "Bearer ${OPENSEO_API_KEY}"
     }
   },
+  "sentry": {
+    "type": "http",
+    "url": "https://mcp.sentry.dev/mcp",
+    "headers": {
+      "Authorization": "Sentry-Bearer ${SENTRY_ACCESS_TOKEN}"
+    }
+  },
+  "fingerprint": {
+    "type": "stdio",
+    "command": "fingerprint-mcp-server",
+    "args": ["--region", "ap"],
+    "env": {
+      "FINGERPRINT_SERVER_API_KEY": "${FINGERPRINT_SERVER_API_KEY}",
+      "FINGERPRINT_MANAGEMENT_API_KEY": "${FINGERPRINT_MANAGEMENT_API_KEY}"
+    }
+  },
   "rea": {
     "type": "stdio",
     "command": "npx",

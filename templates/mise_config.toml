@@ -15,6 +15,8 @@ uv = "latest"
 java = "25"
 pnpm = "latest"
 cosign = "latest"
+# fingerprint MCP（private 模式，不走 OAuth）。子包路径 mise 解析不了 latest，只能写具体版本
+"go:github.com/fingerprintjs/fingerprint-mcp-server/cmd/fingerprint-mcp-server" = "0.14.2"
 
 [settings]
 # 临时目录里的克隆（AI 会话常用）不逐个 mise trust

@@ -113,4 +113,4 @@ if [[ -d $ego_skill ]]; then
 fi
 
 log ""
-log "MCP 密钥变量（MCP_CONTEXT7_API_KEY / MCP_EXA_API_KEY / OPENSEO_API_KEY）在 ~/.zsh_secrets 填写"
+log "MCP 的 key / token 按 templates/zsh_secrets.template 在 ~/.zsh_secrets 填写"

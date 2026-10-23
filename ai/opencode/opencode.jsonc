@@ -463,6 +463,27 @@
                 "Authorization": "Bearer {env:OPENSEO_API_KEY}"
             }
         },
+        "sentry": {
+            "type": "remote",
+            "url": "https://mcp.sentry.dev/mcp",
+            "enabled": true,
+            "headers": {
+                "Authorization": "Sentry-Bearer {env:SENTRY_ACCESS_TOKEN}"
+            }
+        },
+        "fingerprint": {
+            "type": "local",
+            "command": [
+                "fingerprint-mcp-server",
+                "--region",
+                "ap"
+            ],
+            "enabled": true,
+            "environment": {
+                "FINGERPRINT_SERVER_API_KEY": "{env:FINGERPRINT_SERVER_API_KEY}",
+                "FINGERPRINT_MANAGEMENT_API_KEY": "{env:FINGERPRINT_MANAGEMENT_API_KEY}"
+            }
+        },
         "rea": {
             "type": "local",
             "command": [

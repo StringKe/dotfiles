@@ -249,7 +249,7 @@ AI CLI 只装 claude-code 和 opencode v2（`bin/install-ai-cli.sh`），配置�
 
 - 全局提示词只有一份 `ai/AGENTS.md`，Claude Code 读 `~/.claude/CLAUDE.md`，opencode 读 `~/.config/opencode/AGENTS.md`，都链接到它。
 - 个人 skill 放 `ai/skills/<名>/SKILL.md`，个人插件放 `ai/plugins/<名>/`，加完重跑 `bin/setup-ai.sh`。
-- MCP 两边保持同一组：context7、exa、gh_grep、openseo、rea（逆向）、paper（前端设计）。远程 MCP 用 API key，不走 OAuth，也不装同名 Claude 插件。Claude Code 的定义在 `ai/claude/mcp.json`，opencode 的在 `ai/opencode/opencode.jsonc` 的 `mcp` 段，改一边要同步另一边。
+- MCP 两边保持同一组：context7、exa、gh_grep、openseo、sentry、fingerprint、rea（逆向）、paper（前端设计）。一律用 API key / token 认证，不走 OAuth，也不装同名 Claude 插件：OAuth 的 refresh token 在多会话并发时容易失效，导致反复要求登录。sentry 用 `Sentry-Bearer` 个人 token；fingerprint 托管端点只支持 OAuth，改用 mise 安装的本地 `fingerprint-mcp-server`（private 模式，`--region ap`）。Claude Code 的定义在 `ai/claude/mcp.json`，opencode 的在 `ai/opencode/opencode.jsonc` 的 `mcp` 段，改一边要同步另一边。
 - 密钥只按变量名引用（Claude Code 写 `${MCP_*}`，opencode 写 `{env:MCP_*}`），值在 `~/.zsh_secrets`。`zsh/zshenv` 会 source 该文件，非交互进程启动的 agent 也能读到。
 - `~/.claude/settings.json` 里机器相关的键（`processWrapper`）不进仓库，合并时保留本机值。
 - 第三方 skill 不进仓库：Rex 用 `rex skill setup` 安装（setup-ai 会调用），ego-browser 链接到 ego lite 自带目录，lark / impeccable / reverse-engineer-anything 用各自的安装器。

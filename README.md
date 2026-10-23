@@ -35,7 +35,7 @@ brew bundle install --file=$PWD/Brewfile
 # AI CLI（claude-code / opencode v2，官方 curl 脚本，不走 brew）
 bin/install-ai-cli.sh
 
-# AI 提示词 / skills / hooks / 插件 / MCP（先在 ~/.zsh_secrets 填 MCP_CONTEXT7_API_KEY、MCP_EXA_API_KEY、OPENSEO_API_KEY）
+# AI 提示词 / skills / hooks / 插件 / MCP（先按 templates/zsh_secrets.template 在 ~/.zsh_secrets 填 MCP 的 key / token）
 bin/setup-ai.sh
 
 # 应用 shell（启动新 shell）
@@ -232,7 +232,7 @@ chsh -s /opt/homebrew/bin/zsh
 - ~/.zim/modules/ 含 zsh-syntax-highlighting / autosuggestions / fzf-tab 等
 - Rex 主题文件: ~/.config/rex/themes/GitHub Light Colorblind 存在; defaults read com.superlogical.rex Workspace.terminalFontName 输出 Maple Mono NF CN
 - starship: 不指定 palette, 跟随终端 ANSI 配色 (见 starship/starship.toml 注释)
-- AI: ~/.claude/CLAUDE.md 是指向 DOTFILES_ROOT/ai/AGENTS.md 的符号链接; claude mcp list 与 opencode mcp list 都含 context7 / exa / gh_grep / openseo / rea / paper 且已连接
+- AI: ~/.claude/CLAUDE.md 是指向 DOTFILES_ROOT/ai/AGENTS.md 的符号链接; claude mcp list 与 opencode mcp list 都含 context7 / exa / gh_grep / openseo / sentry / fingerprint / rea / paper 且已连接
 
 ## 8. 提醒
 
