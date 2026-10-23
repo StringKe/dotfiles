@@ -224,12 +224,10 @@ _dotfiles_setup_path() {
     for _d in \
         "$HOME/.local/bin" \
         "$HOME/.opencode/bin" \
-        "$HOME/.darkbloom/bin" \
         "$HOME/.lmstudio/bin" \
         "$HOME/.railway/bin" \
         "$HOME/.maestro/bin" \
         "$HOME/.orbstack/bin" \
-        "$HOME/.yzos/bin" \
         "$HOME/Library/Application Support/JetBrains/Toolbox/scripts"
     do
         [[ -d "$_d" ]] && _user_cli+=("$_d")
@@ -260,9 +258,6 @@ _dotfiles_setup_path() {
 
     path=(
         "${_user_cli[@]}"
-        "$HOME/.proto/bin"
-        "$HOME/.proto/shims"
-        "$HOME/.moon/bin"
         "$CARGO_HOME/bin"
         "$GOBIN"
         "$NPM_CONFIG_PREFIX/bin"

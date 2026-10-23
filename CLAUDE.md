@@ -201,14 +201,9 @@ PATH 分层（先到的赢）：
 - 部署版 `~/.zshenv` 反向同步回 `zsh/zshenv`（会污染模板）
 - AI 手写 sed 命令（必须调用 `bin/deploy.sh init`）
 
-## proto + mise 工具版本管理
+## mise 工具版本管理
 
-**分工**：
-- `mise activate zsh`（在 `init.zsh` 内）：全局运行时（node / go / rust / python）+ precmd hook 重置 PATH
-- `~/.proto/bin`（PATH 内）：proto CLI 本身
-- `~/.proto/shims`（PATH 内）：proto-only 工具（atlas / buf / cosign）。`sops` 由 brew 管理
-
-不用 `proto activate`：proto 只注册 chpwd_functions，mise 的 precmd 每次 prompt 重置 PATH 会覆盖 proto chpwd 效果。proto-shim 内置 fallback 逻辑，不依赖 `proto activate` 设的 `__ORIG_PATH`。
+`mise activate zsh`（在 `init.zsh` 内）管理全局运行时（node / go / rust / python）和 CLI 工具，precmd hook 每次 prompt 重置 PATH。全局工具清单在 `templates/mise_config.toml`，项目工具写在各项目的 `mise.toml`。`sops` 由 brew 管理。
 
 ## Git 签名
 
