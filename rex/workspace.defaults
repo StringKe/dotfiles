@@ -1,6 +1,6 @@
 # [TEMPLATE] rex/workspace.defaults
 # 部署方式: bin/apply-rex-defaults.sh 逐行 defaults write com.superlogical.rex Workspace.<key>
-# 格式: <key>\t<类型 string|bool|int|float>\t<值>
+# 格式: <key>\t<类型 string|bool|int|float|array>\t<值>（array 只写单个元素）
 # Rex 运行时不读这些改动，重启 App 才生效。
 appearance	string	light
 lightThemeID	string	merino-light
@@ -26,3 +26,4 @@ allowsTerminalNotifications	bool	true
 showsProgramActivityNotifications	bool	true
 showsIdleProgramsInActivity	bool	true
 playsProgramActivitySounds	bool	false
+hiddenChromeButtons	array	activity
