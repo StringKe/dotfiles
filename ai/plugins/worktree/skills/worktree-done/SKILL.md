@@ -1,14 +1,13 @@
 ---
 name: worktree-done
-description: "收尾 worktree：当前所在的、本会话 /worktree-start 新建的、用户点名的，逐个提交、rebase 到 origin 默认分支后快进推送、删除 worktree 与分支，最后让主检出的本地默认分支快进到最新。用户运行 /worktree-done 或 /worktree-done <名字> 时使用。"
+description: "收尾 worktree：当前所在的、本会话 /worktree-start 新建的、用户点名的，逐个提交、rebase 到 origin 默认分支后快进推送、删除 worktree 与分支，最后让主检出的本地默认分支快进到最新。用户运行 /worktree-done 或 /worktree-done <名字>，或 worktree 里的工作做完并验证通过时使用，AI 自己调用，不交给用户。"
 user-invocable: true
-disable-model-invocation: true
 argument-hint: "[名字]"
 ---
 
 # worktree 收尾
 
-用户输入 `/worktree-done` 或 `/worktree-done <名字>` 即授权本次 commit 与快进推送到默认分支，不再逐项请示。只做收尾，不追加新功能。用 git worktree。不使用 Claude Code agents view。
+用户输入 `/worktree-done` 或 `/worktree-done <名字>`，或 AI 在 worktree 里的工作做完并验证通过后自己调用，都授权本次 commit 与快进推送到默认分支，不再逐项请示，也不请用户代为运行。只做收尾，不追加新功能。用 git worktree。不使用 Claude Code agents view。
 
 默认分支：`git symbolic-ref --short refs/remotes/origin/HEAD` 得到 `origin/main` 这种形式，取斜杠后的名字。这条 ref 没有时，远程有 `main` 用 `main`，否则用 `master`。
 

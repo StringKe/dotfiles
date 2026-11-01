@@ -1,14 +1,13 @@
 ---
 name: worktree-start
-description: "进入隔离 worktree。Claude Code 调用 EnterWorktree，会话切到 .claude/worktrees/<名字>，分支为 worktree-<名字>，基线是 origin 默认分支。工作区干净且会话没用 --name 或 /rename 起名时，交互退出会删掉 worktree 和分支。没有 EnterWorktree 时用 git worktree add，会话目录不变，退出不删。用户运行 /worktree-start 或 /worktree-start <名字> 时使用。"
+description: "进入隔离 worktree。Claude Code 调用 EnterWorktree，会话切到 .claude/worktrees/<名字>，分支为 worktree-<名字>，基线是 origin 默认分支。工作区干净且会话没用 --name 或 /rename 起名时，交互退出会删掉 worktree 和分支。没有 EnterWorktree 时用 git worktree add，会话目录不变，退出不删。用户运行 /worktree-start 或 /worktree-start <名字>，或任务需要隔离检出时使用，AI 自己调用，不交给用户。"
 user-invocable: true
-disable-model-invocation: true
 argument-hint: "[名字]"
 ---
 
 # 进入 worktree
 
-用户输入 `/worktree-start` 或 `/worktree-start <名字>` 即开始。只进入隔离检出，不 commit，不 push。不使用 Claude Code agents view。
+用户输入 `/worktree-start` 或 `/worktree-start <名字>`，或任务需要隔离检出时，AI 直接调用本 skill 开始，不请用户代为运行。只进入隔离检出，不 commit，不 push。不使用 Claude Code agents view。
 
 `git rev-parse --show-toplevel` 已在 `.claude/worktrees/` 下：停下，报告路径、分支、HEAD。不再创建。
 
