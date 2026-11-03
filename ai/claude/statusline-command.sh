@@ -1,6 +1,7 @@
 #!/bin/bash
 # Claude Code statusLine，单行：
-#   目录 | git 分支 状态 | wt worktree | PR #号 状态 | 模型 effort | ctx 42% | $费用 | +增 -删 | cache 91% | limit 5h 24% 7d 81% | 会话名
+#   会话名 | 目录 | git 分支 状态 | wt worktree | PR #号 状态 | 模型 effort | ctx 42% | $费用 | +增 -删 | cache 91% | limit 5h 24% 7d 81%
+# 会话名放最前：显示其他会话 ListAgents / SendMessage 用来称呼本会话的名字。
 # 颜色用 ANSI 命名色，与 starship 默认样式一致，由终端主题渲染。
 # 只起一个 jq 和一个 git 进程；仓库根目录用纯 bash 向上查找。
 
@@ -25,13 +26,15 @@ fields=$(jq -r '
         (.pr.number | s),
         (.pr.review_state | s),
         (.session_name | s),
-        (.fast_mode | s)
+        (.fast_mode | s),
+        (.session_id | s)
     ] | join("\u001f")
 ' <<<"$input")
 
-IFS=$'\x1f' read -r model effort cwd ctx_pct cost lines_add lines_del cache_pct cache_warm rl_5h rl_7d worktree pr_num pr_state session_name fast_mode <<<"$fields"
+IFS=$'\x1f' read -r model effort cwd ctx_pct cost lines_add lines_del cache_pct cache_warm rl_5h rl_7d worktree pr_num pr_state session_name fast_mode session_id <<<"$fields"
 
 c_reset=$'\033[0m'
+c_bold=$'\033[1m'
 c_dim=$'\033[2m'
 c_red=$'\033[31m'
 c_green=$'\033[32m'
@@ -51,6 +54,22 @@ pct_color() {
 }
 
 parts=()
+
+# 其他会话用的是 ~/.claude/sessions/<pid>.json 里的 name（未起名时为「目录名-hex」），输入里的 session_name 只是自定义名或 AI 标题
+if [[ -n "$session_id" ]]; then
+    for reg in "$HOME"/.claude/sessions/*.json; do
+        [[ -f "$reg" ]] || continue
+        IFS= read -r reg_json <"$reg" || [[ -n "$reg_json" ]] || continue
+        [[ "$reg_json" == *"\"sessionId\":\"$session_id\""* ]] || continue
+        [[ "$reg_json" =~ ,\"name\":\"([^\"]*)\" ]] && session_name="${BASH_REMATCH[1]}"
+        break
+    done
+fi
+
+if [[ -n "$session_name" ]]; then
+    (( ${#session_name} > 30 )) && session_name="${session_name:0:29}~"
+    parts+=("${c_bold}${session_name}${c_reset}")
+fi
 
 repo_root=""
 if [[ -n "$cwd" ]]; then
@@ -149,11 +168,6 @@ limits=""
 [[ -n "$rl_5h" ]] && limits+=" ${c_dim}5h${c_reset} $(pct_color "$rl_5h")${rl_5h}%${c_reset}"
 [[ -n "$rl_7d" ]] && limits+=" ${c_dim}7d${c_reset} $(pct_color "$rl_7d")${rl_7d}%${c_reset}"
 [[ -n "$limits" ]] && parts+=("${c_dim}limit${c_reset}${limits}")
-
-if [[ -n "$session_name" ]]; then
-    (( ${#session_name} > 30 )) && session_name="${session_name:0:29}~"
-    parts+=("${c_dim}${session_name}${c_reset}")
-fi
 
 sep=" ${c_dim}|${c_reset} "
 out=""
