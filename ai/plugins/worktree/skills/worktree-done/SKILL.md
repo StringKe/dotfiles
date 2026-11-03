@@ -9,6 +9,8 @@ argument-hint: "[名字]"
 
 用户输入 `/worktree-done` 或 `/worktree-done <名字>`，或 AI 在 worktree 里的工作做完并验证通过后自己调用，都授权本次 commit 与快进推送到默认分支，不再逐项请示，也不请用户代为运行。只做收尾，不追加新功能。用 git worktree。不使用 Claude Code agents view。
 
+先核对用户在本会话里有没有说过「暂不合并」「等我确认再合」「没有我同意不推送」：说过就只做第 3 步提交与第 5 步追平，不推送、不删 worktree，报告停在哪一步等指令。
+
 默认分支：`git symbolic-ref --short refs/remotes/origin/HEAD` 得到 `origin/main` 这种形式，取斜杠后的名字。这条 ref 没有时，远程有 `main` 用 `main`，否则用 `master`。
 
 ## 1. 列出要收的 worktree
@@ -82,7 +84,7 @@ argument-hint: "[名字]"
 
 ## 报告
 
-一行结论（推到默认分支的提交号，删除了哪些 worktree），再按 worktree 列表：
+一行结论（推到默认分支的提交号，是否已发布或为什么没发布，删除了哪些 worktree），再按 worktree 列表：
 
 | worktree | 状态 | 证据 |
 |---|---|---|

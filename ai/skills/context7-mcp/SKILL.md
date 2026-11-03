@@ -1,17 +1,11 @@
 ---
 name: context7-mcp
-description: Fetch current library documentation with Context7 MCP tools.
+description: 用 Context7 MCP 取库、框架、SDK、CLI 与云服务的当前文档。用户问 API 写法、配置、版本迁移、框架专有的报错、安装步骤、CLI 参数，或代码里要调用一个第三方库的接口时使用，再熟的库也查，训练数据可能过期。不用于重构、从零写脚本、业务逻辑排查与通用编程概念。
 ---
 
 # Context7 MCP
 
-Use Context7 MCP to fetch current documentation whenever the user asks about a library, framework, SDK, API, CLI tool, or cloud service — even well-known ones like React, Next.js, Prisma, Express, Tailwind, Django, or Spring Boot. This includes API syntax, configuration, version migration, library-specific debugging, setup instructions, and CLI tool usage. Use even when you think you know the answer — your training data may not reflect recent changes. Prefer this over web search for library docs.
-
-Do not use for: refactoring, writing scripts from scratch, debugging business logic, code review, or general programming concepts.
-
-## Steps
-
-1. `resolve-library-id` with the library name and what to look up in the library's documentation. Use the official library name with proper punctuation (e.g., "Next.js" not "nextjs", "Customer.io" not "customerio", "Three.js" not "threejs")
-2. Pick the best match by: exact name match, description relevance, code snippet count, source reputation (High/Medium preferred), and benchmark score (higher is better). Use version-specific IDs when the user mentions a version
-3. `query-docs` with the selected library ID and what to look up in the library's documentation (not single words), scoped to a single concept. If the question spans multiple distinct concepts (e.g. routing and auth and caching), make a separate `query-docs` call per concept with the same library ID, unless the question is about how the concepts interact — combined queries dilute ranking and return shallow results for each topic
-4. Answer using the fetched docs
+1. `resolve-library-id`：传库的官方名字（带标点，如 Next.js、Customer.io）与要查的问题。
+2. 选匹配项：名字完全一致、描述相关、代码片段多、来源可信度 High / Medium、benchmark 分高的优先。用户提到版本时选版本专用 ID。结果不对就换别名或换问法。
+3. `query-docs`：传选中的库 ID 与一个具体问题，不传单个词。问题跨几个概念（路由、鉴权、缓存）时每个概念各查一次，只有问概念之间怎么配合才合在一起查。
+4. 按取到的文档作答，结论附来源。

@@ -7,7 +7,9 @@ argument-hint: "[名字]"
 
 # 进入 worktree
 
-用户输入 `/worktree-start` 或 `/worktree-start <名字>`，或任务需要隔离检出时，AI 直接调用本 skill 开始，不请用户代为运行。只进入隔离检出，不 commit，不 push。不使用 Claude Code agents view。
+用户输入 `/worktree-start` 或 `/worktree-start <名字>`，或任务要改应用代码时，AI 直接调用本 skill 开始，不请用户代为运行。单文件小修和只改文档、提示词、AI 配置、`.local` 的留在当前检出。只进入隔离检出，不 commit，不 push。不使用 Claude Code agents view。
+
+EnterWorktree 或 `git worktree add` 被拒时，报出拒绝来源（权限设置、hook、已存在的目录），按原因处理，不改口让用户手动运行。
 
 `git rev-parse --show-toplevel` 已在 `.claude/worktrees/` 下：停下，报告路径、分支、HEAD。不再创建。
 
