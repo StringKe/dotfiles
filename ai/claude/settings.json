@@ -27,7 +27,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/bin/sh -c 'rex __internal session-start --agent claude 2>/dev/null || true'",
+            "command": "~/.claude/hooks/rex-session-start.sh",
             "timeout": 5
           },
           {
@@ -60,6 +60,35 @@
           {
             "type": "command",
             "command": "~/.claude/hooks/guard-shell-habits.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "AskUserQuestion",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/guard-ask.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/guard-file-writes.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/guard-reply.sh",
+            "timeout": 15
           }
         ]
       }

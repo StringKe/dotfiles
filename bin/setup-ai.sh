@@ -97,6 +97,7 @@ link "$AI/AGENTS.md" "$HOME/.config/opencode/AGENTS.md"
 
 # Claude Code rules / hooks / statusline
 for f in "$AI"/claude/rules/*.md; do
+    [[ -e $f ]] || continue
     link "$f" "$HOME/.claude/rules/${f##*/}"
 done
 for f in "$AI"/claude/hooks/*.sh; do
