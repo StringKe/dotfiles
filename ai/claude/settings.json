@@ -2,7 +2,9 @@
   "syncClaudeAiPlugins": false,
   "env": {
     "ENABLE_TOOL_SEARCH": "true",
-    "CLAUDE_CODE_DISABLE_ARTIFACT": "1"
+    "CLAUDE_CODE_DISABLE_ARTIFACT": "1",
+    "CLAUDE_CODE_DISABLE_ADVISOR_TOOL": "1",
+    "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "500000"
   },
   "attribution": {
     "commit": "",
@@ -19,7 +21,11 @@
   "model": "opus",
   "disableClaudeAiConnectors": true,
   "skillOverrides": {
-    "schedule": "off"
+    "schedule": "off",
+    "anthropic-skills:built-in-browser": "off",
+    "anthropic-skills:chrome-browser": "off",
+    "anthropic-skills:computer-use": "off",
+    "anthropic-skills:docs": "off"
   },
   "hooks": {
     "SessionStart": [
@@ -116,7 +122,7 @@
     }
   },
   "ultracode": true,
-  "advisorModel": "fable",
+  "workflowSizeGuideline": "medium",
   "promptSuggestionEnabled": false,
   "askUserQuestionTimeout": "5m",
   "dialogExpiry": "60s",
