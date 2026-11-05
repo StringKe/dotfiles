@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+# op-broker - 在 Rex 常驻终端里代跑 1Password CLI。op 的授权按终端（tty）计，这个终端按一次 Touch ID 后，
+# 其他进程经 opx 提交的请求都在这里执行，不再各自弹授权。授权闲置 10 分钟失效，所以定时用一次保活；12 小时硬上限后重新授权。
+
+export PATH="/opt/homebrew/bin:/usr/bin:/bin:$PATH"
+set -uo pipefail
+umask 077
+
+dir="${XDG_STATE_HOME:-$HOME/.local/state}/op-broker"
+mkdir -p "$dir/req" "$dir/run"
+chmod 700 "$dir"
+echo $$ >"$dir/pid"
+trap 'rm -f "$dir/pid"' EXIT
+touch "$dir/accounts"
+
+keepalive=300
+last=$(date +%s)
+
+serve() {
+    local id=$1 args=() a in=/dev/null cwd=$HOME
+    while IFS= read -r -d '' a; do args+=("$a"); done <"$dir/run/$id.args"
+    [ -f "$dir/run/$id.in" ] && in="$dir/run/$id.in"
+    [ -f "$dir/run/$id.cwd" ] && cwd=$(<"$dir/run/$id.cwd")
+    (cd "$cwd" 2>/dev/null || cd "$HOME"; op "${args[@]}") <"$in" >"$dir/run/$id.out" 2>"$dir/run/$id.err"
+    local rc=$?
+    echo "$rc" >"$dir/run/$id.rc.tmp" && mv "$dir/run/$id.rc.tmp" "$dir/run/$id.rc"
+    printf '%s  op %s  rc=%s\n' "$(date '+%H:%M:%S')" "${args[0]:-}" "$rc"
+}
+
+remember_account() {
+    local prev="" a acct=""
+    for a in "$@"; do
+        case "$a" in
+            --account=*) acct=${a#--account=} ;;
+        esac
+        [ "$prev" = "--account" ] && acct=$a
+        prev=$a
+    done
+    [ -n "$acct" ] && ! grep -qxF -- "$acct" "$dir/accounts" && echo "$acct" >>"$dir/accounts"
+}
+
+echo "op-broker 已启动，请求目录 $dir。第一次请求或授权过期时会弹 Touch ID。"
+while :; do
+    now=$(date +%s)
+    for f in "$dir"/req/*.args; do
+        [ -e "$f" ] || break
+        id=$(basename "$f" .args)
+        for ext in in cwd; do
+            [ -f "$dir/req/$id.$ext" ] && mv "$dir/req/$id.$ext" "$dir/run/$id.$ext"
+        done
+        mv "$f" "$dir/run/$id.args" || continue
+        args=()
+        while IFS= read -r -d '' a; do args+=("$a"); done <"$dir/run/$id.args"
+        remember_account "${args[@]}"
+        serve "$id" &
+        last=$now
+    done
+    if ((now - last >= keepalive)); then
+        while IFS= read -r acct; do
+            [ -n "$acct" ] && op vault list --account "$acct" >/dev/null 2>&1
+        done <"$dir/accounts"
+        last=$now
+    fi
+    sleep 0.2
+done

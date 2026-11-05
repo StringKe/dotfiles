@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# opx - 经 op-broker 调用 1Password CLI，参数与 op 相同。op-broker 没在跑时，在 Rex 新建会话 op-broker 启动它。
+# 请求在 op-broker 的终端里以调用方的工作目录执行；stdin 是管道或文件时一并转交。
+
+export PATH="/opt/homebrew/bin:/usr/bin:/bin:$PATH"
+set -uo pipefail
+umask 077
+
+here=$(cd "$(dirname "$0")" && pwd)
+dir="${XDG_STATE_HOME:-$HOME/.local/state}/op-broker"
+timeout=${OPX_TIMEOUT:-300}
+
+alive() { [ -f "$dir/pid" ] && kill -0 "$(<"$dir/pid")" 2>/dev/null; }
+
+if ! alive; then
+    rex new op-broker --window op-broker -- "$here/op-broker" >/dev/null || {
+        echo "opx: 无法在 Rex 启动 op-broker" >&2
+        exit 1
+    }
+    for _ in $(seq 100); do
+        alive && break
+        sleep 0.1
+    done
+    alive || {
+        echo "opx: op-broker 没有就绪，查看 Rex 会话 op-broker" >&2
+        exit 1
+    }
+fi
+
+id="$(date +%s)-$$-$RANDOM"
+req="$dir/req/$id"
+run="$dir/run/$id"
+trap 'rm -f "$req".* "$run".*' EXIT
+
+if [ -p /dev/stdin ] || [ -f /dev/stdin ]; then
+    cat >"$req.in"
+fi
+pwd >"$req.cwd"
+printf '%s\0' "$@" >"$req.tmp" && mv "$req.tmp" "$req.args"
+
+deadline=$(($(date +%s) + timeout))
+until [ -f "$run.rc" ]; do
+    if (($(date +%s) >= deadline)); then
+        echo "opx: ${timeout}s 内没有结果，可能在等 Touch ID，查看 Rex 会话 op-broker" >&2
+        exit 124
+    fi
+    sleep 0.1
+done
+
+cat "$run.out"
+cat "$run.err" >&2
+exit "$(<"$run.rc")"
