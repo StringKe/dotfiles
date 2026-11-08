@@ -24,13 +24,6 @@
       "Authorization": "Bearer ${OPENSEO_API_KEY}"
     }
   },
-  "sentry": {
-    "type": "http",
-    "url": "https://mcp.sentry.dev/mcp",
-    "headers": {
-      "Authorization": "Sentry-Bearer ${SENTRY_ACCESS_TOKEN}"
-    }
-  },
   "truewatch": {
     "type": "http",
     "url": "https://ap1-owl-mcp.truewatch.com/mcp",

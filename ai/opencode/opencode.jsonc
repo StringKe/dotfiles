@@ -41,14 +41,6 @@
                 "Authorization": "Bearer {env:OPENSEO_API_KEY}"
             }
         },
-        "sentry": {
-            "type": "remote",
-            "url": "https://mcp.sentry.dev/mcp",
-            "enabled": true,
-            "headers": {
-                "Authorization": "Sentry-Bearer {env:SENTRY_ACCESS_TOKEN}"
-            }
-        },
         "truewatch": {
             "type": "remote",
             "url": "https://ap1-owl-mcp.truewatch.com/mcp",
