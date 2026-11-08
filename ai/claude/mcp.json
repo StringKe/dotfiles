@@ -31,6 +31,13 @@
       "Authorization": "Sentry-Bearer ${SENTRY_ACCESS_TOKEN}"
     }
   },
+  "truewatch": {
+    "type": "http",
+    "url": "https://ap1-owl-mcp.truewatch.com/mcp",
+    "headers": {
+      "Authorization": "Bearer ${TRUEWATCH_API_KEY}"
+    }
+  },
   "fingerprint": {
     "type": "stdio",
     "command": "fingerprint-mcp-server",

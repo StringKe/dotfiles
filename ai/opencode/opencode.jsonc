@@ -49,6 +49,14 @@
                 "Authorization": "Sentry-Bearer {env:SENTRY_ACCESS_TOKEN}"
             }
         },
+        "truewatch": {
+            "type": "remote",
+            "url": "https://ap1-owl-mcp.truewatch.com/mcp",
+            "enabled": true,
+            "headers": {
+                "Authorization": "Bearer {env:TRUEWATCH_API_KEY}"
+            }
+        },
         "fingerprint": {
             "type": "local",
             "command": [
