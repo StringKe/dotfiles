@@ -145,6 +145,7 @@
 - 不添加 `Co-Authored-By` 或 AI 署名。
 - 历史必须单线。禁止 merge commit，禁止 `git merge`，禁止无 rebase 的 `git pull` 和 `git pull --no-rebase`。
 - `git merge --squash` 只用于把变更做成一个普通 commit，不产生 Merge 记录。
+- 交互式参数（`git rebase -i`、`git add -i`）在 agent 的 shell 里用不了，用非交互写法。
 - 托管平台只使用 Rebase and merge 或 Squash and merge，禁止 Create a merge commit。
 
 ### 追平远端
