@@ -1,6 +1,7 @@
 .DS_Store
 *.swp
 .zsh_secrets
+.gitleaks.toml
 *.zwc
 .claude/worktrees/
 .local/

@@ -12,8 +12,8 @@ description: agent 调用 1Password CLI 的方式：所有 op 命令（item list
 ## 用法
 
 ```bash
-~/.claude/skills/op-session/scripts/opx vault list --account superanything.1password.com
-~/.claude/skills/op-session/scripts/opx item get <条目> --vault '<vault>' --account superanything.1password.com --format json
+~/.claude/skills/op-session/scripts/opx vault list --account <账号>.1password.com
+~/.claude/skills/op-session/scripts/opx item get <条目> --vault '<vault>' --account <账号>.1password.com --format json
 ~/.claude/skills/op-session/scripts/opx run --env-file .env.op -- aws sts get-caller-identity
 ```
 

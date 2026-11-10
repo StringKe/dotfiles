@@ -142,5 +142,7 @@ agent 的每条命令都是新进程，经 1Password 签名会每次弹授权。
 仓库公开。不提交密钥、账号、公司和内网信息、本机绝对路径、私有项目名。
 
 - 个人账号相关的配置留在本机：opencode 的模型 provider 放 `~/.config/opencode/opencode.json`（与链接进来的 `opencode.jsonc` 合并加载）；只适用本机的 agent 规则放 `~/.claude/rules/` 下的非仓库文件。
+- 全局提示词、skill 和文档里的例子用通用写法，不写真实的公司、项目、账号、域名和金额。
 - `~/.zsh_secrets` 在仓库外；`.gitignore` 里的 `.zsh_secrets` 防止把副本误放进仓库。
-- 提交前 pre-commit 跑 gitleaks。已推送的历史不改写；历史里发现凭据时轮换凭据。
+- 提交前 pre-commit 跑 gitleaks。本机的私有词表写在仓库根的 `.gitleaks.toml`（不入库）：开头 `[extend] useDefault = true`，再用 `[[rules]]` 列公司、项目、账号、域名和本机绝对路径的正则；没有这个文件时只有 gitleaks 的默认规则。
+- 已推送的历史不改写；历史里发现凭据时轮换凭据。
