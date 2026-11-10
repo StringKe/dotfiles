@@ -54,6 +54,18 @@ merge_claude_settings() {
     log "merged  $dst"
 }
 
+# rex skill setup 追加的 SessionStart hook 与 rex-session-start.sh 跑同一条命令，留着会把 Rex 说明注入两遍。
+drop_rex_session_hook() {
+    local dst="$HOME/.claude/settings.json" tmp
+    [[ -f $dst ]] || return 0
+    tmp="$dst.tmp.$$"
+    if jq 'if .hooks.SessionStart then .hooks.SessionStart |= map(select(any(.hooks[]?; (.command // "") | contains("rex __internal session-start")) | not)) else . end' "$dst" > "$tmp"; then
+        mv "$tmp" "$dst"
+    else
+        rm -f "$tmp"
+    fi
+}
+
 # 仓库里删除或改名的条目：清掉本脚本以前建的、本次不再建的指回 ai/ 的链接
 prune_links() {
     local dir entry keep
@@ -144,6 +156,7 @@ fi
 # 第三方 skill：Rex 自带安装器；ego-browser 随 ego lite 安装
 if command -v rex >/dev/null 2>&1; then
     rex skill setup --agent claude --agent opencode >/dev/null
+    drop_rex_session_hook
     log "rex     skill setup"
 fi
 ego_skill="$HOME/.local/share/ego/ego-skills"
