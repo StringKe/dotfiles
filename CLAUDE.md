@@ -9,7 +9,7 @@
 三处例外直接指向仓库：
 
 - `git/config`：`~/.gitconfig` 用 `[include]` 引用，改了立即对所有机器生效。
-- `ai/`：`bin/setup-ai.sh` 把全局提示词、rules、hooks、statusline、skills、插件和 opencode 配置符号链接到 home。编辑 `~/.claude/CLAUDE.md` 等于改仓库，其他会话的改动会出现在本仓库的 `git status` 里。
+- `ai/`：`bin/setup-ai.sh` 把全局提示词、rules、agents、hooks、statusline、skills、插件和 opencode 配置符号链接到 home。编辑 `~/.claude/CLAUDE.md` 等于改仓库，其他会话的改动会出现在本仓库的 `git status` 里。
 - `debug/profile.zsh`：`ZSH_PROFILE=1` 时由 `~/.zshenv` 直接从仓库 source。
 
 安装与配置的总入口是 `bin/setup.sh`，按模块调用 `brew bundle`、`deploy.sh`、`setup-ai.sh` 等脚本。
@@ -77,7 +77,7 @@ AI 运行时 stdin 不是终端：`setup.sh` 不进选择界面，要用 `--modu
 | `git/config` | `~/.gitconfig` 的 `[include]` | 不复制 | 无 |
 | `brew/<模块>.Brewfile` | `brew bundle` 直接读 | 按选中的模块安装 | `bin/setup.sh`；新模块还要加进 `setup.sh` 的 `MODULES` |
 | `ai/AGENTS.md` | `~/.claude/CLAUDE.md`、`~/.config/opencode/AGENTS.md` | 符号链接 | 无 |
-| `ai/claude/rules/*`、`hooks/*`、`statusline-command.sh` | `~/.claude/` 同名路径 | 符号链接 | 增删文件时 `bin/setup-ai.sh` |
+| `ai/claude/rules/*`、`agents/*`、`hooks/*`、`statusline-command.sh` | `~/.claude/` 同名路径 | 符号链接 | 增删文件时 `bin/setup-ai.sh` |
 | `ai/skills/*` | `~/.agents/skills/`、`~/.claude/skills/`、`~/.config/opencode/skills/` | 符号链接 | 增删时 `bin/setup-ai.sh` |
 | `ai/plugins/*` | 整个插件到 `~/.agents/plugins/`；插件内每个 skill 到 claude 与 opencode 的 skills 目录 | 符号链接 | 增删时 `bin/setup-ai.sh` |
 | `ai/opencode/*` | `~/.config/opencode/` | 符号链接 | `opencode service restart` |
