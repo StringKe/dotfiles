@@ -9,7 +9,7 @@
 三处例外直接指向仓库：
 
 - `git/config`：`~/.gitconfig` 用 `[include]` 引用，改了立即对所有机器生效。
-- `ai/`：`bin/setup-ai.sh` 把全局提示词、rules、agents、hooks、statusline、skills、插件和 opencode 配置符号链接到 home。编辑 `~/.claude/CLAUDE.md` 等于改仓库，其他会话的改动会出现在本仓库的 `git status` 里。
+- `ai/`：`bin/setup-ai.sh` 把全局提示词、agents、hooks、statusline、skills、插件和 opencode 配置符号链接到 home。编辑 `~/.claude/CLAUDE.md` 等于改仓库，其他会话的改动会出现在本仓库的 `git status` 里。
 - `debug/profile.zsh`：`ZSH_PROFILE=1` 时由 `~/.zshenv` 直接从仓库 source。
 
 安装与配置的总入口是 `bin/setup.sh`，按模块调用 `brew bundle`、`deploy.sh`、`setup-ai.sh` 等脚本。
@@ -77,12 +77,12 @@ AI 运行时 stdin 不是终端：`setup.sh` 不进选择界面，要用 `--modu
 | `git/config` | `~/.gitconfig` 的 `[include]` | 不复制 | 无 |
 | `brew/<模块>.Brewfile` | `brew bundle` 直接读 | 按选中的模块安装 | `bin/setup.sh`；新模块还要加进 `setup.sh` 的 `MODULES` |
 | `ai/AGENTS.md` | `~/.claude/CLAUDE.md`、`~/.config/opencode/AGENTS.md` | 符号链接 | 无 |
-| `ai/claude/rules/*`、`agents/*`、`hooks/*`、`statusline-command.sh` | `~/.claude/` 同名路径 | 符号链接 | 增删文件时 `bin/setup-ai.sh` |
+| `ai/claude/agents/*`、`hooks/*`、`statusline-command.sh` | `~/.claude/` 同名路径 | 符号链接 | 增删文件时 `bin/setup-ai.sh` |
 | `ai/skills/*` | `~/.agents/skills/`、`~/.claude/skills/`、`~/.config/opencode/skills/` | 符号链接 | 增删时 `bin/setup-ai.sh` |
 | `ai/plugins/*` | 整个插件到 `~/.agents/plugins/`；插件内每个 skill 到 claude 与 opencode 的 skills 目录 | 符号链接 | 增删时 `bin/setup-ai.sh` |
 | `ai/opencode/*` | `~/.config/opencode/` | 符号链接 | `opencode service restart` |
-| `ai/claude/settings.json` | `~/.claude/settings.json` | jq 深合并 | `bin/setup-ai.sh` |
-| `ai/claude/mcp.json` | `~/.claude.json` 的 user 级 `mcpServers` | 每次重建同名条目；`${HOME}` 展开，密钥保留 `${VAR}`；缺密钥的跳过 | `bin/setup-ai.sh` |
+| `ai/claude/settings.json` | `~/.claude/settings.json` | jq 深合并：本机字段保留，同名键以仓库为准 | `bin/setup-ai.sh`；仓库里删掉的键要在本机手工删 |
+| `ai/claude/mcp.json` | `~/.claude.json` 的 user 级 `mcpServers` | 每次重建同名条目；`${HOME}` 展开，密钥保留 `${VAR}`；缺密钥的跳过 | `bin/setup-ai.sh`；仓库里删掉的条目用 `claude mcp remove -s user <名>` 注销 |
 | `.pre-commit-config.yaml` | 仓库 `.git/hooks` | `setup-ai.sh` 执行 `pre-commit install` | 无 |
 
 仓库里删除或改名的 ai 条目，重跑 `setup-ai.sh` 会清掉对应的旧链接。
@@ -130,7 +130,7 @@ agent 的每条命令都是新进程，经 1Password 签名会每次弹授权。
 
 - AI CLI 只装 claude-code 和 opencode v2（`bin/install-ai-cli.sh`，官方安装脚本）。grok-build 本机另装，仓库只负责加载它的 `~/.grok/privacy.env`。
 - 全局提示词只有 `ai/AGENTS.md` 一份，claude-code 与 opencode 都链接到它。个人 skill 放 `ai/skills/<名>/`，个人插件放 `ai/plugins/<名>/`。
-- MCP 两边保持同一组：context7、exa、gh_grep、openseo、truewatch、fingerprint、rea、paper、slack。claude-code 的定义在 `ai/claude/mcp.json`，opencode 的在 `ai/opencode/opencode.jsonc` 的 `mcp` 段，改一边要同步另一边。
+- MCP 两边保持同一组：context7、exa、gh_grep、openseo、truewatch、fingerprint、paper、slack。claude-code 的定义在 `ai/claude/mcp.json`，opencode 的在 `ai/opencode/opencode.jsonc` 的 `mcp` 段，改一边要同步另一边。rea 只在 opencode 里启用：claude-code 每个会话都要列出它的 170 个工具名，而它很少用到。
 - MCP 一律用 API key / token，不走 OAuth，也不装同名插件：多个会话同时刷新 OAuth token 时容易失效，导致反复要求登录。truewatch 用 `Authorization: Bearer <API Key>`；fingerprint 的托管端点只支持 OAuth，改用 mise 安装的本地 `fingerprint-mcp-server`（private 模式，`--region ap`）。slack 不用 claude.ai 的 Slack 连接器，用 mise 安装的本地 `slack-mcp-server`（korotovsky），以自建应用的 User OAuth Token（xoxp）按本人身份读写，发消息工具经 `SLACK_MCP_ADD_MESSAGE_TOOL` 打开。
 - 密钥只按变量名引用：claude-code 写 `${VAR}`，opencode 写 `{env:VAR}`。变量清单在 `templates/zsh_secrets.template`，值在 `~/.zsh_secrets`。缺密钥的 MCP 由 `setup-ai.sh` 跳过。
 - paper MCP 用 Paper 应用自带的 `~/.paper/bin/paper`；rea 的 Hopper 集成需要 `~/Applications/Hopper Disassembler.app`。

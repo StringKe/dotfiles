@@ -52,10 +52,10 @@ bin/setup.sh --storage-root <路径>      # 换存储根
 
 ## 需要自己准备的
 
-- **MCP 密钥**：照 `templates/zsh_secrets.template` 把 context7、exa、openseo、truewatch、fingerprint 的 key 填进 `~/.zsh_secrets`，再跑 `bin/setup.sh --modules ai`。没填的 MCP 会跳过。
+- **MCP 密钥**：照 `templates/zsh_secrets.template` 把 context7、exa、openseo、truewatch、fingerprint、slack 的 key 填进 `~/.zsh_secrets`，再跑 `bin/setup.sh --modules ai`。没填的 MCP 会跳过。
 - **git 签名**：commit 默认用 1Password 里的 SSH key 签名，需在 1Password 设置 -> Developer 打开 SSH agent。
 - **Rex**：外观设置要重启 Rex 才生效。
-- **paper / rea MCP**：分别要先装 Paper 和 Hopper Disassembler。
+- **paper / rea MCP**：分别要先装 Paper 和 Hopper Disassembler；rea 只在 opencode 里启用。
 
 ## 日常
 

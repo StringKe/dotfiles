@@ -22,7 +22,6 @@
   },
   "model": "opus",
   "disableClaudeAiConnectors": true,
-  "deniedMcpServers": [{ "serverName": "rea" }],
   "skillOverrides": {
     "schedule": "off",
     "anthropic-skills:built-in-browser": "off",

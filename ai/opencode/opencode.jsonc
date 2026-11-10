@@ -10,7 +10,7 @@
         }
     },
     "permission": "allow",
-    // 与 ai/claude/mcp.json 保持同一组 MCP
+    // 与 ai/claude/mcp.json 保持同一组 MCP；rea 只在这里启用
     "mcp": {
         "context7": {
             "type": "remote",

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # [TOOL] AI 提示词、skills、hooks、插件与 MCP 部署（claude-code / opencode）
 #
-# 提示词、rules、agents、hooks、statusline、个人 skills、worktree 插件、opencode 配置
+# 提示词、agents、hooks、statusline、个人 skills、worktree 插件、opencode 配置
 # 用符号链接指回仓库 ai/：在 ~ 里编辑等于改仓库，git status 可见。
 # 仓库里删除或改名的条目，对应的旧链接会被清掉。
 # ~/.claude/settings.json 由 Claude Code 运行时改写，用 jq 深合并（本地字段保留，仓库同名 key 覆盖）。
@@ -107,11 +107,7 @@ add_claude_mcp() {
 link "$AI/AGENTS.md" "$HOME/.claude/CLAUDE.md"
 link "$AI/AGENTS.md" "$HOME/.config/opencode/AGENTS.md"
 
-# Claude Code rules / agents / hooks / statusline
-for f in "$AI"/claude/rules/*.md; do
-    [[ -e $f ]] || continue
-    link "$f" "$HOME/.claude/rules/${f##*/}"
-done
+# Claude Code agents / hooks / statusline
 for f in "$AI"/claude/agents/*.md; do
     link "$f" "$HOME/.claude/agents/${f##*/}"
 done
