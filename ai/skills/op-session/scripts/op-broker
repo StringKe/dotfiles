@@ -1,30 +1,168 @@
 #!/usr/bin/env bash
 # op-broker - 在 Rex 常驻终端里代跑 1Password CLI。op 的授权按终端（tty）计，这个终端按一次 Touch ID 后，
 # 其他进程经 opx 提交的请求都在这里执行，不再各自弹授权。授权闲置 10 分钟失效，所以定时用一次保活；12 小时硬上限后重新授权。
+# 每条请求在 audit/<YYYY-MM>.jsonl 记一行：调用方、子命令、账号、vault、条目、字段、退出码。赋值参数的值、op run 的命令参数、输出与 stdin 不记。
 
 export PATH="/opt/homebrew/bin:/usr/bin:/bin:$PATH"
 set -uo pipefail
 umask 077
 
 dir="${XDG_STATE_HOME:-$HOME/.local/state}/op-broker"
-mkdir -p "$dir/req" "$dir/run"
+mkdir -p "$dir/req" "$dir/run" "$dir/audit"
 chmod 700 "$dir"
 echo $$ >"$dir/pid"
 trap 'rm -f "$dir/pid"' EXIT
-touch "$dir/accounts"
+touch "$dir/accounts" "$dir/items.cache"
 
 keepalive=300
 last=$(date +%s)
 
+value_flags=" --account --vault --fields --format --category --title --tags --url --env-file -i --in-file -o --out-file --template --expiry --emails --file-name --session --config "
+group_cmds=" item vault document account user group connect events-api service-account plugin "
+item_cmds=" item get item edit item delete item share item move document get document edit document delete "
+
+# 解析 op 参数，设置 sub acct vault ref fields title nassign assigns runcmd redacted
+parse_args() {
+    sub="" acct="" vault="" ref="" fields="" title="" runcmd=""
+    assigns=() redacted=() pos=()
+    local prev="" a after=0 otp=0
+    for a in "$@"; do
+        if ((after)); then
+            [ -z "$runcmd" ] && runcmd=$a
+            continue
+        fi
+        if [[ " $value_flags " == *" $prev "* && -n "$prev" ]]; then
+            case "$prev" in
+                --account) acct=$a ;;
+                --vault) vault=$a ;;
+                --fields) fields=$a ;;
+                --title) title=$a ;;
+            esac
+            redacted+=("$a")
+            prev=""
+            continue
+        fi
+        case "$a" in
+            --) after=1; redacted+=("$a") ;;
+            --account=*) acct=${a#*=}; redacted+=("$a") ;;
+            --vault=*) vault=${a#*=}; redacted+=("$a") ;;
+            --fields=*) fields=${a#*=}; redacted+=("$a") ;;
+            --title=*) title=${a#*=}; redacted+=("$a") ;;
+            --otp) otp=1; redacted+=("$a") ;;
+            -*) redacted+=("$a") ;;
+            *=*) assigns+=("${a%%=*}"); redacted+=("${a%%=*}=<redacted>") ;;
+            *) pos+=("$a"); redacted+=("$a") ;;
+        esac
+        prev=$a
+    done
+    [ -n "$runcmd" ] && redacted+=("$runcmd" "...")
+    if [[ " $group_cmds " == *" ${pos[0]:-} "* ]]; then
+        sub="${pos[0]} ${pos[1]:-}"
+        ref=${pos[2]:-}
+    else
+        sub=${pos[0]:-}
+        ref=${pos[1]:-}
+    fi
+    sub=${sub% }
+    ((otp)) && fields="${fields:+$fields,}otp"
+    if [ "$sub" = read ] && [[ "$ref" == op://* ]]; then
+        local p=${ref#op://}
+        vault=${p%%/*}
+        p=${p#*/}
+        fields=${p#*/}
+        ref=${p%%/*}
+    fi
+}
+
+meta_jq='select(type == "object" and .id and .title) | [.id, .title, (.vault.name // .vault.id // ""), (.category // "")] | join("\u001f")'
+
+# 条目元数据（id、标题、vault、类型）：本次 JSON 输出里没有时先查缓存，再用 op 查一次
+resolve_item() {
+    local meta=$1 key="$acct|$vault|$ref"
+    if [ -z "$meta" ] && [ -n "$ref" ]; then
+        meta=$(awk -F'\037' -v k="$key" '$1 == k { sub(/^[^\037]*\037/, ""); print; exit }' "$dir/items.cache")
+    fi
+    if [ -z "$meta" ] && [ -n "$ref" ] && [[ " $item_cmds " == *" $sub "* ]] && [[ "$sub" != *delete ]]; then
+        local q=(item get "$ref" --format json)
+        [ -n "$vault" ] && q+=(--vault "$vault")
+        [ -n "$acct" ] && q+=(--account "$acct")
+        meta=$(op "${q[@]}" 2>/dev/null | jq -r "$meta_jq" 2>/dev/null)
+    fi
+    if [ -n "$meta" ] && [ -n "$ref" ] && ! awk -F'\037' -v k="$key" '$1 == k { f = 1 } END { exit !f }' "$dir/items.cache"; then
+        printf '%s\037%s\n' "$key" "$meta" >>"$dir/items.cache"
+    fi
+    IFS=$'\037' read -r item_id item_title item_vault item_category <<<"$meta"
+}
+
+caller_label() {
+    local s=$1 b=$2 json
+    [ -n "$s" ] && [ -n "$b" ] || return 0
+    json=$(rex window ls -s "$s" --json 2>/dev/null) || return 0
+    caller_session=$(jq -r '.label // ""' <<<"$json")
+    caller_tab=$(jq -r --arg b "$b" '.. | objects | select(has("window_id")) | select([.. | objects | .block_id? // empty] | index($b)) | .label // ""' <<<"$json" | head -1)
+}
+
 serve() {
-    local id=$1 args=() a in=/dev/null cwd=$HOME
+    local id=$1 args=() a in=/dev/null cwd=$HOME start=$EPOCHREALTIME
     while IFS= read -r -d '' a; do args+=("$a"); done <"$dir/run/$id.args"
     [ -f "$dir/run/$id.in" ] && in="$dir/run/$id.in"
     [ -f "$dir/run/$id.cwd" ] && cwd=$(<"$dir/run/$id.cwd")
-    (cd "$cwd" 2>/dev/null || cd "$HOME"; op "${args[@]}") <"$in" >"$dir/run/$id.out" 2>"$dir/run/$id.err"
+    (cd "$cwd" 2>/dev/null || cd "$HOME" || exit; op "${args[@]}") <"$in" >"$dir/run/$id.out" 2>"$dir/run/$id.err"
     local rc=$?
+    local ms
+    ms=$(awk -v a="$start" -v b="$EPOCHREALTIME" 'BEGIN { printf "%d", (b - a) * 1000 }')
+
+    local rex_session="" rex_block="" claude_session="" caller_session="" caller_tab=""
+    if [ -f "$dir/run/$id.meta" ]; then
+        while IFS='=' read -r k v; do
+            case "$k" in
+                rex_session) rex_session=$v ;;
+                rex_block) rex_block=$v ;;
+                claude_session) claude_session=$v ;;
+            esac
+        done <"$dir/run/$id.meta"
+    fi
+
+    local out="$dir/run/$id.out" first="" outmeta="" count=""
+    [ -s "$out" ] && first=$(head -c1 "$out")
+    if ((rc == 0)); then
+        [ "$first" = "{" ] && outmeta=$(jq -r "$meta_jq" "$out" 2>/dev/null)
+        [ "$first" = "[" ] && count=$(jq 'length' "$out" 2>/dev/null)
+    fi
+
+    # 调用方拿到 rc 后会删掉 run/<id>.*，需要的输出元数据要在这之前取完
     echo "$rc" >"$dir/run/$id.rc.tmp" && mv "$dir/run/$id.rc.tmp" "$dir/run/$id.rc"
-    printf '%s  op %s  rc=%s\n' "$(date '+%H:%M:%S')" "${args[0]:-}" "$rc"
+
+    local sub acct vault ref fields title runcmd
+    local -a assigns redacted pos
+    local item_id="" item_title="" item_vault="" item_category=""
+    parse_args "${args[@]}"
+    ((rc == 0)) && resolve_item "$outmeta"
+    [ "$sub" = "item create" ] && [ -z "$item_title" ] && item_title=$title
+    [ "$sub" = read ] && [ -z "$item_title" ] && { item_title=$ref; item_vault=$vault; }
+    caller_label "$rex_session" "$rex_block"
+
+    jq -nc \
+        --arg ts "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" \
+        --arg sub "$sub" --arg account "$acct" \
+        --arg vault "${item_vault:-$vault}" --arg item "$item_title" --arg item_id "$item_id" --arg ref "$ref" --arg category "$item_category" \
+        --arg fields "$fields" --arg assigned "$(IFS=,; echo "${assigns[*]}")" --arg run "$runcmd" --arg count "$count" \
+        --argjson rc "$rc" --argjson ms "${ms:-0}" \
+        --arg cwd "$cwd" --arg caller_session "$caller_session" --arg caller_tab "$caller_tab" --arg rex_block "$rex_block" --arg claude_session "$claude_session" \
+        '{ts: $ts, op: $sub, account: $account, vault: $vault, item: $item, item_id: $item_id, ref: $ref, category: $category,
+          fields: $fields, assigned: $assigned, run: $run, count: ($count | tonumber? // null), rc: $rc, ms: $ms,
+          caller: {session: $caller_session, tab: $caller_tab, rex_block: $rex_block, claude_session: $claude_session, cwd: $cwd},
+          args: $ARGS.positional}
+         | .caller |= with_entries(select(.value != ""))
+         | with_entries(select(.value != "" and .value != null and .value != []))' \
+        --args -- "${redacted[@]}" >>"$dir/audit/$(date '+%Y-%m').jsonl"
+
+    local what="${item_vault:-$vault}"
+    [ -n "$item_title" ] && what="${what:+$what/}$item_title"
+    [ -n "$fields" ] && what="$what [$fields]"
+    [ -n "$count" ] && what="${what:+$what }$count 条"
+    [ -n "$runcmd" ] && what="-> $runcmd"
+    printf '%s  %s  op %s  %s  rc=%s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "${caller_tab:-${cwd##*/}}" "$sub" "$what" "$rc"
 }
 
 remember_account() {
@@ -39,13 +177,13 @@ remember_account() {
     [ -n "$acct" ] && ! grep -qxF -- "$acct" "$dir/accounts" && echo "$acct" >>"$dir/accounts"
 }
 
-echo "op-broker 已启动，请求目录 $dir。第一次请求或授权过期时会弹 Touch ID。"
+echo "op-broker 已启动，请求目录 $dir，操作日志 $dir/audit/。第一次请求或授权过期时会弹 Touch ID。"
 while :; do
     now=$(date +%s)
     for f in "$dir"/req/*.args; do
         [ -e "$f" ] || break
         id=$(basename "$f" .args)
-        for ext in in cwd; do
+        for ext in in cwd meta; do
             [ -f "$dir/req/$id.$ext" ] && mv "$dir/req/$id.$ext" "$dir/run/$id.$ext"
         done
         mv "$f" "$dir/run/$id.args" || continue

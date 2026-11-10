@@ -13,6 +13,9 @@ timeout=${OPX_TIMEOUT:-300}
 alive() { [ -f "$dir/pid" ] && kill -0 "$(<"$dir/pid")" 2>/dev/null; }
 
 if ! alive; then
+    rex session ls --json 2>/dev/null | jq -r '.. | objects | select(has("session_id") and .label == "op-broker") | .session_id' | while read -r s; do
+        rex session kill "$s" >/dev/null 2>&1
+    done
     rex new op-broker --window op-broker -- "$here/op-broker" >/dev/null || {
         echo "opx: 无法在 Rex 启动 op-broker" >&2
         exit 1
@@ -36,6 +39,7 @@ if [ -p /dev/stdin ] || [ -f /dev/stdin ]; then
     cat >"$req.in"
 fi
 pwd >"$req.cwd"
+printf 'rex_session=%s\nrex_block=%s\nclaude_session=%s\n' "${REX_SESSION:-}" "${REX_BLOCK:-}" "${CLAUDE_CODE_SESSION_ID:-}" >"$req.meta"
 printf '%s\0' "$@" >"$req.tmp" && mv "$req.tmp" "$req.args"
 
 deadline=$(($(date +%s) + timeout))

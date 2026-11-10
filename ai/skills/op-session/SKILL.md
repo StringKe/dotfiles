@@ -23,4 +23,6 @@ description: agent 调用 1Password CLI 的方式：所有 op 命令（item list
 - 调用方的环境变量不会带过去。`op run` 要用的变量写进 `--env-file`，或写成 `op run -- env K=V <命令>`。
 - 默认等 300 秒，等不到返回 124，通常是 Touch ID 没按，用 `rex capture` 看会话 `op-broker`。超时可用环境变量 `OPX_TIMEOUT` 调整。
 - 请求文件在 `~/.local/state/op-broker`（权限 700），执行完即删。
+- 操作日志在 `~/.local/state/op-broker/audit/<YYYY-MM>.jsonl`，一条请求一行：时刻（UTC）、子命令、账号、vault、条目标题与 ID、读取或写入的字段名、`op run` 的命令名、退出码、耗时，以及调用方的 Rex 会话、tab、Claude 会话 ID 与工作目录。字段值、赋值参数的值、`op run` 的命令参数、stdin 与输出都不记。按条目查：`jq -c 'select(.item == "<标题>")' ~/.local/state/op-broker/audit/*.jsonl`。
+- Rex 会话 `op-broker` 的屏幕上一行一条请求：本地日期与时刻、调用方 tab、子命令、vault/条目 [字段]、退出码。
 - 不要关闭 Rex 会话 `op-broker`。关掉后下次调用会重新启动，并要求重新授权。
