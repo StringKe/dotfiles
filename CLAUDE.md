@@ -2,17 +2,24 @@
 
 本仓库是 macOS 开发环境的配置模板，面向用户的说明在 README.md。本文件给 AI：角色边界、部署流程、每个文件部署到哪、各项设计约束。
 
-## 仓库与部署产物
+## 仓库结构
 
-仓库里的文件是模板。`bin/deploy.sh` 把它们复制到 home，`zsh/zshenv` 和 `templates/mise_config.toml` 复制时替换占位符。用户 shell 读的是 home 里的部署产物，不读仓库。
+顶层四个目录，各对应一种部署方式：
+
+| 目录 | 内容 | 怎么部署 |
+|---|---|---|
+| `bin/` | 脚本，总入口是 `bin/setup.sh` | `setup.sh` 按模块调用其余脚本 |
+| `brew/` | 各模块的软件清单 `<模块>.Brewfile` | `setup.sh` 对选中的模块跑 `brew bundle` |
+| `config/` | shell 与工具配置，每个工具一个目录 | `bin/deploy.sh` 复制到 home |
+| `ai/` | claude-code 与 opencode 的全局提示词、设置、hooks、agents、skills、插件、MCP | `bin/setup-ai.sh` 符号链接到 home，设置深合并，MCP 注册到 user 级 |
+
+`config/` 里的文件是模板，`zsh/zshenv` 和 `mise/mise_config.toml` 复制时替换占位符。用户 shell 读的是 home 里的部署产物，不读仓库。模板头注释里写的路径相对 `config/`。
 
 三处例外直接指向仓库：
 
-- `git/config`：`~/.gitconfig` 用 `[include]` 引用，改了立即对所有机器生效。
-- `ai/`：`bin/setup-ai.sh` 把全局提示词、agents、hooks、statusline、skills、插件和 opencode 配置符号链接到 home。编辑 `~/.claude/CLAUDE.md` 等于改仓库，其他会话的改动会出现在本仓库的 `git status` 里。
-- `debug/profile.zsh`：`ZSH_PROFILE=1` 时由 `~/.zshenv` 直接从仓库 source。
-
-安装与配置的总入口是 `bin/setup.sh`，按模块调用 `brew bundle`、`deploy.sh`、`setup-ai.sh` 等脚本。
+- `config/git/config`：`~/.gitconfig` 用 `[include]` 引用，改了立即对所有机器生效。
+- `ai/`：编辑 `~/.claude/CLAUDE.md` 这类链接等于改仓库，其他会话的改动会出现在本仓库的 `git status` 里。
+- `config/zsh/profiler.zsh`：`ZSH_PROFILE=1` 时由 `~/.zshenv` 直接从仓库 source。
 
 ## 角色边界（HARD RULES）
 
@@ -39,7 +46,7 @@
 
 用户明确说「修改仓库」「添加功能」「提交」时。可以改模板、脚本、文档；用户说「提交」后再 commit / push。
 
-禁止：把部署版绝对路径写回模板（保留 `__STORAGE_ROOT__` / `__DOTFILES_ROOT__`）；在模板里写本机信息（见「敏感信息」）；把 `~/.zsh_secrets` 的内容写回 `templates/zsh_secrets.template`。
+禁止：把部署版绝对路径写回模板（保留 `__STORAGE_ROOT__` / `__DOTFILES_ROOT__`）；在模板里写本机信息（见「敏感信息」）；把 `~/.zsh_secrets` 的内容写回 `config/zsh/zsh_secrets.template`。
 
 ## 部署流程（CONSUMER）
 
@@ -65,16 +72,17 @@ AI 运行时 stdin 不是终端：`setup.sh` 不进选择界面，要用 `--modu
 
 | 仓库文件 | 部署到 | 覆盖策略 | 改动后要跑 |
 |---|---|---|---|
-| `zsh/zshenv` | `~/.zshenv` | init / sync 覆盖，替换占位符 | `bin/deploy.sh sync` |
-| `zsh/zshrc`、`zsh/zprofile`、`init.zsh` | `~/.zshrc`、`~/.zprofile`、`~/.zsh/init.zsh` | init / sync 覆盖 | `bin/deploy.sh sync` |
-| `zsh/zimrc` | `~/.zimrc` | init / sync 覆盖 | `bin/deploy.sh sync` + `zimfw install` |
-| `templates/mise_config.toml` | `~/.config/mise/config.toml` | 只有 init 覆盖，替换占位符 | `bin/setup.sh --storage-root <ROOT>` |
-| `templates/zsh_secrets.template` | `~/.zsh_secrets` | 只在不存在时复制，权限 600 | 对比变量名，缺的让用户补，不输出值 |
-| `rex/themes/*`、`btop/themes/*`、`infat/config.toml` | `~/.config/` 对应路径 | init / sync 覆盖 | `bin/deploy.sh sync`；infat 再跑 `bin/apply-file-associations.sh` |
-| `rex/workspace.defaults` | defaults 域 `com.superlogical.rex` 的 `Workspace.*` | 每次覆盖 | `bin/apply-rex-defaults.sh`，重启 Rex |
-| `starship/`、`btop/btop.conf`、`yazi/`、`atuin/`、`bat/`、`ripgrep/`、`git/ignore` | `~/.config/` 对应路径 | 只在不存在时复制；不同时 sync 提示 `differs` | `bin/deploy.sh sync` |
-| `vscode/settings.json` | VS Code 用户 settings.json | init 时 jq 深合并（本机字段保留，同名键以仓库为准）；本机文件含注释时列出要手工同步的键 | `bin/setup.sh --storage-root <ROOT>` |
-| `git/config` | `~/.gitconfig` 的 `[include]` | 不复制 | 无 |
+| `config/zsh/zshenv` | `~/.zshenv` | init / sync 覆盖，替换占位符 | `bin/deploy.sh sync` |
+| `config/zsh/zshrc`、`zprofile`、`init.zsh` | `~/.zshrc`、`~/.zprofile`、`~/.zsh/init.zsh` | init / sync 覆盖 | `bin/deploy.sh sync` |
+| `config/zsh/zimrc` | `~/.zimrc` | init / sync 覆盖 | `bin/deploy.sh sync` + `zimfw install` |
+| `config/zsh/zsh_secrets.template` | `~/.zsh_secrets` | 只在不存在时复制，权限 600 | 对比变量名，缺的让用户补，不输出值 |
+| `config/zsh/profiler.zsh` | 不部署，`~/.zshenv` 从仓库 source | 无 | 无 |
+| `config/mise/mise_config.toml` | `~/.config/mise/config.toml` | 只有 init 覆盖，替换占位符 | `bin/setup.sh --storage-root <ROOT>` |
+| `config/rex/themes/*`、`config/btop/themes/*`、`config/infat/config.toml` | `~/.config/` 对应路径 | init / sync 覆盖 | `bin/deploy.sh sync`；infat 再跑 `bin/apply-file-associations.sh` |
+| `config/rex/workspace.defaults` | defaults 域 `com.superlogical.rex` 的 `Workspace.*` | 每次覆盖 | `bin/apply-rex-defaults.sh`，重启 Rex |
+| `config/` 下的 `starship/`、`btop/btop.conf`、`yazi/`、`atuin/`、`bat/`、`ripgrep/`、`git/ignore` | `~/.config/` 对应路径 | 只在不存在时复制；不同时 sync 提示 `differs` | `bin/deploy.sh sync` |
+| `config/vscode/settings.json` | VS Code 用户 settings.json | init 时 jq 深合并（本机字段保留，同名键以仓库为准）；本机文件含注释时列出要手工同步的键 | `bin/setup.sh --storage-root <ROOT>` |
+| `config/git/config` | `~/.gitconfig` 的 `[include]` | 不复制；init / sync 把指向旧位置 `git/config` 的引用原位改过来 | 无 |
 | `brew/<模块>.Brewfile` | `brew bundle` 直接读 | 按选中的模块安装 | `bin/setup.sh`；新模块还要加进 `setup.sh` 的 `MODULES` |
 | `ai/AGENTS.md` | `~/.claude/CLAUDE.md`、`~/.config/opencode/AGENTS.md` | 符号链接 | 无 |
 | `ai/claude/agents/*`、`hooks/*`、`statusline-command.sh` | `~/.claude/` 同名路径 | 符号链接 | 增删文件时 `bin/setup-ai.sh` |
@@ -91,13 +99,13 @@ AI 运行时 stdin 不是终端：`setup.sh` 不进选择界面，要用 `--modu
 
 加载顺序：`~/.zshenv`（所有 shell：环境变量、PATH、source `~/.zsh_secrets`）-> `~/.zprofile`（登录 shell：brew shellenv 后恢复 PATH，非交互用 mise shims）-> `~/.zshrc`（交互 shell：zimfw 引导，再 source `~/.zsh/init.zsh`）。
 
-- PATH 只在 `zsh/zshenv` 的 `_dotfiles_setup_path` 维护。`~/.zprofile` 在 `path_helper` 和 `brew shellenv` 之后再调一次，否则登录 shell 会把 `/usr/bin` 排到 keg-only 前面。
+- PATH 只在 `config/zsh/zshenv` 的 `_dotfiles_setup_path` 维护。`~/.zprofile` 在 `path_helper` 和 `brew shellenv` 之后再调一次，否则登录 shell 会把 `/usr/bin` 排到 keg-only 前面。
 - PATH 顺序（先到的赢）：用户 CLI 与语言目录 -> 必须盖住系统的 keg-only（ffmpeg-full、mysql-client、macos-trash、libpq、curl、sqlite、icu4c）-> `$HOMEBREW_PREFIX/bin` -> 系统路径 -> llvm、ncurses、libarchive 和 Vite+ `bin`（只为 `vp`，它的 node / npm shim 不能盖住 mise）。
 - coreutils 的 gnubin 不放在 `/usr/bin` 前面：GNU 的 stat / date / mktemp 会让 opencode 的安装脚本失败。
 - `JAVA_HOME` 由 mise 的 java 设置；python 走 mise / uv；llvm 不进全局 `LDFLAGS`。
 - 安装器往 `~/.zshrc` / `~/.zprofile` 追加的片段会在部署时被覆盖，需要的 PATH 加进 `_dotfiles_setup_path`。
 - Claude Code 的 Bash 工具用交互 zsh 的快照执行命令。`init.zsh` 检测到 `CLAUDECODE` 时关掉 `NOMATCH` / `EQUALS`、打开 `CLOBBER`，不让 zoxide 接管 `cd`，不设 `ls -> eza` 别名。改动只对新开的 Claude Code 会话生效。
-- mise 全局工具在 `templates/mise_config.toml`，`init` 会覆盖本机 `mise use -g` 的改动；项目专用版本写进项目的 `mise.toml`。
+- mise 全局工具在 `config/mise/mise_config.toml`，`init` 会覆盖本机 `mise use -g` 的改动；项目专用版本写进项目的 `mise.toml`。这个文件不能改名叫 `config.toml`：mise 会自动加载当前目录与上级目录里的 `mise/config.toml`，仓库里的占位符还没替换。
 
 ## 占位符
 
@@ -110,7 +118,7 @@ AI 运行时 stdin 不是终端：`setup.sh` 不进选择界面，要用 `--modu
 
 ## Git 签名
 
-`git/config` 定义：SSH 签名（`gpg.format = ssh`，`gpg.ssh.program` 指向 1Password），`commit.gpgsign = true`，GitHub credential 走 `gh auth git-credential`，清空 `core.askPass`，`safe.directory = *`。`[user]` 身份和 `signingkey` 写在本机 `~/.gitconfig`，由 setup.sh 的 git 模块询问。
+`config/git/config` 定义：SSH 签名（`gpg.format = ssh`，`gpg.ssh.program` 指向 1Password），`commit.gpgsign = true`，GitHub credential 走 `gh auth git-credential`，清空 `core.askPass`，`safe.directory = *`。`[user]` 身份和 `signingkey` 写在本机 `~/.gitconfig`，由 setup.sh 的 git 模块询问。
 
 agent 的每条命令都是新进程，经 1Password 签名会每次弹授权。本机有同一把 key 的私钥时，可在本机 `~/.gitconfig` 改 `gpg.ssh.program = ssh-keygen`、`user.signingkey = <私钥路径>`，并在 `~/.ssh/config` 的 `Host github.com` 设 `IdentityAgent none` 和 `IdentityFile`。这些只写本机文件。
 
@@ -120,19 +128,23 @@ agent 的每条命令都是新进程，经 1Password 签名会每次弹授权。
 
 | 工具 | 做法 |
 |---|---|
-| Rex | `rex/workspace.defaults` 选内置 `merino-light`；`rex/themes/GitHub Light Colorblind`（Ghostty 格式调色板）随部署复制，可在 Rex 设置里换用 |
+| Rex | `config/rex/workspace.defaults` 选内置 `merino-light`；`config/rex/themes/GitHub Light Colorblind`（Ghostty 格式调色板）随部署复制，可在 Rex 设置里换用 |
 | starship、bat、fzf、atuin | 不写死颜色，跟随终端 ANSI 配色 |
-| yazi | `yazi/theme.toml` 用 ANSI 颜色名 |
-| btop | `btop/themes/` 自带主题文件 |
+| yazi | `config/yazi/theme.toml` 用 ANSI 颜色名 |
+| btop | `config/btop/themes/` 自带主题文件 |
 | VS Code | `GitHub Light Colorblind (Beta)`，扩展经 Settings Sync 安装 |
 
 ## AI 配置
 
 - AI CLI 只装 claude-code 和 opencode v2（`bin/install-ai-cli.sh`，官方安装脚本）。grok-build 本机另装，仓库只负责加载它的 `~/.grok/privacy.env`。
-- 全局提示词只有 `ai/AGENTS.md` 一份，claude-code 与 opencode 都链接到它。个人 skill 放 `ai/skills/<名>/`，个人插件放 `ai/plugins/<名>/`。
+- 全局提示词只有 `ai/AGENTS.md` 一份，claude-code 与 opencode 都链接到它。个人 skill 放 `ai/skills/<名>/`，个人插件放 `ai/plugins/<名>/`，两边共用。
+- `ai/claude/` 只给 claude-code：`settings.json`（权限、模型、hooks 登记、`skillOverrides`、压缩与缓存）、`hooks/`、`agents/`、`statusline-command.sh`、`mcp.json`。`ai/opencode/` 只给 opencode：`opencode.jsonc`（MCP、权限、图片压缩）和 `tui.json`。
+- hook 脚本的头注释写明它挂在哪个事件、拦什么。新增 hook 要在 `ai/claude/settings.json` 的 `hooks` 里登记，再跑 `bin/setup-ai.sh` 建链接。
+- 自定义子代理两个：`Explore`（haiku，只读搜索）和 `researcher`（sonnet medium，读外部资料与大日志），都不带 CLAUDE.md。
+- `skillOverrides` 把很少用的 skill 设成 `name-only`：列表里只留名字，不带描述。第三方 skill 也在这里设。
 - MCP 两边保持同一组：context7、exa、gh_grep、openseo、truewatch、fingerprint、paper、slack。claude-code 的定义在 `ai/claude/mcp.json`，opencode 的在 `ai/opencode/opencode.jsonc` 的 `mcp` 段，改一边要同步另一边。rea 只在 opencode 里启用：claude-code 每个会话都要列出它的 170 个工具名，而它很少用到。
 - MCP 一律用 API key / token，不走 OAuth，也不装同名插件：多个会话同时刷新 OAuth token 时容易失效，导致反复要求登录。truewatch 用 `Authorization: Bearer <API Key>`；fingerprint 的托管端点只支持 OAuth，改用 mise 安装的本地 `fingerprint-mcp-server`（private 模式，`--region ap`）。slack 不用 claude.ai 的 Slack 连接器，用 mise 安装的本地 `slack-mcp-server`（korotovsky），以自建应用的 User OAuth Token（xoxp）按本人身份读写，发消息工具经 `SLACK_MCP_ADD_MESSAGE_TOOL` 打开。
-- 密钥只按变量名引用：claude-code 写 `${VAR}`，opencode 写 `{env:VAR}`。变量清单在 `templates/zsh_secrets.template`，值在 `~/.zsh_secrets`。缺密钥的 MCP 由 `setup-ai.sh` 跳过。
+- 密钥只按变量名引用：claude-code 写 `${VAR}`，opencode 写 `{env:VAR}`。变量清单在 `config/zsh/zsh_secrets.template`，值在 `~/.zsh_secrets`。缺密钥的 MCP 由 `setup-ai.sh` 跳过。
 - paper MCP 用 Paper 应用自带的 `~/.paper/bin/paper`；rea 的 Hopper 集成需要 `~/Applications/Hopper Disassembler.app`。
 - `~/.claude/settings.json` 的 `processWrapper` 是本机路径，不进仓库，合并时保留。
 - 第三方 skill 不进仓库：Rex 用 `rex skill setup`（setup-ai 会调用），ego-browser 链接到 ego lite 自带目录，lark / impeccable / reverse-engineer-anything 用各自的安装器。

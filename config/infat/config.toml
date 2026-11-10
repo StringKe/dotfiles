@@ -17,8 +17,7 @@
 # duti -x 查询会误报旧值，验证真实 handler 用 LSCopyDefaultRoleHandlerForContentType。
 #
 # 无扩展名文件（Brewfile 等）UTI 是 public.data，不能全局关联（会劫持所有未知
-# 类型文件），只能对单个文件写 com.apple.LaunchServices.OpenWith xattr，
-# 见 CLAUDE.md「部署流程」。
+# 类型文件），只能对单个文件写 com.apple.LaunchServices.OpenWith xattr。
 
 [extensions]
 json = "Visual Studio Code"

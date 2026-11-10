@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # [TOOL - DEPLOY ONLY] dotfiles 部署脚本
 #
-# 此脚本只读仓库，只写用户 home。绝不向仓库内写文件。
+# 此脚本只读仓库 config/ 下的模板，只写用户 home。绝不向仓库内写文件。
 # 任何运行此脚本的 AI 不得 git add / 不得在仓库新建文件 / 不得修改仓库现有文件。
 #
 # 用法:
@@ -12,6 +12,7 @@
 set -euo pipefail
 
 DOTFILES_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+CONFIG_ROOT="$DOTFILES_ROOT/config"
 
 log() { printf '  %s\n' "$*"; }
 err() { printf 'ERROR: %s\n' "$*" >&2; }
@@ -52,21 +53,21 @@ deploy_template() {
     mkdir -p "$(dirname "$dst")"
     sed -e "s|__STORAGE_ROOT__|$storage_root|g" \
         -e "s|__DOTFILES_ROOT__|$DOTFILES_ROOT|g" \
-        "$DOTFILES_ROOT/$src" >| "$dst"
+        "$CONFIG_ROOT/$src" >| "$dst"
     log "wrote   $dst"
 }
 
 deploy_copy() {
     local src=$1 dst=$2
     mkdir -p "$(dirname "$dst")"
-    cp "$DOTFILES_ROOT/$src" "$dst"
+    cp "$CONFIG_ROOT/$src" "$dst"
     log "wrote   $dst"
 }
 
 deploy_if_absent() {
     local src=$1 dst=$2
     if [[ -f $dst ]]; then
-        if cmp -s "$DOTFILES_ROOT/$src" "$dst"; then
+        if cmp -s "$CONFIG_ROOT/$src" "$dst"; then
             log "ok      $dst"
         else
             log "differs ${dst}（与仓库不同；要用仓库版先 trash 再跑 sync）"
@@ -74,7 +75,7 @@ deploy_if_absent() {
         return
     fi
     mkdir -p "$(dirname "$dst")"
-    cp "$DOTFILES_ROOT/$src" "$dst"
+    cp "$CONFIG_ROOT/$src" "$dst"
     log "wrote   $dst"
 }
 
@@ -84,7 +85,7 @@ deploy_zsh() {
     deploy_copy zsh/zshrc    "$HOME/.zshrc"
     deploy_copy zsh/zprofile "$HOME/.zprofile"
     deploy_copy zsh/zimrc    "$HOME/.zimrc"
-    deploy_copy init.zsh     "$HOME/.zsh/init.zsh"
+    deploy_copy zsh/init.zsh "$HOME/.zsh/init.zsh"
 }
 
 deploy_tool_configs() {
@@ -105,7 +106,7 @@ deploy_tool_configs() {
 }
 
 deploy_vscode_settings() {
-    local src="$DOTFILES_ROOT/vscode/settings.json"
+    local src="$CONFIG_ROOT/vscode/settings.json"
     local dst="$HOME/Library/Application Support/Code/User/settings.json"
     if [[ ! -d "/Applications/Visual Studio Code.app" ]]; then
         log "skip    VS Code 设置（未安装 VS Code）"
@@ -128,8 +129,16 @@ deploy_vscode_settings() {
     fi
 }
 
+# 早先部署的机器引用的是 git/config：原位改到 config/git/config，[include] 留在本机覆盖项之前
+relocate_gitconfig_include() {
+    local old="$DOTFILES_ROOT/git/config" gitconfig="$HOME/.gitconfig"
+    [[ -f $gitconfig ]] && grep -qF "path = $old" "$gitconfig" || return 0
+    git config --global --fixed-value --replace-all include.path "$CONFIG_ROOT/git/config" "$old"
+    log "moved   ~/.gitconfig [include] -> $CONFIG_ROOT/git/config"
+}
+
 setup_gitconfig() {
-    local include_path="$DOTFILES_ROOT/git/config"
+    local include_path="$CONFIG_ROOT/git/config"
     local gitconfig="$HOME/.gitconfig"
     if [[ ! -f $gitconfig ]]; then
         cat >| "$gitconfig" <<EOF
@@ -141,7 +150,7 @@ EOF
         return
     fi
     if grep -qF "path = $include_path" "$gitconfig"; then
-        log "ok      ~/.gitconfig ([include] 已指向仓库 git/config)"
+        log "ok      ~/.gitconfig ([include] 已指向仓库 config/git/config)"
     else
         cat >> "$gitconfig" <<EOF
 
@@ -163,13 +172,14 @@ cmd_init() {
     log ""
 
     deploy_zsh "$storage_root"
-    deploy_template templates/mise_config.toml "$HOME/.config/mise/config.toml" "$storage_root"
+    deploy_template mise/mise_config.toml "$HOME/.config/mise/config.toml" "$storage_root"
     deploy_tool_configs
     deploy_vscode_settings
+    relocate_gitconfig_include
     setup_gitconfig
 
     if [[ ! -f $HOME/.zsh_secrets ]]; then
-        cp "$DOTFILES_ROOT/templates/zsh_secrets.template" "$HOME/.zsh_secrets"
+        cp "$CONFIG_ROOT/zsh/zsh_secrets.template" "$HOME/.zsh_secrets"
         chmod 600 "$HOME/.zsh_secrets"
         log "wrote   ~/.zsh_secrets（模板，编辑填入实际值）"
     else
@@ -214,10 +224,11 @@ cmd_init() {
 cmd_sync() {
     local storage_root
     storage_root=$(sed -n 's|^export CODE_LANGUAGES_HOME="\(.*\)/Languages"$|\1|p' "$HOME/.zshenv" 2>/dev/null || true)
-    [[ -z $storage_root ]] && { err "~/.zshenv 里读不到 CODE_LANGUAGES_HOME，先跑 init <STORAGE_ROOT>"; exit 1; }
+    [[ -z $storage_root ]] && { err "读不到 ~/.zshenv 里的 CODE_LANGUAGES_HOME，先跑 init <STORAGE_ROOT>"; exit 1; }
 
     deploy_zsh "$storage_root"
     deploy_tool_configs
+    relocate_gitconfig_include
     log "重开终端或 exec zsh 生效"
 }
 
@@ -255,8 +266,8 @@ cmd_check() {
         log "FAIL   ~/.zsh_secrets 权限不是 600"
         errors=$((errors + 1))
     fi
-    if [[ -f $HOME/.gitconfig ]] && ! grep -qF "path = $DOTFILES_ROOT/git/config" "$HOME/.gitconfig"; then
-        log "WARN   ~/.gitconfig 未通过 [include] 引用 $DOTFILES_ROOT/git/config"
+    if [[ -f $HOME/.gitconfig ]] && ! grep -qF "path = $CONFIG_ROOT/git/config" "$HOME/.gitconfig"; then
+        log "WARN   ~/.gitconfig 未通过 [include] 引用 $CONFIG_ROOT/git/config"
     fi
 
     # AI 配置（bin/setup-ai.sh 负责部署）；bin/setup.sh 记录的模块里没有 ai 时跳过

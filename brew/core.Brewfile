@@ -28,7 +28,7 @@ brew "sevenzip"        # 7z 压缩
 
 # Git
 brew "git"
-brew "gh"              # GitHub CLI，git/config 的 credential helper
+brew "gh"              # GitHub CLI，config/git/config 的 credential helper
 brew "pre-commit"      # Git hooks（本仓库用它跑 gitleaks）
 
 # 运行时与环境

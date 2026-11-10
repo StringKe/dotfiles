@@ -22,7 +22,7 @@ log() { printf '  %s\n' "$*"; }
 
 if [[ ! -f $INFAT_CONFIG ]]; then
     mkdir -p "$(dirname "$INFAT_CONFIG")"
-    cp "$DOTFILES_ROOT/infat/config.toml" "$INFAT_CONFIG"
+    cp "$DOTFILES_ROOT/config/infat/config.toml" "$INFAT_CONFIG"
     log "wrote $INFAT_CONFIG"
 fi
 

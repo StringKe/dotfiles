@@ -52,7 +52,7 @@ bin/setup.sh --storage-root <路径>      # 换存储根
 
 ## 需要自己准备的
 
-- **MCP 密钥**：照 `templates/zsh_secrets.template` 把 context7、exa、openseo、truewatch、fingerprint、slack 的 key 填进 `~/.zsh_secrets`，再跑 `bin/setup.sh --modules ai`。没填的 MCP 会跳过。
+- **MCP 密钥**：照 `config/zsh/zsh_secrets.template` 把 context7、exa、openseo、truewatch、fingerprint、slack 的 key 填进 `~/.zsh_secrets`，再跑 `bin/setup.sh --modules ai`。没填的 MCP 会跳过。
 - **git 签名**：commit 默认用 1Password 里的 SSH key 签名，需在 1Password 设置 -> Developer 打开 SSH agent。
 - **Rex**：外观设置要重启 Rex 才生效。
 - **paper / rea MCP**：分别要先装 Paper 和 Hopper Disassembler；rea 只在 opencode 里启用。
@@ -83,15 +83,11 @@ bin/setup.sh --storage-root <路径>      # 换存储根
 ## 目录
 
 ```
-bin/setup.sh            安装向导（按模块）
-bin/deploy.sh           部署 zsh 与工具配置：init / sync / check
-bin/setup-ai.sh         部署 AI 配置并注册 MCP
-brew/*.Brewfile         各模块的软件清单
-ai/                     AI 配置（全局提示词、claude 与 opencode 配置、skills、插件），链接到 ~
-zsh/ init.zsh           zsh 入口与交互式配置
-templates/              mise 全局配置、密钥模板
-rex/ starship/ yazi/ atuin/ bat/ btop/ ripgrep/ infat/ vscode/ git/   各工具配置
-CLAUDE.md               给 AI 的规则：部署流程、每个文件部署到哪、各项设计说明
+bin/        脚本：setup.sh 安装向导，deploy.sh 部署 shell 与工具配置（init / sync / check），setup-ai.sh 部署 AI 配置并注册 MCP
+brew/       各模块的软件清单
+config/     shell 与工具配置，每个工具一个目录：zsh、mise、git、rex、starship、yazi、atuin、bat、btop、ripgrep、infat、vscode
+ai/         AI 配置：全局提示词，claude-code 与 opencode 的设置、hooks、agents、skills、插件、MCP，链接到 ~
+CLAUDE.md   给 AI 的规则：部署流程、每个文件部署到哪、各项设计说明
 ```
 
 ## 修改

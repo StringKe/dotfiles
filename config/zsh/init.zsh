@@ -1,5 +1,5 @@
 # ============================================================
-# [TEMPLATE] init.zsh - 交互式 shell 全部配置
+# [TEMPLATE] zsh/init.zsh - 交互式 shell 全部配置
 #
 # 部署目标: ~/.zsh/init.zsh（bin/deploy.sh init / sync 复制），由 ~/.zshrc 末尾 source。
 # 别名 / 函数 / 工具激活 / fzf-tab zstyle / prompt 全在此。

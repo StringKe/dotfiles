@@ -169,4 +169,4 @@ if command -v pre-commit >/dev/null 2>&1; then
 fi
 
 log ""
-log "MCP 的 key / token 按 templates/zsh_secrets.template 在 ~/.zsh_secrets 填写"
+log "MCP 的 key / token 按 config/zsh/zsh_secrets.template 在 ~/.zsh_secrets 填写"

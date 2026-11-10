@@ -1,7 +1,7 @@
-# [TEMPLATE] templates/mise_config.toml
+# [TEMPLATE] mise/mise_config.toml
 # 部署目标: ~/.config/mise/config.toml（bin/deploy.sh init 替换存储根占位符后覆盖写入）
 #
-# - 放在 templates/ 而非仓库根，避免 mise 在 dotfiles 目录自动加载未替换的占位符。
+# - 文件名不能叫 config.toml：mise 会自动加载当前目录与上级目录里的 mise/config.toml，仓库里的占位符还没替换。
 # - [tools] 以本模板为准，init 会覆盖本机 mise use -g 的改动；项目专用版本写在项目的 mise.toml。
 
 [tools]

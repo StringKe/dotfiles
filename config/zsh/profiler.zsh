@@ -1,7 +1,7 @@
 # ============================================================
-# [DEBUG TOOL] debug/profile.zsh - zsh 启动 profile 调试模块
+# [DEBUG TOOL] zsh/profiler.zsh - zsh 启动 profile 调试模块
 #
-# 不部署。由 ~/.zshenv 在 ZSH_PROFILE=1 时按 $DOTFILES_ROOT/debug/profile.zsh source。
+# 不部署。由 ~/.zshenv 在 ZSH_PROFILE=1 时按 $DOTFILES_ROOT/config/zsh/profiler.zsh source。
 # 平时关闭，无开销。
 #
 # 用法（临时，用完关闭）：
@@ -17,7 +17,7 @@
 #   [prof-pre]  每次命令完成后 precmd 链路总耗时 + 每个 precmd hook 单独耗时
 #   [prof-exec] 每次命令执行前 preexec 链路总耗时（一般很快，除非有特殊 hook）
 #
-# 此文件仅在 ZSH_PROFILE=1 时被 init.zsh source；无 perf 副作用。
+# 此文件仅在 ZSH_PROFILE=1 时被 ~/.zshenv source；无 perf 副作用。
 # ============================================================
 
 zmodload zsh/datetime
@@ -114,4 +114,4 @@ _prof_install_wrappers() {
 autoload -Uz add-zsh-hook
 add-zsh-hook precmd _prof_install_wrappers
 
-_prof "profile.zsh loaded (wrappers will install on first precmd)"
+_prof "profiler.zsh loaded (wrappers will install on first precmd)"

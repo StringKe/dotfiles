@@ -9,24 +9,24 @@
 # ============================================================
 
 # ============================================================
-# 仓库路径（debug/profile.zsh 从仓库直接 source）
+# 仓库路径（config/zsh/profiler.zsh 从仓库直接 source）
 # ============================================================
 export DOTFILES_ROOT="__DOTFILES_ROOT__"
 
 # ============================================================
 # Profile 调试（ZSH_PROFILE=1 启用，平时无任何开销）
-# 详见 debug/profile.zsh 顶部用法
+# 详见 config/zsh/profiler.zsh 顶部用法
 # 真值判断：(( )) 算术求值，ZSH_PROFILE=0 或 unset 均关闭。
 # 不能用 [[ -n $ZSH_PROFILE ]]——"0" 是非空字符串会误判为开启。
 # ============================================================
-if (( ${ZSH_PROFILE:-0} )) && [[ -f $DOTFILES_ROOT/debug/profile.zsh ]]; then
-    source $DOTFILES_ROOT/debug/profile.zsh
+if (( ${ZSH_PROFILE:-0} )) && [[ -f $DOTFILES_ROOT/config/zsh/profiler.zsh ]]; then
+    source $DOTFILES_ROOT/config/zsh/profiler.zsh
     _prof "zshenv start (after DOTFILES_ROOT)"
 fi
 
 # ============================================================
 # 存储根：仓库内为占位符，部署时由 bin/deploy.sh 替换为绝对路径。
-# 固定子目录：Code/、Languages/。换位置见 CLAUDE.md「数据迁移」
+# 固定子目录：Code/、Languages/。换位置见 CLAUDE.md「部署流程」的「换存储位置」
 # ============================================================
 export CODE_LANGUAGES_HOME="__STORAGE_ROOT__/Languages"
 

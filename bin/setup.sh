@@ -253,4 +253,4 @@ else
     run_zsh "'$DOTFILES_ROOT/bin/deploy.sh' check" || log "check 有 FAIL 项，按提示处理后重跑 bin/setup.sh"
 fi
 
-step "完成。新开终端加载新环境；MCP 的 key / token 按 templates/zsh_secrets.template 填进 ~/.zsh_secrets 后重跑 bin/setup.sh --modules ai"
+step "完成。新开终端加载新环境；MCP 的 key / token 按 config/zsh/zsh_secrets.template 填进 ~/.zsh_secrets 后重跑 bin/setup.sh --modules ai"
