@@ -3,9 +3,11 @@
   "env": {
     "ENABLE_TOOL_SEARCH": "true",
     "CLAUDE_CODE_DISABLE_ARTIFACT": "1",
-    "CLAUDE_CODE_DISABLE_ADVISOR_TOOL": "1",
-    "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "500000"
+    "CLAUDE_CODE_DISABLE_ADVISOR_TOOL": "1"
   },
+  "autoCompactWindow": 500000,
+  "promptCacheTtl": "1h",
+  "includeGitInstructions": false,
   "attribution": {
     "commit": "",
     "pr": ""
@@ -25,7 +27,46 @@
     "anthropic-skills:built-in-browser": "off",
     "anthropic-skills:chrome-browser": "off",
     "anthropic-skills:computer-use": "off",
-    "anthropic-skills:docs": "off"
+    "anthropic-skills:docs": "off",
+    "code-review": "name-only",
+    "context7-mcp": "name-only",
+    "dataviz": "name-only",
+    "fewer-permission-prompts": "name-only",
+    "impeccable": "name-only",
+    "init": "name-only",
+    "keybindings-help": "name-only",
+    "lark-approval": "name-only",
+    "lark-apps": "name-only",
+    "lark-attendance": "name-only",
+    "lark-base": "name-only",
+    "lark-calendar": "name-only",
+    "lark-contact": "name-only",
+    "lark-doc": "name-only",
+    "lark-drive": "name-only",
+    "lark-event": "name-only",
+    "lark-mail": "name-only",
+    "lark-markdown": "name-only",
+    "lark-meeting": "name-only",
+    "lark-minutes": "name-only",
+    "lark-note": "name-only",
+    "lark-okr": "name-only",
+    "lark-openapi-explorer": "name-only",
+    "lark-sheets": "name-only",
+    "lark-skill-maker": "name-only",
+    "lark-slides": "name-only",
+    "lark-task": "name-only",
+    "lark-vc": "name-only",
+    "lark-vc-agent": "name-only",
+    "lark-whiteboard": "name-only",
+    "lark-wiki": "name-only",
+    "lark-workflow-meeting-summary": "name-only",
+    "lark-workflow-standup-report": "name-only",
+    "plugin-authoring": "name-only",
+    "reverse-engineer-anything": "name-only",
+    "run": "name-only",
+    "security-review": "name-only",
+    "simplify": "name-only",
+    "update-config": "name-only"
   },
   "hooks": {
     "SessionStart": [
@@ -95,6 +136,17 @@
             "type": "command",
             "command": "~/.claude/hooks/guard-reply.sh",
             "timeout": 15
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/compact-instructions.sh",
+            "timeout": 5
           }
         ]
       }
