@@ -82,6 +82,22 @@
                 "mcp"
             ],
             "enabled": true
+        },
+        "slack": {
+            "type": "local",
+            "command": [
+                "slack-mcp-server",
+                "--transport",
+                "stdio"
+            ],
+            "enabled": true,
+            "environment": {
+                "SLACK_MCP_XOXP_TOKEN": "{env:SLACK_MCP_XOXP_TOKEN}",
+                "SLACK_MCP_ADD_MESSAGE_TOOL": "true",
+                "SLACK_MCP_ADD_MESSAGE_MARK": "true",
+                "SLACK_MCP_USERS_CACHE": "{env:HOME}/.cache/slack-mcp/users_cache.json",
+                "SLACK_MCP_CHANNELS_CACHE": "{env:HOME}/.cache/slack-mcp/channels_cache_v2.json"
+            }
         }
     }
 }

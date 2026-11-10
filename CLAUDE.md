@@ -130,8 +130,8 @@ agent 的每条命令都是新进程，经 1Password 签名会每次弹授权。
 
 - AI CLI 只装 claude-code 和 opencode v2（`bin/install-ai-cli.sh`，官方安装脚本）。grok-build 本机另装，仓库只负责加载它的 `~/.grok/privacy.env`。
 - 全局提示词只有 `ai/AGENTS.md` 一份，claude-code 与 opencode 都链接到它。个人 skill 放 `ai/skills/<名>/`，个人插件放 `ai/plugins/<名>/`。
-- MCP 两边保持同一组：context7、exa、gh_grep、openseo、truewatch、fingerprint、rea、paper。claude-code 的定义在 `ai/claude/mcp.json`，opencode 的在 `ai/opencode/opencode.jsonc` 的 `mcp` 段，改一边要同步另一边。
-- MCP 一律用 API key / token，不走 OAuth，也不装同名插件：多个会话同时刷新 OAuth token 时容易失效，导致反复要求登录。truewatch 用 `Authorization: Bearer <API Key>`；fingerprint 的托管端点只支持 OAuth，改用 mise 安装的本地 `fingerprint-mcp-server`（private 模式，`--region ap`）。
+- MCP 两边保持同一组：context7、exa、gh_grep、openseo、truewatch、fingerprint、rea、paper、slack。claude-code 的定义在 `ai/claude/mcp.json`，opencode 的在 `ai/opencode/opencode.jsonc` 的 `mcp` 段，改一边要同步另一边。
+- MCP 一律用 API key / token，不走 OAuth，也不装同名插件：多个会话同时刷新 OAuth token 时容易失效，导致反复要求登录。truewatch 用 `Authorization: Bearer <API Key>`；fingerprint 的托管端点只支持 OAuth，改用 mise 安装的本地 `fingerprint-mcp-server`（private 模式，`--region ap`）。slack 不用 claude.ai 的 Slack 连接器，用 mise 安装的本地 `slack-mcp-server`（korotovsky），以自建应用的 User OAuth Token（xoxp）按本人身份读写，发消息工具经 `SLACK_MCP_ADD_MESSAGE_TOOL` 打开。
 - 密钥只按变量名引用：claude-code 写 `${VAR}`，opencode 写 `{env:VAR}`。变量清单在 `templates/zsh_secrets.template`，值在 `~/.zsh_secrets`。缺密钥的 MCP 由 `setup-ai.sh` 跳过。
 - paper MCP 用 Paper 应用自带的 `~/.paper/bin/paper`；rea 的 Hopper 集成需要 `~/Applications/Hopper Disassembler.app`。
 - `~/.claude/settings.json` 的 `processWrapper` 是本机路径，不进仓库，合并时保留。

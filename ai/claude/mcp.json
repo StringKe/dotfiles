@@ -52,5 +52,17 @@
     "type": "stdio",
     "command": "${HOME}/.paper/bin/paper",
     "args": ["mcp"]
+  },
+  "slack": {
+    "type": "stdio",
+    "command": "slack-mcp-server",
+    "args": ["--transport", "stdio"],
+    "env": {
+      "SLACK_MCP_XOXP_TOKEN": "${SLACK_MCP_XOXP_TOKEN}",
+      "SLACK_MCP_ADD_MESSAGE_TOOL": "true",
+      "SLACK_MCP_ADD_MESSAGE_MARK": "true",
+      "SLACK_MCP_USERS_CACHE": "${HOME}/.cache/slack-mcp/users_cache.json",
+      "SLACK_MCP_CHANNELS_CACHE": "${HOME}/.cache/slack-mcp/channels_cache_v2.json"
+    }
   }
 }
