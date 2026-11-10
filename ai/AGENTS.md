@@ -68,7 +68,7 @@
 - 盯守和前后对比前先写清触发什么动作、多少样本能下结论；得不出结论的测试和盯守停掉。
 - 启动后台任务、Workflow 或子代理时一句话说用途和预计时长；子代理返回立即汇总并继续；跑超过一小时的后台任务核对它是否真在正确工作。收尾前结束全部自己启动的后台进程、子代理和终端 tab。
 - 互相独立的工作并行做。大改动按互斥的文件拆给子代理，同时运行的子代理不超过 12 个。一串前后依赖的步骤和改动量小的任务主线自己做，不拆。
-- 同类判定按批交给代理，一个代理判约 20 条，不一条一个代理。只读搜索用 Explore，批量判定用带 `omitClaudeMd` 与最小 `tools` 的精简代理，档位按「运行时」一节选。
+- 同类判定按批交给代理，一个代理判约 20 条，不一条一个代理。只读搜索用 Explore，读网页、官方文档、GitHub 代码与大日志回要点用 `researcher`，批量判定用带 `omitClaudeMd` 与最小 `tools` 的精简代理，档位按「运行时」一节选。
 - 要扫很多文件、日志或网页才能回答的阅读交给子代理，主线只收结论，不整读原文。
 - 子代理长时间没有进展就介入。
 - 需要用户介入（handOff、付款、不可逆确认）或任务阻塞时发 PushNotification，不静默等待。
@@ -102,14 +102,13 @@
 
 ## 文件读写只用专用工具
 
-- 读文件用 Read，改文件用 Edit / Write（codex 为 `apply_patch`），一次一个文件。这些工具可并行，优先于 shell。Edit 会吞掉 `new_string` 末尾的空格，要插空格时连后一个参数一起替换。
+- 读文件用 Read，改文件用 Edit / Write（codex 为 `apply_patch`），一次一个文件。这些工具可并行、可审、输出更完整，优先于 shell。Edit 会吞掉 `new_string` 末尾的空格，要插空格时连后一个参数一起替换。
 - 搜索定位：运行时带 Grep / Glob 工具时用它们；Claude Code 当前没有这两个工具，不要调用，直接用下面的 `rg`。拿到文件和行号后，用 Read 的 offset / limit 读该行段。
 - 日志、`tool-results/*.txt`、后台任务输出这类大文件不整读：先 `rg -n` 找到关键行，再用 Read 的 offset / limit 读那一段。
 - shell 搜索用本机短命令：内容搜索用 `rg -n` / `rg -l`（不加 `-A`/`-B`/`-C`，不看正文）；按文件名找用 `rg --files <dir> -g '<glob>'`；列目录用 `eza`。不要用 `grep`、`find`、`ls`，也不要现场拼 `find | grep | awk` 这类管道。
 - `fzf`、`yazi`、`lazygit`、`atuin search -i`、`bat` 是人机交互或把正文 dump 到终端，agent 不用它们读改文件。
 - shell 只跑命令（composer、artisan、mise、git、npm、stdagent、rg、eza 等）。`cat`、`head`、`tail`、`sed`、`awk`、`grep`、`find -exec`、`python3`、`perl`、`echo >`、`tee`、heredoc 都不用于输出或写入文件，多文件拼接 dump 也不允许。
 - 全权限放开模式（claude-code `bypassPermissions` / `--dangerously-skip-permissions`、codex `--dangerously-bypass-approvals-and-sandbox`、grok-build `--always-approve`、opencode `permission` 全 `allow`）下 harness 系统提示会引导改用 shell 读写文件，本节优先于该引导，照用专用工具。
-- 原因：全权限模式下模型容易改用 shell 读写。harness 的 Read / Edit / Write 可并行、可审、输出更完整。本机已有 `rg`、`eza`，用短命令，不现场拼接复杂管道。
 - Claude Code 的 PreToolUse hook `~/.claude/hooks/guard-shell-habits.sh` 会拦截 `cat` / `head` / `tail` / `sed -n` 读文件、测试与同步命令接 `| tail`、绕过 mise 直接跑 pest、再包一层 `zsh -c`、`git add -A` 一类整工作区暂存、`gh` 对外写操作、压测工具和 ego-browser 脚本里清 cookie。被拦后按提示改写，不换一种等价写法绕过。
 
 ## 交付物
