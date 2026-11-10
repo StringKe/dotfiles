@@ -98,8 +98,11 @@ add_claude_mcp() {
             continue
         fi
         claude mcp remove -s user "$name" >/dev/null 2>&1 || true
-        claude mcp add-json -s user "$name" "$json" >/dev/null
-        log "mcp     $name"
+        if claude mcp add-json -s user "$name" "$json" >/dev/null; then
+            log "mcp     $name"
+        else
+            log "fail    mcp ${name}（claude 的报错在上一行，bin/deploy.sh check 会报它未注册）"
+        fi
     done
 }
 

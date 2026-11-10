@@ -62,11 +62,11 @@
 | 首次部署 | 和用户确认模块，`bin/setup.sh --modules <...> --storage-root NEW_ROOT` |
 | 原样重跑 | `bin/setup.sh --storage-root CURRENT_ROOT`（沿用 `~/.config/dotfiles/modules`） |
 | 换存储位置 | 先迁数据：列出源、目标、大小、是否跨卷，用户确认后 `df -h` 看空间，逐目录 `mv`（目标已存在就停下问），用户确认新位置可用后再清旧位置。然后 `bin/setup.sh --storage-root NEW_ROOT` |
-| 应用新版本 | `git fetch`；`git log HEAD..origin/main` 为空就结束；工作区不干净先让用户处理；`git pull --ff-only` 后 `bin/setup.sh` |
+| 应用新版本 | `git fetch`；`git log HEAD..origin/main` 为空就结束；工作区不干净先让用户处理；`git pull --ff-only` 后 `bin/setup.sh`。新版本改了 `config/mise/mise_config.toml` 或 `config/vscode/settings.json` 时，不带 `--storage-root` 不会应用：告诉用户会覆盖本机 `mise use -g` 的改动，确认后跑 `bin/setup.sh --storage-root CURRENT_ROOT` |
 
-AI 运行时 stdin 不是终端：`setup.sh` 不进选择界面，要用 `--modules` 或沿用已保存的模块；git 身份、改默认 shell 这类需要输入的步骤会跳过并给出手动命令。
+AI 运行时 stdin 不是终端：`setup.sh` 不进选择界面，要用 `--modules` 或沿用已保存的模块；git 身份不询问，要设就让用户手动 `git config --global user.name` / `user.email` / `user.signingkey`；改默认 shell 会跳过并给出 `chsh` 命令。
 
-4. **验证**：`bin/deploy.sh check` 必须 PASS。另外确认 `claude mcp list` 与 `opencode mcp list` 列出 `ai/claude/mcp.json` 的全部 MCP 且已连接；`deploy.sh sync` 输出的 `differs` 行逐个问用户是否换回仓库版（`trash` 本机文件后再 sync）。
+4. **验证**：`bin/deploy.sh check` 必须 PASS，`~/.zsh_secrets` 里没填密钥的 MCP 会报「未注册」，让用户补上后重跑 `bin/setup.sh --modules ai`。另外确认 `claude mcp list` 与 `opencode mcp list` 列出各自清单里的全部 MCP 且已连接；`deploy.sh sync` 输出的 `differs` 行逐个问用户是否换回仓库版（`trash` 本机文件后再 sync）。
 
 ## 部署目标对照
 
@@ -80,7 +80,7 @@ AI 运行时 stdin 不是终端：`setup.sh` 不进选择界面，要用 `--modu
 | `config/mise/mise_config.toml` | `~/.config/mise/config.toml` | 只有 init 覆盖，替换占位符 | `bin/setup.sh --storage-root <ROOT>` |
 | `config/rex/themes/*`、`config/btop/themes/*`、`config/infat/config.toml` | `~/.config/` 对应路径 | init / sync 覆盖 | `bin/deploy.sh sync`；infat 再跑 `bin/apply-file-associations.sh` |
 | `config/rex/workspace.defaults` | defaults 域 `com.superlogical.rex` 的 `Workspace.*` | 每次覆盖 | `bin/apply-rex-defaults.sh`，重启 Rex |
-| `config/` 下的 `starship/`、`btop/btop.conf`、`yazi/`、`atuin/`、`bat/`、`ripgrep/`、`git/ignore` | `~/.config/` 对应路径 | 只在不存在时复制；不同时 sync 提示 `differs` | `bin/deploy.sh sync` |
+| `config/` 下的 `starship/`、`btop/btop.conf`、`yazi/`、`atuin/`、`bat/`、`ripgrep/`、`git/ignore` | `~/.config/` 对应路径，starship 是 `~/.config/starship.toml` | 只在不存在时复制；不同时 sync 提示 `differs` | `bin/deploy.sh sync` |
 | `config/vscode/settings.json` | VS Code 用户 settings.json | init 时 jq 深合并（本机字段保留，同名键以仓库为准）；本机文件含注释时列出要手工同步的键 | `bin/setup.sh --storage-root <ROOT>` |
 | `config/git/config` | `~/.gitconfig` 的 `[include]` | 不复制；init / sync 把指向旧位置 `git/config` 的引用原位改过来 | 无 |
 | `brew/<模块>.Brewfile` | `brew bundle` 直接读 | 按选中的模块安装 | `bin/setup.sh`；新模块还要加进 `setup.sh` 的 `MODULES` |

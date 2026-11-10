@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# guard-file-writes.sh - PreToolUse(Edit|Write) hook：拦下往 .github/workflows/ 写文件，任何仓库都不建 GitHub Actions。
+# guard-file-writes.sh - PreToolUse(Edit|Write|NotebookEdit) hook：拦下往 .github/workflows/ 写文件，任何仓库都不建 GitHub Actions。
 
 export PATH="/opt/homebrew/bin:/usr/bin:/bin:$PATH"
 set -uo pipefail

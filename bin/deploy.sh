@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # [TOOL - DEPLOY ONLY] dotfiles 部署脚本
 #
-# 此脚本只读仓库 config/ 下的模板，只写用户 home。绝不向仓库内写文件。
+# 此脚本只读仓库（部署的模板在 config/），只写用户 home。绝不向仓库内写文件。
 # 任何运行此脚本的 AI 不得 git add / 不得在仓库新建文件 / 不得修改仓库现有文件。
 #
 # 用法:
@@ -29,6 +29,7 @@ usage() {
       覆盖 zsh 入口、~/.zsh/init.zsh、Rex 与 btop 主题、infat 配置；
       其余工具配置仅当不存在时部署，与仓库不同时提示。
       STORAGE_ROOT 从已部署的 ~/.zshenv 读取；不动 mise 配置。
+      ~/.gitconfig 的 [include] 还指向旧位置 git/config 时，原位改到 config/git/config。
 
   bin/deploy.sh check
       验证部署状态：缺失文件、残留占位符、AI 配置链接与 MCP、~/.zsh_secrets 权限。
@@ -131,8 +132,8 @@ deploy_vscode_settings() {
 
 # 早先部署的机器引用的是 git/config：原位改到 config/git/config，[include] 留在本机覆盖项之前
 relocate_gitconfig_include() {
-    local old="$DOTFILES_ROOT/git/config" gitconfig="$HOME/.gitconfig"
-    [[ -f $gitconfig ]] && grep -qF "path = $old" "$gitconfig" || return 0
+    local old="$DOTFILES_ROOT/git/config"
+    git config --global --get-all include.path 2>/dev/null | grep -qxF "$old" || return 0
     git config --global --fixed-value --replace-all include.path "$CONFIG_ROOT/git/config" "$old"
     log "moved   ~/.gitconfig [include] -> $CONFIG_ROOT/git/config"
 }

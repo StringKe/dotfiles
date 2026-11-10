@@ -5,7 +5,7 @@
 - 终端：[Rex](https://www.superlogical.com/rex/docs/installation)（需单独安装），字体 Maple Mono NF CN
 - Shell：zsh + zimfw + starship，语言运行时用 mise
 - 配色：GitHub Light Colorblind（橙代红、蓝代绿），工具大多跟随终端 ANSI 配色
-- AI：claude-code 与 opencode 共用一份全局提示词、skills 和 MCP 配置
+- AI：claude-code 与 opencode 共用一份全局提示词和 skills，MCP 两边保持同一组
 
 ## 快速开始
 
@@ -62,12 +62,13 @@ bin/setup.sh --storage-root <路径>      # 换存储根
 | 做什么 | 命令 |
 |---|---|
 | 拉新版本后更新 | `git pull --ff-only && bin/setup.sh` |
+| 应用 mise 全局工具或 VS Code 设置的改动 | `bin/setup.sh --storage-root <当前存储根>`，会覆盖本机 `mise use -g` 的改动 |
 | 只同步 zsh 和工具配置 | `bin/deploy.sh sync` |
 | 只更新 AI 配置 | `bin/setup-ai.sh` |
 | 检查部署状态 | `bin/deploy.sh check` |
 | 升级 claude-code 与 opencode | `aiupdate` |
 
-本机改过的工具配置不会被覆盖，`sync` 只会提示 `differs`。想换回仓库版：`trash` 掉本机那个文件再 `sync`。
+zsh 入口、`init.zsh`、Rex 与 btop 主题、infat 配置每次 `sync` 都覆盖。starship、yazi、atuin、bat、ripgrep、`btop.conf`、git ignore 在本机改过就不覆盖，`sync` 只提示 `differs`；想换回仓库版，`trash` 掉本机那个文件再 `sync`。
 
 常用别名：`ll` / `lt`（eza）、`hh`（历史搜索）、`lg`（lazygit）、`y`（yazi）、`k*`（kubectl）。`rm` 会把文件放进废纸篓，真删用 `command rm`。
 
