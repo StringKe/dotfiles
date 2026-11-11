@@ -11,6 +11,8 @@
 	gpgsign = true
 [core]
 	askPass =
+	fsmonitor = true
+	untrackedCache = true
 [init]
 	defaultBranch = main
 [safe]
