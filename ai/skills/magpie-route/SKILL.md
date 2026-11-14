@@ -55,7 +55,9 @@ agent 只认 4 个角色组。角色组里写模型，同一个模型由哪家�
 - 只有一家的模型，角色组里直接写 `provider/model`，比如 `grok/grok-4.7`。
 - 只接受 Claude Code 请求的中转 key，在对应的模型组里加 `pause=<relay>/<model> when="agent is not claude"`。不加的话，其他 agent 的请求被 403 拒绝后，magpie 会让这家暂时休息，Claude Code 也跟着被挤到下一家。
 - 裸模型名的请求（比如老会话发的 `claude-opus-5-5`）也走 `auto/<模型>` 组。
-- 中转只接 Claude 的 key 和只接 OpenAI 的 key 在 magpie 里是两个服务商，比如「鱼鱼连线 Claude」和「鱼鱼连线 OpenAI」。OpenAI 那个如果拒绝 `/v1/messages`（报 `This group does not allow /v1/messages dispatch`），用 `magpie model api <provider/model…> responses` 改走 Responses 协议。
+- 中转只接 Claude 的 key 和只接 OpenAI 的 key 在 magpie 里是两个服务商，比如「鱼鱼连线 Claude」和「鱼鱼连线 OpenAI」。
+- 中转按协议放行模型：GPT 走 `/v1/messages` 常被拒（`This group does not allow /v1/messages dispatch`、「当前分组不允许调度模型」），Gemini 报「不支持当前入口协议」。GPT 用 `magpie model api <provider/model…> responses`；Gemini 先 `magpie provider set <id> gemini=<中转根地址>`，再 `magpie model api <provider/model…> gemini`。换协议后再测，不要按第一次的报错判定这家不支持。
+- GPT、Grok 的模型组同样用正则收进中转：`magpie group set auto-gpt-6-1-sol models='codex/gpt-6.1-sol,re:.*/gpt-6\.1-sol' routing=rotate stays=session`。手工改过成员的组不会自动收进新供应商，要写正则。
 
 ### 每个组用哪种路由
 
@@ -89,7 +91,7 @@ agent 只认 4 个角色组。角色组里写模型，同一个模型由哪家�
 2. 读现状：`magpie providers`、`magpie quota`、`magpie groups`、`magpie models`。
 3. 新增供应商：
    - 加完先跑 `magpie provider test <id>`，再用真实客户端测一次。有的中转 key 只认 Claude Code，curl 返回 403，`claude -p` 却能通。
-   - 中转的模型清单不等于这把 key 能调的模型。很多 key 所在的分组只放行 Claude，GPT、Gemini 会返回「当前分组不允许调度模型」或「不支持当前入口协议」。把清单里的模型逐个用 curl 发一条请求，再用 `magpie provider models <id> <能调通且有分组会用到的模型…>` 只暴露这些。curl 测试时每条消息的内容要不同，内容相同的请求会被认成同一个会话，落在同一家。
+   - 中转的模型清单不等于这把 key 能调的模型。按上面「中转按协议放行模型」一条换协议后，把清单里的模型逐个用 curl 发一条请求，再用 `magpie provider models <id> <能调通且有分组会用到的模型…>` 只暴露这些。curl 测试时每条消息的内容要不同，内容相同的请求会被认成同一个会话，落在同一家。
    - 核对余额读数。new-api 类中转的「不限额度」key，`data.total_available` 永远等于已用量的负数，余额要改读 `magpie provider set <id> balance.path='$data.user_quota.total_available / 500000'`。
 4. 停用供应商：用 `magpie provider off <id>`，不用 `rm`。然后检查 `~/.config/magpie/stash.json` 里的 `claude.base_url` 是否还指向它，执行 `magpie claude default` 时会写回这个地址。要清就先备份，再用 jq 删掉 `claude.base_url` 和 `claude.auth_token`。
 5. 重新对照模型层：
