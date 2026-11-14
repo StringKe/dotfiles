@@ -39,7 +39,7 @@ agent 只认 4 个角色组。角色组里写模型，同一个模型由哪家�
 
 - opus 档和 fable 档指向模型组，不指向 `brain` 和 `deep`。指向角色组的话，子代理规则会把明确要 Opus 或 Fable 的子代理也改成 worker。
 - 要让某类子代理固定用某个档位，在 `~/.claude/agents/<名>.md` 的 frontmatter 里写 `model: fable`，或在全局提示词里写明哪类任务派哪个档位。
-- OpenCode、Goose、VS Code 不告诉 magpie 哪个请求来自子代理，没有单独配置的子代理跟主对话走同一个组。OpenCode 的内置子代理已在 `agents` 里单独指定模型，见下面 agent 一节。
+- OpenCode 不告诉 magpie 哪个请求来自子代理，没有单独配置的子代理跟主对话走同一个组。它的内置子代理已在 `agents` 里单独指定模型，见下面 agent 一节。
 - `opencode.jsonc` 是指向 dotfiles 的符号链接，改了链接目标后 OpenCode 不会察觉。改完执行 `touch -h ~/.config/opencode/opencode.jsonc`，再用 `opencode run` 测一次子代理。
 
 选型依据（2026-11 的评测）：
@@ -75,10 +75,10 @@ agent 只认 4 个角色组。角色组里写模型，同一个模型由哪家�
 | --- | --- |
 | Claude Code | `magpie claude group/brain`，`opus auto/claude-opus-5-5`，`fable auto/claude-fable-5-2`，`sonnet group/worker`，`haiku group/fast`，`fable_effort high`，effort 保持 medium |
 | OpenCode | `magpie opencode group/brain`，`small group/fast`；`~/.config/opencode/opencode.jsonc` 的 `agents` 里写 `general`、`compaction` -> `magpie/group/worker`，`explore`、`summary`、`title` -> `magpie/group/fast` |
-| Goose、VS Code | `group/brain` |
+| 其他 agent | 不接 magpie。Library 的 MCP 服务和 skill 只分发给 `claude`、`opencode`：`magpie library mcp agents <名> claude,opencode`，`magpie library skill agents <名> claude,opencode` |
 | Codex | 不接 magpie，走自己的 ChatGPT 登录 |
 
-- 收窄模型列表：OpenCode、Goose、VS Code 用 `magpie visible <agent> brain,deep,worker,fast`；Claude Code 用 `magpie visible claude brain,deep,worker,fast,auto-claude-opus-5-5,auto-claude-fable-5-2`，因为档位只能指向列表里可见的模型。按名字请求其他模型的老会话仍然能用。
+- 收窄模型列表：OpenCode 用 `magpie visible opencode brain,deep,worker,fast`；Claude Code 用 `magpie visible claude brain,deep,worker,fast,auto-claude-opus-5-5,auto-claude-fable-5-2`，因为档位只能指向列表里可见的模型。按名字请求其他模型的老会话仍然能用。
 - 顺序是先设 `visible`，再设档位。顺序反了，`magpie claude opus <模型>` 会报这个模型对 Claude Code 不可见。
 - 旧一代模型用 `magpie model disable '<glob>'` 停用，例如 `'*claude-opus-4*'`、`'*gpt-5.6-*'`。
 
