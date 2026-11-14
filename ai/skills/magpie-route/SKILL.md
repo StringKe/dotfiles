@@ -11,14 +11,14 @@ agent 只认 4 个角色组。角色组里写模型，同一个模型由哪家�
 
 ### 角色组
 
-| 组 | 依次尝试 | 用途 |
+| 组 | 成员 | 用途 |
 | --- | --- | --- |
-| `group/brain` | Opus 5.5 -> GPT-6.1 Sol -> Grok 4.7 -> `group/worker` | 主对话 |
-| `group/deep` | Fable 5.2 -> GPT-6 Astra -> Opus 5.5 -> `group/worker` | 架构、疑难问题、长时间无人值守任务 |
-| `group/worker` | GPT-6.1 Sol -> Sonnet 5.5 -> GPT-6.1 Terra | 写代码的子代理、压缩上下文 |
-| `group/fast` | Haiku 5.5 -> GPT-6.1 Terra -> Grok 4.7 Fast | Explore 子代理、起标题、小任务 |
+| `group/brain` | 依次：Opus 5.5 -> GPT-6.1 Sol -> Grok 4.7 -> `group/worker` | 主对话 |
+| `group/deep` | 依次：Fable 5.2 -> GPT-6 Astra -> Opus 5.5 -> `group/worker` | 架构、疑难问题、长时间无人值守任务 |
+| `group/worker` | 按额度：GPT-6.1 Sol、Sonnet 5.5、GPT-6.1 Terra | 写代码的子代理、压缩上下文 |
+| `group/fast` | 按额度：Haiku 5.5、GPT-6.1 Terra、Grok 4.7 Fast | Explore 子代理、起标题、小任务 |
 
-- 四个组都是 `routing=order stays=session`。`stays=session` 让一个会话固定在一家，保住缓存。
+- `brain`、`deep` 用 `routing=order`，`worker`、`fast` 用 `routing=expiring`，四个组都是 `stays=session`。`stays=session` 让一个会话固定在一家，保住缓存。
 - `brain` 和 `deep` 各两条规则：`use=group/worker use-effort=high when=subagent`，`use=group/worker compact`。规则的 `use=` 必须是组成员，所以 `group/worker` 放在这两个组的最后一位。
 - 子代理用规则分流，不设 `magpie claude subagent`。那个字段会覆盖全部子代理，Explore 和自己写了 `model:` 的子代理也会被改掉。
 
@@ -31,10 +31,10 @@ agent 只认 4 个角色组。角色组里写模型，同一个模型由哪家�
 
 | 子代理怎么派 | 请求的模型 | 结果 |
 | --- | --- | --- |
-| 不指定，沿用主模型 | `group/brain` 或 `group/deep` | 命中子代理规则 -> worker（GPT-6.1 Sol，high） |
+| 不指定，沿用主模型 | `group/brain` 或 `group/deep` | 命中子代理规则 -> worker，effort high |
 | `opus` | `auto/claude-opus-5-5` | Opus 5.5 |
 | `fable` | `auto/claude-fable-5-2` | Fable 5.2，high |
-| `sonnet` | `group/worker` | GPT-6.1 Sol |
+| `sonnet` | `group/worker` | worker 里额度最先过期的那家：Claude 订阅先重置时是 Sonnet 5.5，Codex 先重置时是 GPT-6.1 Sol |
 | `haiku`，以及 Explore | `group/fast` | Haiku 5.5 |
 
 - opus 档和 fable 档指向模型组，不指向 `brain` 和 `deep`。指向角色组的话，子代理规则会把明确要 Opus 或 Fable 的子代理也改成 worker。
@@ -45,23 +45,28 @@ agent 只认 4 个角色组。角色组里写模型，同一个模型由哪家�
 
 - Opus 5.5 是日常主力，medium 档的 FrontierCode 得分不低于 xhigh 和 max，成本只有 max 的约 1/8。来源：https://www.anthropic.com/claude-opus-5-5 、https://moelueker.com/blog/claude-opus-5-5-review
 - Fable 5.2 智能指数第一，high 档性价比最好，max 更贵且不更好。来源：https://artificialanalysis.ai/models/releases/comparisons/claude-opus-5-5-vs-claude-fable-5-2
-- 写代码的子代理，GPT-6.1 Sol 在 high 档通过率高于 Sonnet 5.5，成本约为 1/7。走 Codex 订阅，Claude 订阅的 5 小时窗口留给大脑。来源：https://vulcanbench.com/benchmarks/swe-v4-sonnet55-vs-frontier.html
+- 写代码的子代理，GPT-6.1 Sol 在 high 档通过率高于 Sonnet 5.5，成本约为 1/7，两者都够用，所以 worker 按额度在两家之间分配。来源：https://vulcanbench.com/benchmarks/swe-v4-sonnet55-vs-frontier.html
 - 只读、探索类子代理用 Haiku 5.5 即可。GPT-6 Luna 在查代码这类任务上不可靠，不放进任何组。来源：https://www.ovidius.ai/blog/claude-code-subagents-haiku-vs-sonnet-vs-opus-benchmarked 、https://bito.ai/blog/gpt-6-1-terra-vs-gpt-6-1-sol-vs-gpt-6-luna/
 
 ### 模型层
 
-- 有两家以上供应商的模型，magpie 会自动生成 `auto/<模型>` 组。改成订阅在前、按量付费的 key 在后：`magpie group set auto-claude-opus-5-5 models='claude/claude-opus-5-5,re:.*claude-opus-5[.-]5' routing=order stays=session`。先写订阅，再写正则，以后新增供应商会自动加进来。
+- 有两家以上供应商的模型，magpie 会自动生成 `auto/<模型>` 组。改成 `magpie group set auto-claude-opus-5-5 models='claude/claude-opus-5-5,re:.*claude-opus-5[.-]5' routing=expiring stays=session`。先写订阅，再写正则，以后新增供应商会自动加进来。
 - 只有一家的模型，角色组里直接写 `provider/model`，比如 `codex/gpt-6.1-sol`。
 - 只接受 Claude Code 请求的中转 key，在对应的模型组里加 `pause=<relay>/<model> when="agent is not claude"`。不加的话，其他 agent 的请求被 403 拒绝后，magpie 会让这家暂时休息，Claude Code 也跟着被挤到下一家。
 - 裸模型名的请求（比如老会话发的 `claude-opus-5-5`）也走 `auto/<模型>` 组，所以 auto 组同样要订阅在前。
 
-### 为什么用 order，额度在哪一层看
+### 每个组用哪种路由
 
-- 角色组的成员是不同的模型，顺序就是质量优先级。改成 `usage`、`pace` 这类按额度的路由，Opus 还有额度时主对话也可能被分到 Sol 或 Grok。
-- 模型层的成员是「订阅 + 按量付费的 key」。按额度的路由会把 key 当成余量充足的一方，订阅还有额度时就开始花钱。实测 `smart` 路由下，订阅有额度时仍有请求落到 key 上。
-- `order` 不是盲试：订阅账号用到上限，路由把它当作已用完直接跳过，直到窗口重置。`magpie provider account-cap <id> <账号> <百分比>` 可以设定提前让出的比例。
-- 按额度分配只用在同一家的多个账号之间。同一家有两个以上订阅时，设 `magpie provider set <id> routing=pace`（周额度快重置、用不完的账号先用），或用 `magpie provider pool` 定顺序和上限。只有一个账号时不用设。
-- 按量付费的 key 用 `magpie provider spend-cap <id> <key> <美元> day` 封顶。到顶后路由把它当作已用完，转到下一个成员。
+| 组 | 路由 | 原因 |
+| --- | --- | --- |
+| 模型层 `auto/<模型>` | `expiring` | 订阅额度先用，多个订阅时最快过期的先用，都用完才用按量付费的 key |
+| `worker`、`fast` | `expiring` | 成员能力相近，哪家订阅先重置就先用哪家，减少额度浪费 |
+| `brain`、`deep` | `order` | 第一位是指定的大脑模型。按额度排会在 Opus 还有额度时把主对话分给别的模型 |
+
+- 不用 `smart`、`usage`、`pace` 管「订阅 + 按量付费 key」的组：实测 `smart` 在订阅有额度时仍把请求发给 key；`usage` 会把余额多的 key 当成额度更多。
+- `expiring` 下的 `worker` 会跟 `brain` 共用 Claude 订阅的 5 小时窗口。窗口用完后，`brain` 转到模型层的按量付费 key。按量付费的 key 用 `magpie provider spend-cap <id> <key> <美元> day` 封顶，到顶后路由把它当作已用完。
+- 订阅账号用到上限时，任何路由都会把它当作已用完直接跳过，直到窗口重置。`magpie provider account-cap <id> <账号> <百分比>` 可以设定提前让出的比例。
+- 同一家有两个以上订阅时，在服务商上设 `magpie provider set <id> routing=pace`，或用 `magpie provider pool` 定顺序和上限。
 
 ### agent
 
@@ -104,7 +109,8 @@ jq -r 'select(.t > "<开始时刻>") | "\(.agent) \(.req) -> \(.provider)/\(.ser
 通过的标准：
 
 - 主对话：`group/brain -> claude/claude-opus-5-5`。
-- 子代理与「不同的活怎么进不同的组」一节的表格一致：不指定模型 -> `codex/gpt-6.1-sol`；`opus` -> Opus 5.5；`fable` -> Fable 5.2；`sonnet` -> Sol；`haiku` 和 Explore -> Haiku 5.5。
+- 子代理与「不同的活怎么进不同的组」一节的表格一致：不指定模型和 `sonnet` -> worker 里额度最先过期的那家；`opus` -> Opus 5.5；`fable` -> Fable 5.2；`haiku` 和 Explore -> Haiku 5.5。
+- 模型层的请求落在订阅上，不落在按量付费的 key 上。
 - 非 claude agent：请求不会落到只认 Claude Code 的中转上。
 - 改动之后没有 404 和 403。
 
