@@ -52,7 +52,7 @@ agent 只认 4 个角色组。角色组里写模型，同一个模型由哪家�
 ### 模型层
 
 - 「自动创建路由组」保持关闭（`magpie group auto off`）。模型组只保留角色组用到的那几个，是改过的组，关闭后照常生效。新模型要建模型组时直接 `magpie group add "<模型名>" models='<订阅>/<模型>,re:.*/<模型正则>' routing=rotate stays=session`，不用打开自动创建。
-- Claude 模型组写成 `magpie group set auto-claude-opus-5-5 models='claude/claude-opus-5-5,re:.*claude-opus-5[.-]5' routing=rotate stays=session`，用正则收进各家中转，以后新增供应商会自动加进来。GPT 模型组（Codex 订阅加 OpenAI 中转）同样设 `routing=rotate stays=session`。
+- Claude 模型组写成 `magpie group set auto-claude-opus-5-5 models='claude/claude-opus-5-5,re:.*claude-opus-5[.-]5' routing=expiring stays=session`，用正则收进各家中转，以后新增供应商会自动加进来。GPT、Grok 模型组设 `routing=rotate stays=session`。
 - 只有一家的模型，角色组里直接写 `provider/model`，比如 `grok/grok-4.7`。
 - 只接受 Claude Code 请求的中转 key，在对应的模型组里加 `pause=<relay>/<model> when="agent is not claude"`。不加的话，其他 agent 的请求被 403 拒绝后，magpie 会让这家暂时休息，Claude Code 也跟着被挤到下一家。
 - 裸模型名的请求（比如老会话发的 `claude-opus-5-5`）也走 `auto/<模型>` 组。
@@ -64,7 +64,8 @@ agent 只认 4 个角色组。角色组里写模型，同一个模型由哪家�
 
 | 组 | 路由 | 原因 |
 | --- | --- | --- |
-| 模型层 `auto/<模型>` | `rotate` | 订阅和各家中转轮流接新会话，中转的余额是买来用完的，不留着当后备 |
+| Claude 模型组 | `expiring` | Claude 订阅先用，5 小时窗口用完再到中转。中转会按关键词删掉 Claude Code 的部分消息，对话变成以 assistant 结尾，报 `does not support assistant message prefill` 或 `keyword prompt removal left no messages`；400 不会换家，会话卡在这家连续报错 |
+| GPT、Grok 模型组 | `rotate` | 订阅和各家中转轮流接新会话，中转的余额用掉，不留着当后备 |
 | 四个角色组 | `order` | 第一位是指定的模型。角色组用 `rotate` 会把主对话轮到 GPT、Grok 上 |
 
 - `rotate` 加 `stays=session`：每个新会话轮到下一家，会话内的请求留在同一家，缓存不断。某家报错、余额用完时，这个会话转到下一家。
