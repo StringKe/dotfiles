@@ -84,7 +84,7 @@ agent 只认 4 个角色组。角色组里写模型，同一个模型由哪家�
 
 ## 调整步骤
 
-1. 存档：`magpie backup <文件>` 存全部配置，`magpie save before-route` 存各 agent 的设置。
+1. 存档：`magpie backup <文件>` 存全部配置，`magpie save before-route` 存各 agent 的设置。验证通过后执行 `magpie rm before-route`：快照会出现在 App 的「方案」栏，点一下就整体回滚到旧设置，旧设置引用的组删掉后会让请求 404。
 2. 读现状：`magpie providers`、`magpie quota`、`magpie groups`、`magpie models`。
 3. 新增供应商：
    - 加完先跑 `magpie provider test <id>`，再用真实客户端测一次。有的中转 key 只认 Claude Code，curl 返回 403，`claude -p` 却能通。
