@@ -124,4 +124,5 @@ jq -r 'select(.t > "<开始时刻>") | "\(.agent) \(.req) -> \(.provider)/\(.ser
 - `smart` 路由不保证订阅排在按量付费的 key 前面。要订阅优先，用 `order` 并把订阅写在第一位。
 - `auto/x` 存进组里会变成 `group/auto-x`，`magpie groups` 列表里会显示 `(not served)`。这只是显示问题，实际能否路由以 usage.jsonl 为准。
 - Claude Code 的 advisor 走 magpie 时不生效：它在 Anthropic 服务端运行，只认 Claude Code 自己认识的模型名。难题改用 `/model` 切到 fable 档。
+- 走 Claude 订阅的请求，magpie 会在调用方的项目目录里启动一个交互模式的 Claude Code（`--setting-sources "" --permission-mode default`）。它出现在 `ListAgents` 里，名字是「目录名-两位十六进制」，不读用户的 `crossSessionInbound`。bypass 模式的会话发给它的消息会被扣下，然后过期。源码位置：`internal/gateway/claude_subscription.go`、`internal/claudetui/tui.go` 的 `interactiveArgs`、`internal/gateway/claude_warmup.go` 的 `claudeRunSettings`。
 - 已在运行的会话保留启动时的环境变量。用 `ps eww -U $USER | rg -o 'ANTHROPIC_BASE_URL=\S+' | sort | uniq -c` 查还有多少进程绕过 magpie，这些进程要重启才会走新配置。
