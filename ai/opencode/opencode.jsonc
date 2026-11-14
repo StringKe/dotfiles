@@ -1,4 +1,273 @@
 {
+    "agents": {
+        "compaction": {
+            "model": "magpie/group/worker"
+        },
+        "explore": {
+            "model": "magpie/group/fast"
+        },
+        "general": {
+            "model": "magpie/group/worker"
+        },
+        "summary": {
+            "model": "magpie/group/fast"
+        },
+        "title": {
+            "model": "magpie/group/fast"
+        }
+    },
+    "model": "magpie/group/brain",
+    "providers": {
+        "magpie": {
+            "compatibility": {
+                "supportsPromptCacheKey": true
+            },
+            "models": {
+                "group/worker": {
+                    "capabilities": {
+                        "input": [
+                            "text",
+                            "image"
+                        ],
+                        "output": [
+                            "text"
+                        ],
+                        "tools": true
+                    },
+                    "cost": [
+                        {
+                            "cache": {
+                                "read": 0.1,
+                                "write": 2.5
+                            },
+                            "input": 2,
+                            "output": 10
+                        }
+                    ],
+                    "limit": {
+                        "context": 1000000,
+                        "output": 128000
+                    },
+                    "name": "Worker · routing group",
+                    "variants": [
+                        {
+                            "id": "low",
+                            "settings": {
+                                "reasoningEffort": "low"
+                            }
+                        },
+                        {
+                            "id": "medium",
+                            "settings": {
+                                "reasoningEffort": "medium"
+                            }
+                        },
+                        {
+                            "id": "high",
+                            "settings": {
+                                "reasoningEffort": "high"
+                            }
+                        },
+                        {
+                            "id": "xhigh",
+                            "settings": {
+                                "reasoningEffort": "xhigh"
+                            }
+                        },
+                        {
+                            "id": "max",
+                            "settings": {
+                                "reasoningEffort": "max"
+                            }
+                        },
+                        {
+                            "id": "ultra",
+                            "settings": {
+                                "reasoningEffort": "ultra"
+                            }
+                        }
+                    ]
+                },
+                "group/fast": {
+                    "capabilities": {
+                        "input": [
+                            "text",
+                            "image"
+                        ],
+                        "output": [
+                            "text"
+                        ],
+                        "tools": true
+                    },
+                    "cost": [
+                        {
+                            "cache": {
+                                "read": 0.01,
+                                "write": 0.125
+                            },
+                            "input": 0.1,
+                            "output": 0.5
+                        }
+                    ],
+                    "limit": {
+                        "context": 1000000,
+                        "output": 128000
+                    },
+                    "name": "Fast · routing group",
+                    "variants": [
+                        {
+                            "id": "low",
+                            "settings": {
+                                "reasoningEffort": "low"
+                            }
+                        },
+                        {
+                            "id": "medium",
+                            "settings": {
+                                "reasoningEffort": "medium"
+                            }
+                        },
+                        {
+                            "id": "high",
+                            "settings": {
+                                "reasoningEffort": "high"
+                            }
+                        },
+                        {
+                            "id": "xhigh",
+                            "settings": {
+                                "reasoningEffort": "xhigh"
+                            }
+                        }
+                    ]
+                },
+                "group/brain": {
+                    "capabilities": {
+                        "input": [
+                            "text",
+                            "image"
+                        ],
+                        "output": [
+                            "text"
+                        ],
+                        "tools": true
+                    },
+                    "cost": [
+                        {
+                            "cache": {
+                                "read": 0.2,
+                                "write": 5
+                            },
+                            "input": 4,
+                            "output": 20
+                        }
+                    ],
+                    "limit": {
+                        "context": 1000000,
+                        "output": 500000
+                    },
+                    "name": "Brain · routing group",
+                    "variants": [
+                        {
+                            "id": "low",
+                            "settings": {
+                                "reasoningEffort": "low"
+                            }
+                        },
+                        {
+                            "id": "medium",
+                            "settings": {
+                                "reasoningEffort": "medium"
+                            }
+                        },
+                        {
+                            "id": "high",
+                            "settings": {
+                                "reasoningEffort": "high"
+                            }
+                        },
+                        {
+                            "id": "xhigh",
+                            "settings": {
+                                "reasoningEffort": "xhigh"
+                            }
+                        }
+                    ]
+                },
+                "group/deep": {
+                    "capabilities": {
+                        "input": [
+                            "text",
+                            "image"
+                        ],
+                        "output": [
+                            "text"
+                        ],
+                        "tools": true
+                    },
+                    "cost": [
+                        {
+                            "cache": {
+                                "read": 0.2,
+                                "write": 10
+                            },
+                            "input": 8,
+                            "output": 40
+                        }
+                    ],
+                    "limit": {
+                        "context": 1000000,
+                        "output": 128000
+                    },
+                    "name": "Deep · routing group",
+                    "variants": [
+                        {
+                            "id": "low",
+                            "settings": {
+                                "reasoningEffort": "low"
+                            }
+                        },
+                        {
+                            "id": "medium",
+                            "settings": {
+                                "reasoningEffort": "medium"
+                            }
+                        },
+                        {
+                            "id": "high",
+                            "settings": {
+                                "reasoningEffort": "high"
+                            }
+                        },
+                        {
+                            "id": "xhigh",
+                            "settings": {
+                                "reasoningEffort": "xhigh"
+                            }
+                        },
+                        {
+                            "id": "max",
+                            "settings": {
+                                "reasoningEffort": "max"
+                            }
+                        },
+                        {
+                            "id": "ultra",
+                            "settings": {
+                                "reasoningEffort": "ultra"
+                            }
+                        }
+                    ]
+                }
+            },
+            "name": "magpie",
+            "package": "aisdk:@ai-sdk/openai-compatible",
+            "settings": {
+                "apiKey": "magpie",
+                "baseURL": "http://127.0.0.1:3425/v1"
+            }
+        }
+    },
     "$schema": "https://opencode.ai/config.json",
     // provider 在本机 ~/.config/opencode/opencode.json（不进仓库）。上游单次请求体上限约 4.5MB，截图压成小 JPEG 才能在一轮里多放几张
     "media": {
@@ -12,75 +281,9 @@
     "permission": "allow",
     // 与 ai/claude/mcp.json 保持同一组 MCP；rea 只在这里启用
     "mcp": {
-        "context7": {
+        "magpie": {
             "type": "remote",
-            "url": "https://mcp.context7.com/mcp",
-            "enabled": true,
-            "headers": {
-                "Authorization": "Bearer {env:MCP_CONTEXT7_API_KEY}"
-            }
-        },
-        "exa": {
-            "type": "remote",
-            "url": "https://mcp.exa.ai/mcp?tools=web_search_exa,web_fetch_exa,web_search_advanced_exa",
-            "enabled": true,
-            "headers": {
-                "x-api-key": "{env:MCP_EXA_API_KEY}"
-            }
-        },
-        "gh_grep": {
-            "type": "remote",
-            "url": "https://mcp.grep.app",
-            "enabled": true
-        },
-        "openseo": {
-            "type": "remote",
-            "url": "https://app.openseo.so/mcp",
-            "enabled": true,
-            "headers": {
-                "Authorization": "Bearer {env:OPENSEO_API_KEY}"
-            }
-        },
-        "truewatch": {
-            "type": "remote",
-            "url": "https://ap1-owl-mcp.truewatch.com/mcp",
-            "enabled": true,
-            "headers": {
-                "Authorization": "Bearer {env:TRUEWATCH_API_KEY}"
-            }
-        },
-        "fingerprint": {
-            "type": "local",
-            "command": [
-                "fingerprint-mcp-server",
-                "--region",
-                "ap"
-            ],
-            "enabled": true,
-            "environment": {
-                "FINGERPRINT_SERVER_API_KEY": "{env:FINGERPRINT_SERVER_API_KEY}",
-                "FINGERPRINT_MANAGEMENT_API_KEY": "{env:FINGERPRINT_MANAGEMENT_API_KEY}"
-            }
-        },
-        "rea": {
-            "type": "local",
-            "command": [
-                "npx",
-                "-y",
-                "rea-agents@6.4.0",
-                "mcp"
-            ],
-            "enabled": true,
-            "environment": {
-                "HOPPER_LAUNCHER_PATH": "{env:HOME}/Applications/Hopper Disassembler.app/Contents/MacOS/hopper"
-            }
-        },
-        "paper": {
-            "type": "local",
-            "command": [
-                "{env:HOME}/.paper/bin/paper",
-                "mcp"
-            ],
+            "url": "http://127.0.0.1:3425/mcp/magpie/hub/opencode",
             "enabled": true
         },
         "slack": {
