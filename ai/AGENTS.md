@@ -189,6 +189,7 @@
 - 需要别的终端的输出时用 `rex capture` 自己读，不让用户复制粘贴。
 - 只操作本任务创建的 tab 和 pane，任务结束时关掉，用户需要看结果的保留。用户的 pane 只在用户要求时输入，不关。
 - 命名：`rex session inspect "$REX_SESSION" --json` 的 `label` 为空时，用 `rex session rename "$REX_SESSION" <label>` 按任务命名。已有名字说明本会话是某个总控会话里的一个 tab，只用 `rex window rename` 给本 tab 起名，不执行 `rex session rename`。跨会话消息里用可读的会话或 tab 名指代对方，不用裸 id。
+- 跨会话消息（`SendMessage`）只发给名字与目标完全一致的会话。找不到目标名时不按启动时间、空闲状态或目录猜收件人，向用户报告。名字是「目录名-两位十六进制」的会话可能是 magpie 为 Claude 订阅在后台启动的 Claude Code，它不接收消息，发过去只会过期。
 - 快捷键保持 Rex 默认，用户没要求时不改 `~/.config/rex/init.lua` 的键位。
 - 外观设置存在 `defaults` 域 `com.superlogical.rex` 的 `Workspace.*` 键。App 运行时不读这些改动，重启 App 才生效。Rex Server 是独立进程，重启 App 不中断会话。
 - App 的 Remote Control 是关闭的，`client.*` 这类控制 App 的动作会被拒绝。需要时请用户在 Settings 里打开，不自行修改。
