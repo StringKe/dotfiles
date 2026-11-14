@@ -84,10 +84,11 @@ agent 只认 4 个角色组。角色组里写模型，同一个模型由哪家�
 
 ## 调整步骤
 
-1. 存档：`magpie backup <文件>` 存全部配置，`magpie save before-route` 存各 agent 的设置。验证通过后执行 `magpie rm before-route`：快照会出现在 App 的「方案」栏，点一下就整体回滚到旧设置，旧设置引用的组删掉后会让请求 404。
+1. 存档：`magpie backup <文件>` 存全部配置，`magpie save before-route` 存各 agent 的设置。
 2. 读现状：`magpie providers`、`magpie quota`、`magpie groups`、`magpie models`。
 3. 新增供应商：
    - 加完先跑 `magpie provider test <id>`，再用真实客户端测一次。有的中转 key 只认 Claude Code，curl 返回 403，`claude -p` 却能通。
+   - 中转的模型清单不等于这把 key 能调的模型。很多 key 所在的分组只放行 Claude，GPT、Gemini 会返回「当前分组不允许调度模型」或「不支持当前入口协议」。把清单里的模型逐个用 curl 发一条请求，再用 `magpie provider models <id> <能调通且有分组会用到的模型…>` 只暴露这些。GPT 走 Codex 订阅，中转一般只进 Claude 的模型组。
    - 核对余额读数。new-api 类中转的「不限额度」key，`data.total_available` 永远等于已用量的负数，余额要改读 `magpie provider set <id> balance.path='$data.user_quota.total_available / 500000'`。
 4. 停用供应商：用 `magpie provider off <id>`，不用 `rm`。然后检查 `~/.config/magpie/stash.json` 里的 `claude.base_url` 是否还指向它，执行 `magpie claude default` 时会写回这个地址。要清就先备份，再用 jq 删掉 `claude.base_url` 和 `claude.auth_token`。
 5. 重新对照模型层：
