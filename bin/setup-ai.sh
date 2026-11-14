@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
-# [TOOL] AI 提示词、skills、hooks、插件与 MCP 部署（claude-code / opencode）
+# [TOOL] AI 的 agents、hooks、插件与 opencode 配置部署（claude-code / opencode）
 #
-# 提示词、agents、hooks、statusline、个人 skills、worktree 插件、opencode 配置
-# 用符号链接指回仓库 ai/：在 ~ 里编辑等于改仓库，git status 可见。
-# 仓库里删除或改名的条目，对应的旧链接会被清掉。
+# agents、hooks、statusline、worktree 插件、opencode 配置用符号链接指回仓库 ai/：
+# 在 ~ 里编辑等于改仓库，git status 可见。仓库里删除或改名的条目，对应的旧链接会被清掉。
+# 全局提示词、个人 skills 与 MCP 由 magpie 的 Library 写进两个 agent，本脚本不碰。
 # ~/.claude/settings.json 由 Claude Code 运行时改写，用 jq 深合并（本地字段保留，仓库同名 key 覆盖）。
-# MCP 用 claude mcp add-json -s user 写进 ~/.claude.json；密钥按变量名引用 ~/.zsh_secrets。
 # 被替换的旧文件 / 目录放进废纸篓。
 #
 # 用法:
@@ -84,32 +83,6 @@ prune_links() {
     done
 }
 
-add_claude_mcp() {
-    local name json
-    local var missing
-    for name in $(jq -r 'keys[]' "$AI/claude/mcp.json"); do
-        json=$(jq -c --arg home "$HOME" --arg n "$name" '.[$n] | walk(if type == "string" then gsub("\\$\\{HOME\\}"; $home) else . end)' "$AI/claude/mcp.json")
-        missing=""
-        for var in $(jq -r '[.. | strings | scan("\\$\\{([A-Z0-9_]+)\\}")[0]] | unique[]' <<<"$json"); do
-            [[ -n ${!var:-} ]] || missing+=" $var"
-        done
-        if [[ -n $missing ]]; then
-            log "skip    mcp ${name}（~/.zsh_secrets 缺少${missing}）"
-            continue
-        fi
-        claude mcp remove -s user "$name" >/dev/null 2>&1 || true
-        if claude mcp add-json -s user "$name" "$json" >/dev/null; then
-            log "mcp     $name"
-        else
-            log "fail    mcp ${name}（claude 的报错在上一行，bin/deploy.sh check 会报它未注册）"
-        fi
-    done
-}
-
-# 全局提示词：Claude Code 与 opencode 共用一份
-link "$AI/AGENTS.md" "$HOME/.claude/CLAUDE.md"
-link "$AI/AGENTS.md" "$HOME/.config/opencode/AGENTS.md"
-
 # Claude Code agents / hooks / statusline
 for f in "$AI"/claude/agents/*.md; do
     link "$f" "$HOME/.claude/agents/${f##*/}"
@@ -119,23 +92,10 @@ for f in "$AI"/claude/hooks/*.sh; do
 done
 link "$AI/claude/statusline-command.sh" "$HOME/.claude/statusline-command.sh"
 
-# 个人 skills：~/.agents/skills 为共享目录，Claude Code 与 opencode 各自目录也直接指回仓库
-for d in "$AI"/skills/*/; do
-    d=${d%/}
-    link "$d" "$HOME/.agents/skills/${d##*/}"
-    link "$d" "$HOME/.claude/skills/${d##*/}"
-    link "$d" "$HOME/.config/opencode/skills/${d##*/}"
-done
-
-# 个人插件：~/.agents/plugins 放整个插件；Claude Code 与 opencode 的 skills 目录只认单个 skill，逐个链接
+# 个人插件：~/.agents/plugins 放整个插件；插件里的 skill 与 ai/skills/* 一样由 magpie Library 分发
 for p in "$AI"/plugins/*/; do
     p=${p%/}
     link "$p" "$HOME/.agents/plugins/${p##*/}"
-    for s in "$p"/skills/*/; do
-        s=${s%/}
-        link "$s" "$HOME/.claude/skills/${s##*/}"
-        link "$s" "$HOME/.config/opencode/skills/${s##*/}"
-    done
 done
 
 # opencode 配置
@@ -144,25 +104,14 @@ link "$AI/opencode/tui.json" "$HOME/.config/opencode/tui.json"
 
 prune_links
 
-# Claude Code 设置与 MCP
+# Claude Code 设置
 merge_claude_settings
-if command -v claude >/dev/null 2>&1; then
-    add_claude_mcp
-else
-    log "skip    MCP（claude 不在 PATH：未安装，或装完后还没 exec zsh）"
-fi
 
-# 第三方 skill：Rex 自带安装器；ego-browser 随 ego lite 安装
+# 第三方 skill：Rex 自带安装器
 if command -v rex >/dev/null 2>&1; then
     rex skill setup --agent claude --agent opencode >/dev/null
     drop_rex_session_hook
     log "rex     skill setup"
-fi
-ego_skill="$HOME/.local/share/ego/ego-skills"
-if [[ -d $ego_skill ]]; then
-    link "$ego_skill" "$HOME/.agents/skills/ego-browser"
-    link "$ego_skill" "$HOME/.claude/skills/ego-browser"
-    link "$ego_skill" "$HOME/.config/opencode/skills/ego-browser"
 fi
 
 # 公开仓库：链接文件在 ~ 里编辑后提交，先过 gitleaks
@@ -173,3 +122,4 @@ fi
 
 log ""
 log "MCP 的 key / token 按 config/zsh/zsh_secrets.template 在 ~/.zsh_secrets 填写"
+log "全局提示词、个人 skills 与 MCP 在 magpie 的 Library 里管理（magpie library）"

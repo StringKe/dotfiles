@@ -274,20 +274,20 @@ cmd_check() {
     # AI 配置（bin/setup-ai.sh 负责部署）；bin/setup.sh 记录的模块里没有 ai 时跳过
     local modules="$HOME/.config/dotfiles/modules"
     if [[ ! -f $modules ]] || grep -qx ai "$modules"; then
-        if [[ $(readlink "$HOME/.claude/CLAUDE.md" 2>/dev/null) == "$DOTFILES_ROOT/ai/AGENTS.md" ]]; then
-            log "OK     ~/.claude/CLAUDE.md -> ai/AGENTS.md"
+        local f
+        for f in "$HOME/.claude/CLAUDE.md" "$HOME/.config/opencode/AGENTS.md"; do
+            if grep -q 'magpie:begin' "$f" 2>/dev/null; then
+                log "OK     $f 含 magpie Library 的提示词"
+            else
+                log "FAIL   $f 没有 magpie Library 的提示词（magpie 里建引用 ai/AGENTS.md 的提示词组后跑 magpie library sync）"
+                errors=$((errors + 1))
+            fi
+        done
+        if [[ -f $HOME/.claude.json ]] && jq -e '.mcpServers | has("magpie")' "$HOME/.claude.json" >/dev/null; then
+            log "OK     ~/.claude.json 有 magpie 的 MCP 入口"
         else
-            log "FAIL   ~/.claude/CLAUDE.md 未链接到 ai/AGENTS.md（跑 bin/setup-ai.sh）"
+            log "FAIL   ~/.claude.json 没有 magpie 的 MCP 入口（跑 magpie library sync）"
             errors=$((errors + 1))
-        fi
-        if [[ -f $HOME/.claude.json ]]; then
-            local name
-            for name in $(jq -r 'keys[]' "$DOTFILES_ROOT/ai/claude/mcp.json"); do
-                if ! jq -e --arg n "$name" '.mcpServers | has($n)' "$HOME/.claude.json" >/dev/null; then
-                    log "FAIL   MCP $name 未注册（在 ~/.zsh_secrets 填好它的 key 后跑 bin/setup-ai.sh）"
-                    errors=$((errors + 1))
-                fi
-            done
         fi
     fi
 
