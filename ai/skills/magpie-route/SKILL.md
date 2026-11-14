@@ -51,7 +51,7 @@ agent 只认 4 个角色组。角色组里写模型，同一个模型由哪家�
 
 ### 模型层
 
-- 「自动创建路由组」保持关闭（`magpie group auto off`）。模型组只保留角色组用到的那几个，是改过的组，关闭后照常生效。新模型要建模型组时，临时 `magpie group auto on` 让它出现，`magpie group set` 改完后再 `magpie group auto off`。
+- 「自动创建路由组」保持关闭（`magpie group auto off`）。模型组只保留角色组用到的那几个，是改过的组，关闭后照常生效。新模型要建模型组时直接 `magpie group add "<模型名>" models='<订阅>/<模型>,re:.*/<模型正则>' routing=rotate stays=session`，不用打开自动创建。
 - Claude 模型组写成 `magpie group set auto-claude-opus-5-5 models='claude/claude-opus-5-5,re:.*claude-opus-5[.-]5' routing=rotate stays=session`，用正则收进各家中转，以后新增供应商会自动加进来。GPT 模型组（Codex 订阅加 OpenAI 中转）同样设 `routing=rotate stays=session`。
 - 只有一家的模型，角色组里直接写 `provider/model`，比如 `grok/grok-4.7`。
 - 只接受 Claude Code 请求的中转 key，在对应的模型组里加 `pause=<relay>/<model> when="agent is not claude"`。不加的话，其他 agent 的请求被 403 拒绝后，magpie 会让这家暂时休息，Claude Code 也跟着被挤到下一家。
