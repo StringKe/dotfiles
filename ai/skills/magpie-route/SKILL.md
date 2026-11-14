@@ -1,0 +1,113 @@
+---
+name: magpie-route
+description: 维护 magpie 的模型路由分组：大脑、深度、干活、快速四个角色组按模型而不是按供应商排优先级。新增、更换、停用供应商或订阅，新一代模型发布，用户说「调一下路由」「重建分组」「换了供应商」「检查路由对不对」时使用。magpie 命令的通用写法见 magpie-setup skill。
+---
+
+# magpie-route
+
+agent 只认 4 个角色组。角色组里写模型，同一个模型由哪家供应商提供交给模型层处理。换供应商只动模型层，角色组和 agent 配置不变。
+
+## 目标状态
+
+### 角色组
+
+| 组 | 依次尝试 | 用途 |
+| --- | --- | --- |
+| `group/brain` | Opus 5.5 -> GPT-6.1 Sol -> Grok 4.7 -> `group/worker` | 主对话 |
+| `group/deep` | Fable 5.2 -> GPT-6 Astra -> Opus 5.5 -> `group/worker` | 架构、疑难问题、长时间无人值守任务 |
+| `group/worker` | GPT-6.1 Sol -> Sonnet 5.5 -> GPT-6.1 Terra | 写代码的子代理、压缩上下文 |
+| `group/fast` | Haiku 5.5 -> GPT-6.1 Terra -> Grok 4.7 Fast | Explore 子代理、起标题、小任务 |
+
+- 四个组都是 `routing=order stays=session`。`stays=session` 让一个会话固定在一家，保住缓存。
+- `brain` 和 `deep` 各两条规则：`use=group/worker use-effort=high when=subagent`，`use=group/worker compact`。规则的 `use=` 必须是组成员，所以 `group/worker` 放在这两个组的最后一位。
+- 子代理用规则分流，不设 `magpie claude subagent`。那个字段会覆盖全部子代理，Explore 和自己写了 `model:` 的子代理也会被改掉。
+
+### 不同的活怎么进不同的组
+
+模型看不到分组。走哪个组由两件事决定：会话选了哪个组，子代理请求的是哪个模型名。
+
+- 会话：在 `/model` 或 OpenCode 的模型列表里选组。日常用 `brain`，难题开一个 `deep` 会话。
+- Claude Code 的子代理按这个顺序取模型：派发时主模型传的 `model` 参数（`opus`、`fable`、`sonnet`、`haiku`），子代理定义里的 `model:` 字段，`CLAUDE_CODE_SUBAGENT_MODEL`，最后沿用主对话的模型。来源：https://code.claude.com/docs/en/sub-agents
+
+| 子代理怎么派 | 请求的模型 | 结果 |
+| --- | --- | --- |
+| 不指定，沿用主模型 | `group/brain` 或 `group/deep` | 命中子代理规则 -> worker（GPT-6.1 Sol，high） |
+| `opus` | `auto/claude-opus-5-5` | Opus 5.5 |
+| `fable` | `auto/claude-fable-5-2` | Fable 5.2，high |
+| `sonnet` | `group/worker` | GPT-6.1 Sol |
+| `haiku`，以及 Explore | `group/fast` | Haiku 5.5 |
+
+- opus 档和 fable 档指向模型组，不指向 `brain` 和 `deep`。指向角色组的话，子代理规则会把明确要 Opus 或 Fable 的子代理也改成 worker。
+- 要让某类子代理固定用某个档位，在 `~/.claude/agents/<名>.md` 的 frontmatter 里写 `model: fable`，或在全局提示词里写明哪类任务派哪个档位。
+- OpenCode、Goose、VS Code 不告诉 magpie 哪个请求来自子代理，它们的子代理跟主对话走同一个组。OpenCode 要分流，就在它的 agent 配置里给子代理单独写 `model`。
+
+选型依据（2026-11 的评测）：
+
+- Opus 5.5 是日常主力，medium 档的 FrontierCode 得分不低于 xhigh 和 max，成本只有 max 的约 1/8。来源：https://www.anthropic.com/claude-opus-5-5 、https://moelueker.com/blog/claude-opus-5-5-review
+- Fable 5.2 智能指数第一，high 档性价比最好，max 更贵且不更好。来源：https://artificialanalysis.ai/models/releases/comparisons/claude-opus-5-5-vs-claude-fable-5-2
+- 写代码的子代理，GPT-6.1 Sol 在 high 档通过率高于 Sonnet 5.5，成本约为 1/7。走 Codex 订阅，Claude 订阅的 5 小时窗口留给大脑。来源：https://vulcanbench.com/benchmarks/swe-v4-sonnet55-vs-frontier.html
+- 只读、探索类子代理用 Haiku 5.5 即可。GPT-6 Luna 在查代码这类任务上不可靠，不放进任何组。来源：https://www.ovidius.ai/blog/claude-code-subagents-haiku-vs-sonnet-vs-opus-benchmarked 、https://bito.ai/blog/gpt-6-1-terra-vs-gpt-6-1-sol-vs-gpt-6-luna/
+
+### 模型层
+
+- 有两家以上供应商的模型，magpie 会自动生成 `auto/<模型>` 组。改成订阅在前、按量付费的 key 在后：`magpie group set auto-claude-opus-5-5 models='claude/claude-opus-5-5,re:.*claude-opus-5[.-]5' routing=order stays=session`。先写订阅，再写正则，以后新增供应商会自动加进来。
+- 只有一家的模型，角色组里直接写 `provider/model`，比如 `codex/gpt-6.1-sol`。
+- 只接受 Claude Code 请求的中转 key，在对应的模型组里加 `pause=<relay>/<model> when="agent is not claude"`。不加的话，其他 agent 的请求被 403 拒绝后，magpie 会让这家暂时休息，Claude Code 也跟着被挤到下一家。
+- 裸模型名的请求（比如老会话发的 `claude-opus-5-5`）也走 `auto/<模型>` 组，所以 auto 组同样要订阅在前。
+
+### agent
+
+| agent | 设置 |
+| --- | --- |
+| Claude Code | `magpie claude group/brain`，`opus auto/claude-opus-5-5`，`fable auto/claude-fable-5-2`，`sonnet group/worker`，`haiku group/fast`，`fable_effort high`，effort 保持 medium |
+| OpenCode | `magpie opencode group/brain`，`small group/fast` |
+| Goose、VS Code | `group/brain` |
+| Codex | 不接 magpie，走自己的 ChatGPT 登录 |
+
+- 收窄模型列表：OpenCode、Goose、VS Code 用 `magpie visible <agent> brain,deep,worker,fast`；Claude Code 用 `magpie visible claude brain,deep,worker,fast,auto-claude-opus-5-5,auto-claude-fable-5-2`，因为档位只能指向列表里可见的模型。按名字请求其他模型的老会话仍然能用。
+- 顺序是先设 `visible`，再设档位。顺序反了，`magpie claude opus <模型>` 会报这个模型对 Claude Code 不可见。
+- 旧一代模型用 `magpie model disable '<glob>'` 停用，例如 `'*claude-opus-4*'`、`'*gpt-5.6-*'`。
+
+## 调整步骤
+
+1. 存档：`magpie backup <文件>` 存全部配置，`magpie save before-route` 存各 agent 的设置。
+2. 读现状：`magpie providers`、`magpie quota`、`magpie groups`、`magpie models`。
+3. 新增供应商：
+   - 加完先跑 `magpie provider test <id>`，再用真实客户端测一次。有的中转 key 只认 Claude Code，curl 返回 403，`claude -p` 却能通。
+   - 核对余额读数。new-api 类中转的「不限额度」key，`data.total_available` 永远等于已用量的负数，余额要改读 `magpie provider set <id> balance.path='$data.user_quota.total_available / 500000'`。
+4. 停用供应商：用 `magpie provider off <id>`，不用 `rm`。然后检查 `~/.config/magpie/stash.json` 里的 `claude.base_url` 是否还指向它，执行 `magpie claude default` 时会写回这个地址。要清就先备份，再用 jq 删掉 `claude.base_url` 和 `claude.auth_token`。
+5. 重新对照模型层：
+   - 某模型变成两家以上：出现 `auto/<模型>` 组，按上面的写法排序，再把角色组里的 `provider/model` 换成 `auto/<模型>`。
+   - 某模型只剩一家：`auto/<模型>` 组消失，角色组里换成 `provider/model`。
+6. 新一代模型：直接替换角色组里对应的位置，再停用上一代。
+7. 删组之前查最近有没有会话还在请求它：`jq -r 'select(.t > "<时刻>") | .req' ~/.config/magpie/usage.jsonl | sort | uniq -c`。还有请求就先保留，或者用同一个 id 建一个只含 `group/brain` 的转发组。直接删会让这些会话收到 404。
+
+## 验证
+
+每次请求的记录在 `~/.config/magpie/usage.jsonl`：`req` 是请求的模型，`provider/served` 是实际服务的模型。
+
+```sh
+for g in brain deep worker fast; do curl -s http://127.0.0.1:3425/v1/messages -H 'x-api-key: magpie' -H 'anthropic-version: 2023-06-01' -H 'content-type: application/json' -d "{\"model\":\"group/$g\",\"max_tokens\":16,\"messages\":[{\"role\":\"user\",\"content\":\"reply ok\"}]}" >/dev/null; done
+claude -p 'Launch five general-purpose subagents with the Agent tool, each with the prompt "reply sub ok": no model parameter, then model "opus", "fable", "sonnet", "haiku". Then launch an Explore subagent that lists files here. Then reply done.' --max-turns 16 --allowedTools='Task,Agent,Read,Glob,Bash(ls:*)'
+opencode run 'reply ok'
+jq -r 'select(.t > "<开始时刻>") | "\(.agent) \(.req) -> \(.provider)/\(.served) \(.status)"' ~/.config/magpie/usage.jsonl | sort | uniq -c
+```
+
+通过的标准：
+
+- 主对话：`group/brain -> claude/claude-opus-5-5`。
+- 子代理与「不同的活怎么进不同的组」一节的表格一致：不指定模型 -> `codex/gpt-6.1-sol`；`opus` -> Opus 5.5；`fable` -> Fable 5.2；`sonnet` -> Sol；`haiku` 和 Explore -> Haiku 5.5。
+- 非 claude agent：请求不会落到只认 Claude Code 的中转上。
+- 改动之后没有 404 和 403。
+
+`claude -p` 的 `--allowedTools` 会把后面的参数都当成工具名，所以提示词写在它前面，或者写成 `--allowedTools=...`。
+
+## 易错点
+
+- `magpie claude opus`、`sonnet`、`haiku`、`fable` 后面不带值时，会把主模型改成 Claude Code 自己的这个档位，等于断开 magpie。查看当前设置只用 `magpie claude`。
+- 组成员不能写 `group/x:high`，固定 effort 用规则的 `use-effort=` 或 agent 的 `*_effort` 字段。
+- 一个组里写多个正则时，命中的模型按 `magpie models` 的列表顺序排，不按正则的书写顺序。要控制顺序，先把模型名明确写出来。
+- `smart` 路由不保证订阅排在按量付费的 key 前面。要订阅优先，用 `order` 并把订阅写在第一位。
+- `auto/x` 存进组里会变成 `group/auto-x`，`magpie groups` 列表里会显示 `(not served)`。这只是显示问题，实际能否路由以 usage.jsonl 为准。
+- Claude Code 的 advisor 走 magpie 时不生效：它在 Anthropic 服务端运行，只认 Claude Code 自己认识的模型名。难题改用 `/model` 切到 fable 档。
+- 已在运行的会话保留启动时的环境变量。用 `ps eww -U $USER | rg -o 'ANTHROPIC_BASE_URL=\S+' | sort | uniq -c` 查还有多少进程绕过 magpie，这些进程要重启才会走新配置。
