@@ -15,10 +15,10 @@ agent 只认 4 个角色组。角色组里写模型，同一个模型由哪家�
 | --- | --- | --- |
 | `group/brain` | 依次：Opus 5.5 -> GPT-6.1 Sol -> Grok 4.7 -> `group/worker` | 主对话 |
 | `group/deep` | 依次：Fable 5.2 -> GPT-6 Astra -> Opus 5.5 -> `group/worker` | 架构、疑难问题、长时间无人值守任务 |
-| `group/worker` | 按额度：GPT-6.1 Sol、Sonnet 5.5、GPT-6.1 Terra | 写代码的子代理、压缩上下文 |
-| `group/fast` | 按额度：Haiku 5.5、GPT-6.1 Terra、Grok 4.7 Fast | Explore 子代理、起标题、小任务 |
+| `group/worker` | 依次：GPT-6.1 Sol -> Sonnet 5.5 -> GPT-6.1 Terra | 写代码的子代理、压缩上下文 |
+| `group/fast` | 依次：Haiku 5.5 -> GPT-6.1 Terra -> Grok 4.7 Fast | Explore 子代理、起标题、小任务 |
 
-- `brain`、`deep` 用 `routing=order`，`worker`、`fast` 用 `routing=expiring`，四个组都是 `stays=session`。`stays=session` 让一个会话固定在一家，保住缓存。
+- 四个角色组都用 `routing=order stays=session`，成员写 `auto/<模型>`。角色组只决定用哪个模型，用哪家供应商由模型层轮流决定。`stays=session` 让一个会话固定在一家，保住缓存。
 - `brain` 和 `deep` 各两条规则：`use=group/worker use-effort=high when=subagent`，`use=group/worker compact`。规则的 `use=` 必须是组成员，所以 `group/worker` 放在这两个组的最后一位。
 - 子代理用规则分流，不设 `magpie claude subagent`。那个字段会覆盖全部子代理，Explore 和自己写了 `model:` 的子代理也会被改掉。
 
@@ -34,7 +34,7 @@ agent 只认 4 个角色组。角色组里写模型，同一个模型由哪家�
 | 不指定，沿用主模型 | `group/brain` 或 `group/deep` | 命中子代理规则 -> worker，effort high |
 | `opus` | `auto/claude-opus-5-5` | Opus 5.5 |
 | `fable` | `auto/claude-fable-5-2` | Fable 5.2，high |
-| `sonnet` | `group/worker` | worker 里额度最先过期的那家：Claude 订阅先重置时是 Sonnet 5.5，Codex 先重置时是 GPT-6.1 Sol |
+| `sonnet` | `group/worker` | GPT-6.1 Sol |
 | `haiku`，以及 Explore | `group/fast` | Haiku 5.5 |
 
 - opus 档和 fable 档指向模型组，不指向 `brain` 和 `deep`。指向角色组的话，子代理规则会把明确要 Opus 或 Fable 的子代理也改成 worker。
@@ -46,26 +46,27 @@ agent 只认 4 个角色组。角色组里写模型，同一个模型由哪家�
 
 - Opus 5.5 是日常主力，medium 档的 FrontierCode 得分不低于 xhigh 和 max，成本只有 max 的约 1/8。来源：https://www.anthropic.com/claude-opus-5-5 、https://moelueker.com/blog/claude-opus-5-5-review
 - Fable 5.2 智能指数第一，high 档性价比最好，max 更贵且不更好。来源：https://artificialanalysis.ai/models/releases/comparisons/claude-opus-5-5-vs-claude-fable-5-2
-- 写代码的子代理，GPT-6.1 Sol 在 high 档通过率高于 Sonnet 5.5，成本约为 1/7，两者都够用，所以 worker 按额度在两家之间分配。来源：https://vulcanbench.com/benchmarks/swe-v4-sonnet55-vs-frontier.html
+- 写代码的子代理，GPT-6.1 Sol 在 high 档通过率高于 Sonnet 5.5，成本约为 1/7，所以 worker 第一位是 Sol。来源：https://vulcanbench.com/benchmarks/swe-v4-sonnet55-vs-frontier.html
 - 只读、探索类子代理用 Haiku 5.5 即可。GPT-6 Luna 在查代码这类任务上不可靠，不放进任何组。来源：https://www.ovidius.ai/blog/claude-code-subagents-haiku-vs-sonnet-vs-opus-benchmarked 、https://bito.ai/blog/gpt-6-1-terra-vs-gpt-6-1-sol-vs-gpt-6-luna/
 
 ### 模型层
 
-- 有两家以上供应商的模型，magpie 会自动生成 `auto/<模型>` 组。改成 `magpie group set auto-claude-opus-5-5 models='claude/claude-opus-5-5,re:.*claude-opus-5[.-]5' routing=expiring stays=session`。先写订阅，再写正则，以后新增供应商会自动加进来。
-- 只有一家的模型，角色组里直接写 `provider/model`，比如 `codex/gpt-6.1-sol`。
+- 有两家以上供应商的模型，magpie 会自动生成 `auto/<模型>` 组（`magpie group auto on` 打开）。Claude 模型组写成 `magpie group set auto-claude-opus-5-5 models='claude/claude-opus-5-5,re:.*claude-opus-5[.-]5' routing=rotate stays=session`，用正则收进各家中转，以后新增供应商会自动加进来。GPT 模型组（Codex 订阅加 OpenAI 中转）同样设 `routing=rotate stays=session`。
+- 只有一家的模型，角色组里直接写 `provider/model`，比如 `grok/grok-4.7`。
 - 只接受 Claude Code 请求的中转 key，在对应的模型组里加 `pause=<relay>/<model> when="agent is not claude"`。不加的话，其他 agent 的请求被 403 拒绝后，magpie 会让这家暂时休息，Claude Code 也跟着被挤到下一家。
-- 裸模型名的请求（比如老会话发的 `claude-opus-5-5`）也走 `auto/<模型>` 组，所以 auto 组同样要订阅在前。
+- 裸模型名的请求（比如老会话发的 `claude-opus-5-5`）也走 `auto/<模型>` 组。
+- 中转只接 Claude 的 key 和只接 OpenAI 的 key 在 magpie 里是两个服务商，比如「鱼鱼连线 Claude」和「鱼鱼连线 OpenAI」。OpenAI 那个如果拒绝 `/v1/messages`（报 `This group does not allow /v1/messages dispatch`），用 `magpie model api <provider/model…> responses` 改走 Responses 协议。
 
 ### 每个组用哪种路由
 
 | 组 | 路由 | 原因 |
 | --- | --- | --- |
-| 模型层 `auto/<模型>` | `expiring` | 订阅额度先用，多个订阅时最快过期的先用，都用完才用按量付费的 key |
-| `worker`、`fast` | `expiring` | 成员能力相近，哪家订阅先重置就先用哪家，减少额度浪费 |
-| `brain`、`deep` | `order` | 第一位是指定的大脑模型。按额度排会在 Opus 还有额度时把主对话分给别的模型 |
+| 模型层 `auto/<模型>` | `rotate` | 订阅和各家中转轮流接新会话，中转的余额是买来用完的，不留着当后备 |
+| 四个角色组 | `order` | 第一位是指定的模型。角色组用 `rotate` 会把主对话轮到 GPT、Grok 上 |
 
-- 不用 `smart`、`usage`、`pace` 管「订阅 + 按量付费 key」的组：实测 `smart` 在订阅有额度时仍把请求发给 key；`usage` 会把余额多的 key 当成额度更多。
-- `expiring` 下的 `worker` 会跟 `brain` 共用 Claude 订阅的 5 小时窗口。窗口用完后，`brain` 转到模型层的按量付费 key。每个按量付费的 key 都设每日上限：`magpie provider spend-cap <id> <key id> <美元> day`，key id 用不带参数的 `magpie provider spend-cap <id>` 查。到顶后路由把它当作已用完，`brain` 转到下一个模型。上限按余额定，取能撑 20 天左右的数。
+- `rotate` 加 `stays=session`：每个新会话轮到下一家，会话内的请求留在同一家，缓存不断。某家报错、余额用完时，这个会话转到下一家。
+- 按量付费的 key 不设每日上限。上限到顶会把这家当作当天已用完，跟「中转余额用完为止」相反。
+- 订阅账号用到上限时，任何路由都会把它当作已用完直接跳过，直到窗口重置。`magpie provider account-cap <id> <账号> <百分比>` 可以设定提前让出的比例。
 - 订阅账号用到上限时，任何路由都会把它当作已用完直接跳过，直到窗口重置。`magpie provider account-cap <id> <账号> <百分比>` 可以设定提前让出的比例。
 - 同一家有两个以上订阅时，在服务商上设 `magpie provider set <id> routing=pace`，或用 `magpie provider pool` 定顺序和上限。
 
@@ -88,7 +89,7 @@ agent 只认 4 个角色组。角色组里写模型，同一个模型由哪家�
 2. 读现状：`magpie providers`、`magpie quota`、`magpie groups`、`magpie models`。
 3. 新增供应商：
    - 加完先跑 `magpie provider test <id>`，再用真实客户端测一次。有的中转 key 只认 Claude Code，curl 返回 403，`claude -p` 却能通。
-   - 中转的模型清单不等于这把 key 能调的模型。很多 key 所在的分组只放行 Claude，GPT、Gemini 会返回「当前分组不允许调度模型」或「不支持当前入口协议」。把清单里的模型逐个用 curl 发一条请求，再用 `magpie provider models <id> <能调通且有分组会用到的模型…>` 只暴露这些。GPT 走 Codex 订阅，中转一般只进 Claude 的模型组。
+   - 中转的模型清单不等于这把 key 能调的模型。很多 key 所在的分组只放行 Claude，GPT、Gemini 会返回「当前分组不允许调度模型」或「不支持当前入口协议」。把清单里的模型逐个用 curl 发一条请求，再用 `magpie provider models <id> <能调通且有分组会用到的模型…>` 只暴露这些。curl 测试时每条消息的内容要不同，内容相同的请求会被认成同一个会话，落在同一家。
    - 核对余额读数。new-api 类中转的「不限额度」key，`data.total_available` 永远等于已用量的负数，余额要改读 `magpie provider set <id> balance.path='$data.user_quota.total_available / 500000'`。
 4. 停用供应商：用 `magpie provider off <id>`，不用 `rm`。然后检查 `~/.config/magpie/stash.json` 里的 `claude.base_url` 是否还指向它，执行 `magpie claude default` 时会写回这个地址。要清就先备份，再用 jq 删掉 `claude.base_url` 和 `claude.auth_token`。
 5. 重新对照模型层：
@@ -111,8 +112,8 @@ jq -r 'select(.t > "<开始时刻>") | "\(.agent) \(.req) -> \(.provider)/\(.ser
 通过的标准：
 
 - 主对话：`group/brain -> claude/claude-opus-5-5`。
-- 子代理与「不同的活怎么进不同的组」一节的表格一致：不指定模型和 `sonnet` -> worker 里额度最先过期的那家；`opus` -> Opus 5.5；`fable` -> Fable 5.2；`haiku` 和 Explore -> Haiku 5.5。
-- 模型层的请求落在订阅上，不落在按量付费的 key 上。
+- 子代理与「不同的活怎么进不同的组」一节的表格一致：不指定模型和 `sonnet` -> GPT-6.1 Sol；`opus` -> Opus 5.5；`fable` -> Fable 5.2；`haiku` 和 Explore -> Haiku 5.5。
+- 对同一个模型组发几条内容不同的请求，`provider` 依次换成订阅和各家中转。
 - 非 claude agent：请求不会落到只认 Claude Code 的中转上。
 - 改动之后没有 404 和 403。
 
@@ -123,7 +124,6 @@ jq -r 'select(.t > "<开始时刻>") | "\(.agent) \(.req) -> \(.provider)/\(.ser
 - `magpie claude opus`、`sonnet`、`haiku`、`fable` 后面不带值时，会把主模型改成 Claude Code 自己的这个档位，等于断开 magpie。查看当前设置只用 `magpie claude`。
 - 组成员不能写 `group/x:high`，固定 effort 用规则的 `use-effort=` 或 agent 的 `*_effort` 字段。
 - 一个组里写多个正则时，命中的模型按 `magpie models` 的列表顺序排，不按正则的书写顺序。要控制顺序，先把模型名明确写出来。
-- `smart` 路由不保证订阅排在按量付费的 key 前面。要订阅优先，用 `order` 并把订阅写在第一位。
 - `auto/x` 存进组里会变成 `group/auto-x`，`magpie groups` 列表里会显示 `(not served)`。这只是显示问题，实际能否路由以 usage.jsonl 为准。
 - Claude Code 的 advisor 走 magpie 时不生效：它在 Anthropic 服务端运行，只认 Claude Code 自己认识的模型名。难题改用 `/model` 切到 fable 档。
 - 走 Claude 订阅的请求，magpie 会在调用方的项目目录里启动一个交互模式的 Claude Code（`--setting-sources "" --permission-mode default`）。它出现在 `ListAgents` 里，名字是「目录名-两位十六进制」，不读用户的 `crossSessionInbound`。bypass 模式的会话发给它的消息会被扣下，然后过期。源码位置：`internal/gateway/claude_subscription.go`、`internal/claudetui/tui.go` 的 `interactiveArgs`、`internal/gateway/claude_warmup.go` 的 `claudeRunSettings`。
