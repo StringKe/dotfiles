@@ -39,7 +39,8 @@ agent 只认 4 个角色组。角色组里写模型，同一个模型由哪家�
 
 - opus 档和 fable 档指向模型组，不指向 `brain` 和 `deep`。指向角色组的话，子代理规则会把明确要 Opus 或 Fable 的子代理也改成 worker。
 - 要让某类子代理固定用某个档位，在 `~/.claude/agents/<名>.md` 的 frontmatter 里写 `model: fable`，或在全局提示词里写明哪类任务派哪个档位。
-- OpenCode、Goose、VS Code 不告诉 magpie 哪个请求来自子代理，它们的子代理跟主对话走同一个组。OpenCode 要分流，就在它的 agent 配置里给子代理单独写 `model`。
+- OpenCode、Goose、VS Code 不告诉 magpie 哪个请求来自子代理，没有单独配置的子代理跟主对话走同一个组。OpenCode 的内置子代理已在 `agents` 里单独指定模型，见下面 agent 一节。
+- `opencode.jsonc` 是指向 dotfiles 的符号链接，改了链接目标后 OpenCode 不会察觉。改完执行 `touch -h ~/.config/opencode/opencode.jsonc`，再用 `opencode run` 测一次子代理。
 
 选型依据（2026-11 的评测）：
 
@@ -64,7 +65,7 @@ agent 只认 4 个角色组。角色组里写模型，同一个模型由哪家�
 | `brain`、`deep` | `order` | 第一位是指定的大脑模型。按额度排会在 Opus 还有额度时把主对话分给别的模型 |
 
 - 不用 `smart`、`usage`、`pace` 管「订阅 + 按量付费 key」的组：实测 `smart` 在订阅有额度时仍把请求发给 key；`usage` 会把余额多的 key 当成额度更多。
-- `expiring` 下的 `worker` 会跟 `brain` 共用 Claude 订阅的 5 小时窗口。窗口用完后，`brain` 转到模型层的按量付费 key。按量付费的 key 用 `magpie provider spend-cap <id> <key> <美元> day` 封顶，到顶后路由把它当作已用完。
+- `expiring` 下的 `worker` 会跟 `brain` 共用 Claude 订阅的 5 小时窗口。窗口用完后，`brain` 转到模型层的按量付费 key。每个按量付费的 key 都设每日上限：`magpie provider spend-cap <id> <key id> <美元> day`，key id 用不带参数的 `magpie provider spend-cap <id>` 查。到顶后路由把它当作已用完，`brain` 转到下一个模型。上限按余额定，取能撑 20 天左右的数。
 - 订阅账号用到上限时，任何路由都会把它当作已用完直接跳过，直到窗口重置。`magpie provider account-cap <id> <账号> <百分比>` 可以设定提前让出的比例。
 - 同一家有两个以上订阅时，在服务商上设 `magpie provider set <id> routing=pace`，或用 `magpie provider pool` 定顺序和上限。
 
@@ -73,7 +74,7 @@ agent 只认 4 个角色组。角色组里写模型，同一个模型由哪家�
 | agent | 设置 |
 | --- | --- |
 | Claude Code | `magpie claude group/brain`，`opus auto/claude-opus-5-5`，`fable auto/claude-fable-5-2`，`sonnet group/worker`，`haiku group/fast`，`fable_effort high`，effort 保持 medium |
-| OpenCode | `magpie opencode group/brain`，`small group/fast` |
+| OpenCode | `magpie opencode group/brain`，`small group/fast`；`~/.config/opencode/opencode.jsonc` 的 `agents` 里写 `general`、`compaction` -> `magpie/group/worker`，`explore`、`summary`、`title` -> `magpie/group/fast` |
 | Goose、VS Code | `group/brain` |
 | Codex | 不接 magpie，走自己的 ChatGPT 登录 |
 
