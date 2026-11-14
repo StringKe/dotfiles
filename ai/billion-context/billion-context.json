@@ -1,0 +1,32 @@
+{
+  "compress": {
+    "externalSummary": {
+      "enabled": true,
+      "targets": [
+        "magpie/group/worker",
+        "magpie/group/fast"
+      ],
+      "budget": {
+        "totalTimeoutMs": 360000,
+        "targetTimeoutMs": 180000
+      }
+    }
+  },
+  "providers": {
+    "magpie": {
+      "api": "openai",
+      "baseUrl": "http://127.0.0.1:3425/v1",
+      "credentialRef": "magpie",
+      "models": {
+        "group/fast": {
+          "contextWindow": 400000,
+          "outputTokens": 16000
+        },
+        "group/worker": {
+          "contextWindow": 400000,
+          "outputTokens": 16000
+        }
+      }
+    }
+  }
+}

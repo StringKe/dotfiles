@@ -139,7 +139,7 @@ agent 的每条命令都是新进程，经 1Password 签名会每次弹授权。
 - 全局提示词、MCP 和 skill 由 magpie 的 Library 统一写进 claude-code 与 opencode，只发给这两个 agent（`magpie library` 查看）。模型路由也在 magpie 里，见 skill `magpie-route`。
 - 全局提示词只有 `ai/AGENTS.md` 一份。magpie 里有一个提示词组 `AGENTS.md`，引用这个文件，生效中，发给 claude 与 opencode；它写进 `~/.claude/CLAUDE.md` 与 `~/.config/opencode/AGENTS.md`。这两个文件是普通文件，不能再链接到 `ai/AGENTS.md`：magpie 不往链接到提示词组源文件的文件里写。
 - 个人 skill 放 `ai/skills/<名>/`，个人插件放 `ai/plugins/<名>/`。Library 里每个个人 skill 的来源是仓库里的文件夹，改文件即生效。
-- `ai/claude/` 只给 claude-code：`settings.json`（权限、hooks 登记、`skillOverrides`、压缩与缓存）、`hooks/`、`agents/`、`statusline-command.sh`。主模型与各档模型由 magpie 写进 `~/.claude/settings.json`，仓库的 `settings.json` 不设 `model`。`ai/opencode/` 只给 opencode：`opencode.jsonc`（权限、图片压缩、内置子代理的模型；`mcp` 段只有 magpie 的入口，模型列表由 magpie 写）和 `tui.json`。
+- `ai/claude/` 只给 claude-code：`settings.json`（权限、hooks 登记、`skillOverrides`、压缩与缓存）、`hooks/`、`agents/`、`statusline-command.sh`。主模型与各档模型由 magpie 写进 `~/.claude/settings.json`，仓库的 `settings.json` 不设 `model`。`ai/opencode/` 只给 opencode：`opencode.jsonc`（权限、图片压缩、内置子代理的模型；`mcp` 段只有 magpie 的入口，模型列表由 magpie 写）和 `tui.json`。`ai/billion-context/billion-context.json` 是上下文压缩代理的配置：摘要交给 magpie 的 `group/worker`，失败再用 `group/fast`，凭据存在本机同目录的 `billion-context.json.summary-credentials.json`。改完调用 `curl -X POST http://127.0.0.1:18787/__bili/config/reload`（Claude Code 那个进程在 18788）生效，不用重启会话。
 - hook 脚本的头注释写明它挂在哪个事件、拦什么。新增 hook 要在 `ai/claude/settings.json` 的 `hooks` 里登记，再跑 `bin/setup-ai.sh` 建链接。
 - 自定义子代理两个：`Explore`（haiku，只读搜索）和 `researcher`（sonnet medium，读外部资料与大日志），都不带 CLAUDE.md。
 - `skillOverrides` 把很少用的 skill 设成 `name-only`：列表里只留名字，不带描述。第三方 skill 也在这里设。

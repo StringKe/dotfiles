@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # [TOOL] AI 的 agents、hooks、插件与 opencode 配置部署（claude-code / opencode）
 #
-# agents、hooks、statusline、worktree 插件、opencode 配置用符号链接指回仓库 ai/：
+# agents、hooks、statusline、worktree 插件、opencode 与 billion-context 配置用符号链接指回仓库 ai/：
 # 在 ~ 里编辑等于改仓库，git status 可见。仓库里删除或改名的条目，对应的旧链接会被清掉。
 # 全局提示词、个人 skills 与 MCP 由 magpie 的 Library 写进两个 agent，本脚本不碰。
 # ~/.claude/settings.json 由 Claude Code 运行时改写，用 jq 深合并（本地字段保留，仓库同名 key 覆盖）。
@@ -101,6 +101,9 @@ done
 # opencode 配置
 link "$AI/opencode/opencode.jsonc" "$HOME/.config/opencode/opencode.jsonc"
 link "$AI/opencode/tui.json" "$HOME/.config/opencode/tui.json"
+
+# billion-context 配置；摘要模型的凭据在同目录 billion-context.json.summary-credentials.json，不进仓库
+link "$AI/billion-context/billion-context.json" "$HOME/.config/billion-context/billion-context.json"
 
 prune_links
 
