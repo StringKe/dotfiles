@@ -55,6 +55,14 @@ agent 只认 4 个角色组。角色组里写模型，同一个模型由哪家�
 - 只接受 Claude Code 请求的中转 key，在对应的模型组里加 `pause=<relay>/<model> when="agent is not claude"`。不加的话，其他 agent 的请求被 403 拒绝后，magpie 会让这家暂时休息，Claude Code 也跟着被挤到下一家。
 - 裸模型名的请求（比如老会话发的 `claude-opus-5-5`）也走 `auto/<模型>` 组，所以 auto 组同样要订阅在前。
 
+### 为什么用 order，额度在哪一层看
+
+- 角色组的成员是不同的模型，顺序就是质量优先级。改成 `usage`、`pace` 这类按额度的路由，Opus 还有额度时主对话也可能被分到 Sol 或 Grok。
+- 模型层的成员是「订阅 + 按量付费的 key」。按额度的路由会把 key 当成余量充足的一方，订阅还有额度时就开始花钱。实测 `smart` 路由下，订阅有额度时仍有请求落到 key 上。
+- `order` 不是盲试：订阅账号用到上限，路由把它当作已用完直接跳过，直到窗口重置。`magpie provider account-cap <id> <账号> <百分比>` 可以设定提前让出的比例。
+- 按额度分配只用在同一家的多个账号之间。同一家有两个以上订阅时，设 `magpie provider set <id> routing=pace`（周额度快重置、用不完的账号先用），或用 `magpie provider pool` 定顺序和上限。只有一个账号时不用设。
+- 按量付费的 key 用 `magpie provider spend-cap <id> <key> <美元> day` 封顶。到顶后路由把它当作已用完，转到下一个成员。
+
 ### agent
 
 | agent | 设置 |
