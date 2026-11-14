@@ -6,6 +6,7 @@
     "CLAUDE_CODE_DISABLE_ADVISOR_TOOL": "1"
   },
   "autoCompactWindow": 500000,
+  "idleCompaction": false,
   "promptCacheTtl": "1h",
   "includeGitInstructions": false,
   "attribution": {
