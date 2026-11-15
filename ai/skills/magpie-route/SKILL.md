@@ -56,6 +56,7 @@ agent 只认 4 个角色组。角色组里写模型，同一个模型由哪家�
 - 只有一家的模型，角色组里直接写 `provider/model`，比如 `grok/grok-4.7`。
 - 只接受 Claude Code 请求的中转 key，在对应的模型组里加 `pause=<relay>/<model> when="agent is not claude"`。不加的话，其他 agent 的请求被 403 拒绝后，magpie 会让这家暂时休息，Claude Code 也跟着被挤到下一家。
 - 裸模型名的请求（比如老会话发的 `claude-opus-5-5`）也走 `auto/<模型>` 组。
+- WandAPI 对经过 billion-context 的请求反复报 `does not support assistant message prefill`，400 不换家，会话直接中断。Claude Code 的 `ANTHROPIC_BASE_URL` 指向 billion-context（`http://127.0.0.1:18788/bili/http://127.0.0.1:3425`），所以在 WandAPI 出现的每个模型组里加 `pause=wandapi/<模型> agents=claude,billion-context`，这两个 agent 不再发给 WandAPI，OpenCode 和其他直连 magpie 的请求照常用它。新建含 WandAPI 的模型组时同样加这条。
 - 中转只接 Claude 的 key 和只接 OpenAI 的 key 在 magpie 里是两个服务商，比如「鱼鱼连线 Claude」和「鱼鱼连线 OpenAI」。
 - 中转按协议放行模型：GPT 走 `/v1/messages` 常被拒（`This group does not allow /v1/messages dispatch`、「当前分组不允许调度模型」），Gemini 报「不支持当前入口协议」。GPT 用 `magpie model api <provider/model…> responses`；Gemini 先 `magpie provider set <id> gemini=<中转根地址>`，再 `magpie model api <provider/model…> gemini`。换协议后再测，不要按第一次的报错判定这家不支持。
 - GPT、Grok 的模型组同样用正则收进中转：`magpie group set auto-gpt-6-1-sol models='codex/gpt-6.1-sol,re:.*/gpt-6\.1-sol' routing=rotate stays=session`。手工改过成员的组不会自动收进新供应商，要写正则。
