@@ -2,6 +2,7 @@
   "compress": {
     "externalSummary": {
       "enabled": true,
+      "concurrency": 16,
       "targets": [
         "magpie/group/worker",
         "magpie/group/fast"

@@ -124,6 +124,21 @@ jq -r 'select(.t > "<开始时刻>") | "\(.agent) \(.req) -> \(.provider)/\(.ser
 
 `claude -p` 的 `--allowedTools` 会把后面的参数都当成工具名，所以提示词写在它前面，或者写成 `--allowedTools=...`。
 
+## 会话报错排查
+
+先扫一遍开着的会话：`rex ls --json` 取 `.sessions[].session_id`，`rex block ls -s <session> --json` 取 `.blocks[].block_id`，跳过自己的 `$REX_BLOCK`，`rex capture -s <session> -b <block> --trim --unwrap` 看最后 25 行。报错行可能是旧的，以最后几行是否在运行（有计时、`esc to interrupt`）为准。停住的会话发 `rex send -s <session> -b <block> '继续'` 再 `rex send-key -s <session> -b <block> enter`；正在运行的不发。
+
+再按报错对照 `~/.config/magpie/usage.jsonl`（`jq -r 'select(.t > "<时刻>" and .status != 200) | "\(.agent) \(.req) -> \(.provider) \(.status)"' | sort | uniq -c`）和 billion-context 的日志 `~/.local/state/billion-context/bili.log`：
+
+| 报错 | 原因 | 处理 |
+| --- | --- | --- |
+| `does not support assistant message prefill`、`final assistant content cannot end with trailing whitespace` | 中转不接受以 assistant 结尾的请求 | 见「模型层」的 prefill 一条，给这家加 `pause=<relay>/<模型> agents=claude,billion-context` |
+| `upstream stream truncated (no completion event; round 2 …)` | billion-context 内部重发的那一轮上游没给完成事件，多数是上一条的 prefill 400 | 同上；单次出现发「继续」 |
+| `Compression FAILED: all configured external summary candidates failed …`，日志里 `batch-deadline`、`attempt 1/3 failed before response` 的 `elapsed` 远小于 360000ms | 外部摘要排队：`compress.externalSummary.concurrency` 默认 4，几十个会话同时压缩时排队时间算进 360 秒总预算 | `ai/billion-context/billion-context.json` 里 `concurrency` 设 16（上限 32），`curl -X POST http://127.0.0.1:18787/__bili/config/reload` 和 18788 各一次；worker 组加 `use=group/auto-gpt-6-1-sol use-effort=low agents=billion-context`，摘要用 low 档更快 |
+| usage 里 `billion-context ... 499` | 摘要请求被 billion-context 超时取消，不是供应商故障 | 看上一行的排队问题 |
+| `CoreCode OpenAI: The upstream service could not process the request` | 中转偶发 400，magpie 对 400 不换家 | 零星出现发「继续」；同一会话连续出现再给这家加 pause |
+| 某个会话摘要总是 `result=failed reason=exhausted attempts=[t0:error,t1:error]`，几秒内结束 | 两个候选都没给出可用的摘要（拒写或超长），与路由无关 | 不改路由；让该会话自己少压一点或手动 `/compact` |
+
 ## 易错点
 
 - `magpie claude opus`、`sonnet`、`haiku`、`fable` 后面不带值时，会把主模型改成 Claude Code 自己的这个档位，等于断开 magpie。查看当前设置只用 `magpie claude`。
