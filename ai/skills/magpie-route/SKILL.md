@@ -128,6 +128,8 @@ jq -r 'select(.t > "<开始时刻>") | "\(.agent) \(.req) -> \(.provider)/\(.ser
 
 先扫一遍开着的会话：`rex ls --json` 取 `.sessions[].session_id`，`rex block ls -s <session> --json` 取 `.blocks[].block_id`，跳过自己的 `$REX_BLOCK`，`rex capture -s <session> -b <block> --trim --unwrap` 看最后 25 行。报错行可能是旧的，以最后几行是否在运行（有计时、`esc to interrupt`）为准。停住的会话发 `rex send -s <session> -b <block> '继续'` 再 `rex send-key -s <session> -b <block> enter`；正在运行的不发。
 
+很多会话出过压缩失败时，上下文可能已经不完整，不由本会话逐个重启，而是通知各项目的总控（每个项目统管子会话的那个标签，看子会话收到的 `Message from @<名>` 就能认出）：说明原因和已做的修复，列出出错的子会话，让总控逐个核对理解，偏离的先写交接再关掉重开。会话与名字的对应：bili.log 里的 `sess=<前 8 位>` 对应 `~/.claude/projects/*/<id>.jsonl`，文件里的 `agentName` 就是标签名；每个会话压缩失败的次数用 `rg 'external-summary\] completed' ~/.local/state/billion-context/bili.log` 按 `sess=` 和 `result=` 统计。
+
 再按报错对照 `~/.config/magpie/usage.jsonl`（`jq -r 'select(.t > "<时刻>" and .status != 200) | "\(.agent) \(.req) -> \(.provider) \(.status)"' | sort | uniq -c`）和 billion-context 的日志 `~/.local/state/billion-context/bili.log`：
 
 | 报错 | 原因 | 处理 |
@@ -135,6 +137,7 @@ jq -r 'select(.t > "<开始时刻>") | "\(.agent) \(.req) -> \(.provider)/\(.ser
 | `does not support assistant message prefill`、`final assistant content cannot end with trailing whitespace` | 中转不接受以 assistant 结尾的请求 | 见「模型层」的 prefill 一条，给这家加 `pause=<relay>/<模型> agents=claude,billion-context` |
 | `upstream stream truncated (no completion event; round 2 …)` | billion-context 内部重发的那一轮上游没给完成事件，多数是上一条的 prefill 400 | 同上；单次出现发「继续」 |
 | `Compression FAILED: all configured external summary candidates failed …`，日志里 `batch-deadline`、`attempt 1/3 failed before response` 的 `elapsed` 远小于 360000ms | 外部摘要排队：`compress.externalSummary.concurrency` 默认 4，几十个会话同时压缩时排队时间算进 360 秒总预算 | `ai/billion-context/billion-context.json` 里 `concurrency` 设 16（上限 32），`curl -X POST http://127.0.0.1:18787/__bili/config/reload` 和 18788 各一次；worker 组加 `use=group/auto-gpt-6-1-sol use-effort=low agents=billion-context`，摘要用 low 档更快 |
+| `Prompt is too long · automatic compaction failed: ... exceeds the model window 150000 (model=group/deep)`，或日志里 `[window] model=group/... source=default` | billion-context 不认识分组名，按默认 200k 窗口算，约 15 万 token 就强制压缩；压缩再失败，上下文涨过窗口后直接拒绝 | `billion-context.json` 的 `providers` 里用上游地址 `http://127.0.0.1:3425` 作键，给每个分组和 Claude Code 档位用到的 `auto/<模型>` 写 `{"context": 1000000, "output": 128000}`（与 `curl http://127.0.0.1:3425/v1/models` 报的窗口一致），热加载；新增分组时同步加一行。日志里分组的窗口应显示为 872000（1M 减输出） |
 | usage 里 `billion-context ... 499` | 摘要请求被 billion-context 超时取消，不是供应商故障 | 看上一行的排队问题 |
 | `CoreCode OpenAI: The upstream service could not process the request` | 中转偶发 400，magpie 对 400 不换家 | 零星出现发「继续」；同一会话连续出现再给这家加 pause |
 | 某个会话摘要总是 `result=failed reason=exhausted attempts=[t0:error,t1:error]`，几秒内结束 | 两个候选都没给出可用的摘要（拒写或超长），与路由无关 | 不改路由；让该会话自己少压一点或手动 `/compact` |

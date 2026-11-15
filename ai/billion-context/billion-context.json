@@ -14,6 +14,16 @@
     }
   },
   "providers": {
+    "http://127.0.0.1:3425": {
+      "models": {
+        "group/brain": { "context": 1000000, "output": 128000 },
+        "group/deep": { "context": 1000000, "output": 128000 },
+        "group/worker": { "context": 1000000, "output": 128000 },
+        "group/fast": { "context": 1000000, "output": 128000 },
+        "auto/claude-opus-5-5": { "context": 1000000, "output": 128000 },
+        "auto/claude-fable-5-2": { "context": 1000000, "output": 128000 }
+      }
+    },
     "magpie": {
       "api": "openai",
       "baseUrl": "http://127.0.0.1:3425/v1",
