@@ -56,7 +56,7 @@ agent 只认 4 个角色组。角色组里写模型，同一个模型由哪家�
 - 只有一家的模型，角色组里直接写 `provider/model`，比如 `grok/grok-4.7`。
 - 只接受 Claude Code 请求的中转 key，在对应的模型组里加 `pause=<relay>/<model> when="agent is not claude"`。不加的话，其他 agent 的请求被 403 拒绝后，magpie 会让这家暂时休息，Claude Code 也跟着被挤到下一家。
 - 裸模型名的请求（比如老会话发的 `claude-opus-5-5`）也走 `auto/<模型>` 组。
-- Claude Code 和 billion-context 发出的请求有时以 assistant 消息结尾（prefill）。Claude 订阅和 Kiro 接受；WandAPI 和鱼鱼连线 Claude 拒绝，报 `does not support assistant message prefill` 或 `final assistant content cannot end with trailing whitespace`。400 不换家，会话中断；billion-context 在内部重发的那一轮遇到它时，显示为 `upstream stream truncated (no completion event; round 2 …)`。所以 Claude 模型组里加 `pause=wandapi/<模型> agents=claude,billion-context` 和 `pause=app-yylx-io-12165/<模型> agents=claude,billion-context`，GPT、Grok 组里加 WandAPI 那条；OpenCode 和其他直连请求照常用这两家。新中转先测 prefill：messages 末尾放一条 `{"role":"assistant","content":"1, 2,"}` 发一次，报错就给它加同样的 pause。CoreCode 只认真 Claude Code，curl 测不了，用 usage 日志看它对 `claude` 的状态码。
+- Claude Code 和 billion-context 发出的请求有时以 assistant 消息结尾（prefill）。Claude 订阅和 Kiro 接受；WandAPI 和鱼鱼连线 Claude 拒绝，报 `does not support assistant message prefill` 或 `final assistant content cannot end with trailing whitespace`。400 不换家，会话中断；billion-context 在内部重发的那一轮遇到它时，显示为 `upstream stream truncated (no completion event; round 2 …)`。来源是 billion-context 的压缩失败轮：它丢掉失败的工具调用后带着 assistant 收据重发。magpie 只给 OpenAI 格式（Chat、Responses）的客户端补一条 user 消息重试；Anthropic 格式的客户端原样收到这个 400，不换下一家。所以 Claude 模型组里加 `pause=wandapi/<模型> agents=claude` 和 `pause=app-yylx-io-12165/<模型> agents=claude,billion-context`。billion-context 的摘要、OpenCode、memory 都走 Chat 格式，可以用这两家。GPT、Grok 经 WandAPI 接受 prefill，Claude Code 也能用。新中转先测 prefill：messages 末尾放一条 `{"role":"assistant","content":"1, 2,"}` 发一次，报错就给它加同样的 pause。CoreCode 只认真 Claude Code，curl 测不了，用 usage 日志看它对 `claude` 的状态码。
 - 中转只接 Claude 的 key 和只接 OpenAI 的 key 在 magpie 里是两个服务商，比如「鱼鱼连线 Claude」和「鱼鱼连线 OpenAI」。
 - 中转按协议放行模型：GPT 走 `/v1/messages` 常被拒（`This group does not allow /v1/messages dispatch`、「当前分组不允许调度模型」），Gemini 报「不支持当前入口协议」。GPT 用 `magpie model api <provider/model…> responses`；Gemini 先 `magpie provider set <id> gemini=<中转根地址>`，再 `magpie model api <provider/model…> gemini`。换协议后再测，不要按第一次的报错判定这家不支持。
 - GPT、Grok 的模型组同样用正则收进中转：`magpie group set auto-gpt-6-1-sol models='codex/gpt-6.1-sol,re:.*/gpt-6\.1-sol' routing=rotate stays=session`。手工改过成员的组不会自动收进新供应商，要写正则。
@@ -94,7 +94,15 @@ Claude Code 的 `ANTHROPIC_BASE_URL` 是 `http://127.0.0.1:18788/bili/http://127
 
 - 窗口声明：`providers` 下以上游地址 `http://127.0.0.1:3425` 作键，`models` 里给 `group/brain`、`group/deep`、`group/worker`、`group/fast`、`auto/claude-opus-5-5`、`auto/claude-fable-5-2` 各写 `{"context": 1000000, "output": 128000}`，数值取 `curl -s http://127.0.0.1:3425/v1/models -H 'x-api-key: magpie'` 报的窗口。不写的话它不认识分组名，按 20 万窗口在约 15 万 token 就压缩。新增分组或档位指向新模型组时同步加一行。
 - 外部摘要：`compress.externalSummary` 设 `enabled: true`，`targets` 为 `magpie/group/worker`、`magpie/group/fast`，`concurrency: 16`（默认 4，几十个会话同时压缩会排队超时），`budget` 为 `totalTimeoutMs: 360000`、`targetTimeoutMs: 180000`。摘要用的 `magpie` 命名服务商写 `api: openai`、`baseUrl: http://127.0.0.1:3425/v1`、`credentialRef: magpie`，凭据放在本机 `billion-context.json.summary-credentials.json`，不进仓库。
-- 摘要档位：worker 组加规则 `magpie group rule add worker use=group/auto-gpt-6-1-sol use-effort=low agents=billion-context`，摘要走 Sol low 档，比默认档快一半以上。
+- 摘要档位：worker 组加规则 `magpie group rule add worker use=group/auto-claude-sonnet-5-5 use-effort=low agents=billion-context`，摘要走 Sonnet low 档。
+
+### 先用完某家中转的余额
+
+要让一家按量付费的中转（例如 WandAPI）先用完：
+- 余额接进 magpie：`magpie provider set <id> balance=<余额接口> balance.path=<字段>`。WandAPI 是 `balance=https://api.wandapi.ai/v1/usage balance.path='$remaining'`，用 `magpie quota <id>` 核对。
+- GPT、Grok 模型组加 `use=<中转>/<模型>,<订阅>/<模型> agents=claude,opencode,billion-context,memory`：中转排第一，订阅第二，别的中转只在两者都不行时接手。余额用完后 magpie 按欠费跳过它，不用回头改规则。
+- Claude 模型组只对 Chat 格式的 agent 加 `use=<中转>/<模型> agents=opencode,billion-context,memory`，Claude Code 仍按 prefill 那条暂停。
+- 消耗速度：`jq -s '[.[] | select(.provider=="<id>" and .t > "<时刻>")] | group_by(.served) | map({m:.[0].served, n:length, in:(map(.in)|add)})' ~/.config/magpie/usage.jsonl`，余额看 `magpie quota <id>`。
 
 核对：`rg '\[window\] model=group' ~/.local/state/billion-context/bili.log` 不应出现 `source=default`；`nudge` 行里分组的分母应是 872000（1M 减输出）；`rg 'external-summary\] completed'` 统计 `result=`，`deadline` 应接近 0。
 
