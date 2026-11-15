@@ -59,6 +59,7 @@ agent 只认 4 个角色组。角色组里写模型，同一个模型由哪家�
 - 中转只接 Claude 的 key 和只接 OpenAI 的 key 在 magpie 里是两个服务商，比如「鱼鱼连线 Claude」和「鱼鱼连线 OpenAI」。
 - 中转按协议放行模型：GPT 走 `/v1/messages` 常被拒（`This group does not allow /v1/messages dispatch`、「当前分组不允许调度模型」），Gemini 报「不支持当前入口协议」。GPT 用 `magpie model api <provider/model…> responses`；Gemini 先 `magpie provider set <id> gemini=<中转根地址>`，再 `magpie model api <provider/model…> gemini`。换协议后再测，不要按第一次的报错判定这家不支持。
 - GPT、Grok 的模型组同样用正则收进中转：`magpie group set auto-gpt-6-1-sol models='codex/gpt-6.1-sol,re:.*/gpt-6\.1-sol' routing=rotate stays=session`。手工改过成员的组不会自动收进新供应商，要写正则。
+- Kiro 订阅经插件接入：`magpie plugin add @magpie-community/opencode-kiro-auth`，`magpie plugin login kiro`。它提供 Opus 5.5、Sonnet 5.5、Haiku 5.5、Grok 4.7，模型名带点（`kiro/claude-opus-5.5`），Claude 正则写 `[.-]` 才能收进来；没有 Fable。Kiro 会在请求前加约 2000 token 自己的系统提示词，问模型身份时答「Kiro」，属正常。它按月给 credits，Claude 模型组用 `expiring` 时在 Claude 5 小时窗口用完后接上。curl 也能调通，不需要 `pause` 规则。
 
 ### 每个组用哪种路由
 
@@ -70,7 +71,6 @@ agent 只认 4 个角色组。角色组里写模型，同一个模型由哪家�
 
 - `rotate` 加 `stays=session`：每个新会话轮到下一家，会话内的请求留在同一家，缓存不断。某家报错、余额用完时，这个会话转到下一家。
 - 按量付费的 key 不设每日上限。上限到顶会把这家当作当天已用完，跟「中转余额用完为止」相反。
-- 订阅账号用到上限时，任何路由都会把它当作已用完直接跳过，直到窗口重置。`magpie provider account-cap <id> <账号> <百分比>` 可以设定提前让出的比例。
 - 订阅账号用到上限时，任何路由都会把它当作已用完直接跳过，直到窗口重置。`magpie provider account-cap <id> <账号> <百分比>` 可以设定提前让出的比例。
 - 同一家有两个以上订阅时，在服务商上设 `magpie provider set <id> routing=pace`，或用 `magpie provider pool` 定顺序和上限。
 
