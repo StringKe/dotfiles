@@ -18,7 +18,7 @@ agent 只认 4 个角色组。角色组里写模型，同一个模型由哪家�
 | `group/worker` | 依次：GPT-6.1 Sol -> Sonnet 5.5 -> GPT-6.1 Terra | 写代码的子代理、压缩上下文 |
 | `group/fast` | 依次：Haiku 5.5 -> GPT-6.1 Terra -> Grok 4.7 Fast | Explore 子代理、起标题、小任务 |
 
-- 四个角色组都用 `routing=order stays=session`，成员写 `auto/<模型>`。角色组只决定用哪个模型，用哪家供应商由模型层轮流决定。`stays=session` 让一个会话固定在一家，保住缓存。
+- 四个角色组都用 `routing=order stays=turn`，成员写 `auto/<模型>`。角色组只决定用哪个模型，用哪家供应商由模型层轮流决定，模型层的 `stays=session` 让一个会话固定在一家，保住缓存。角色组不用 `stays=session`：第一位的模型暂时不可用时会话落到第二位，`session` 会让它一直留在第二位，额度恢复或新增供应商后也回不到第一位；`turn` 每次用户发言重新按顺序选。
 - `brain` 和 `deep` 各两条规则：`use=group/worker use-effort=high when=subagent`，`use=group/worker compact`。规则的 `use=` 必须是组成员，所以 `group/worker` 放在这两个组的最后一位。
 - 子代理用规则分流，不设 `magpie claude subagent`。那个字段会覆盖全部子代理，Explore 和自己写了 `model:` 的子代理也会被改掉。
 
@@ -56,11 +56,11 @@ agent 只认 4 个角色组。角色组里写模型，同一个模型由哪家�
 - 只有一家的模型，角色组里直接写 `provider/model`，比如 `grok/grok-4.7`。
 - 只接受 Claude Code 请求的中转 key，在对应的模型组里加 `pause=<relay>/<model> when="agent is not claude"`。不加的话，其他 agent 的请求被 403 拒绝后，magpie 会让这家暂时休息，Claude Code 也跟着被挤到下一家。
 - 裸模型名的请求（比如老会话发的 `claude-opus-5-5`）也走 `auto/<模型>` 组。
-- Claude Code 和 billion-context 发出的请求有时以 assistant 消息结尾（prefill）。Claude 订阅和 Kiro 接受；WandAPI 和鱼鱼连线 Claude 拒绝，报 `does not support assistant message prefill` 或 `final assistant content cannot end with trailing whitespace`。400 不换家，会话中断；billion-context 在内部重发的那一轮遇到它时，显示为 `upstream stream truncated (no completion event; round 2 …)`。来源是 billion-context 的压缩失败轮：它丢掉失败的工具调用后带着 assistant 收据重发。magpie 只给 OpenAI 格式（Chat、Responses）的客户端补一条 user 消息重试；Anthropic 格式的客户端原样收到这个 400，不换下一家。所以 Claude 模型组里加 `pause=wandapi/<模型> agents=claude` 和 `pause=app-yylx-io-12165/<模型> agents=claude,billion-context`。billion-context 的摘要、OpenCode、memory 都走 Chat 格式，可以用这两家。GPT、Grok 经 WandAPI 接受 prefill，Claude Code 也能用。新中转先测 prefill：messages 末尾放一条 `{"role":"assistant","content":"1, 2,"}` 发一次，报错就给它加同样的 pause。CoreCode 只认真 Claude Code，curl 测不了，用 usage 日志看它对 `claude` 的状态码。
+- Claude Code 和 billion-context 发出的请求有时以 assistant 消息结尾（prefill）。Claude 订阅和 Kiro 接受；鱼鱼连线 Claude 拒绝（已停用的 WandAPI 也拒绝），报 `does not support assistant message prefill` 或 `final assistant content cannot end with trailing whitespace`。400 不换家，会话中断；billion-context 在内部重发的那一轮遇到它时，显示为 `upstream stream truncated (no completion event; round 2 …)`。来源是 billion-context 的压缩失败轮：它丢掉失败的工具调用后带着 assistant 收据重发。magpie 只给 OpenAI 格式（Chat、Responses）的客户端补一条 user 消息重试；Anthropic 格式的客户端原样收到这个 400，不换下一家。所以 Claude 模型组里加 `pause=app-yylx-io-12165/<模型> agents=claude`。billion-context 的摘要、OpenCode、memory 都走 Chat 格式，可以用这家。停用或删除供应商后，引用它的规则要一起删：`magpie group set <组> models-=<provider/model>` 会连带删掉指向它的规则；成员已不在组里的规则会让 `magpie group rule rm` 对其他编号报错，先删这一条。新中转先测 prefill：messages 末尾放一条 `{"role":"assistant","content":"1, 2,"}` 发一次，报错就给它加同样的 pause。CoreCode 只认真 Claude Code，curl 测不了，用 usage 日志看它对 `claude` 的状态码。
 - 中转只接 Claude 的 key 和只接 OpenAI 的 key 在 magpie 里是两个服务商，比如「鱼鱼连线 Claude」和「鱼鱼连线 OpenAI」。
 - 中转按协议放行模型：GPT 走 `/v1/messages` 常被拒（`This group does not allow /v1/messages dispatch`、「当前分组不允许调度模型」），Gemini 报「不支持当前入口协议」。GPT 用 `magpie model api <provider/model…> responses`；Gemini 先 `magpie provider set <id> gemini=<中转根地址>`，再 `magpie model api <provider/model…> gemini`。换协议后再测，不要按第一次的报错判定这家不支持。
 - GPT、Grok 的模型组同样用正则收进中转：`magpie group set auto-gpt-6-1-sol models='codex/gpt-6.1-sol,re:.*/gpt-6\.1-sol' routing=rotate stays=session`。手工改过成员的组不会自动收进新供应商，要写正则。
-- Kiro 订阅经插件接入：`magpie plugin add @magpie-community/opencode-kiro-auth`，`magpie plugin login kiro`。它提供 Opus 5.5、Sonnet 5.5、Haiku 5.5、Grok 4.7，模型名带点（`kiro/claude-opus-5.5`），Claude 正则写 `[.-]` 才能收进来；没有 Fable。Kiro 会在请求前加约 2000 token 自己的系统提示词，问模型身份时答「Kiro」，属正常。它按月给 credits，Claude 模型组用 `expiring` 时在 Claude 5 小时窗口用完后接上。curl 也能调通，不需要 `pause` 规则。
+- Kiro 订阅经插件接入：`magpie plugin add @magpie-community/opencode-kiro-auth`，`magpie plugin login kiro`。它提供 Opus 5.5、Sonnet 5.5、Haiku 5.5、Grok 4.7，模型名带点（`kiro/claude-opus-5.5`），Claude 正则写 `[.-]` 才能收进来；没有 Fable。Kiro 会在请求前加约 2000 token 自己的系统提示词，问模型身份时答「Kiro」，属正常。它按月给 credits，Claude 模型组用 `expiring` 时在 Claude 订阅窗口用完后接上。可以登录多个 Kiro 账号，`magpie quota` 逐个列出，用完一个自动换下一个。curl 也能调通，不需要 `pause` 规则。Kiro 的 credits 留给主对话的 Opus：摘要等后台请求走 GPT，不走 Claude 模型组。
 
 ### 每个组用哪种路由
 
@@ -94,7 +94,7 @@ Claude Code 的 `ANTHROPIC_BASE_URL` 是 `http://127.0.0.1:18788/bili/http://127
 
 - 窗口声明：`providers` 下以上游地址 `http://127.0.0.1:3425` 作键，`models` 里给 `group/brain`、`group/deep`、`group/worker`、`group/fast`、`auto/claude-opus-5-5`、`auto/claude-fable-5-2` 各写 `{"context": 1000000, "output": 128000}`，数值取 `curl -s http://127.0.0.1:3425/v1/models -H 'x-api-key: magpie'` 报的窗口。不写的话它不认识分组名，按 20 万窗口在约 15 万 token 就压缩。新增分组或档位指向新模型组时同步加一行。
 - 外部摘要：`compress.externalSummary` 设 `enabled: true`，`targets` 为 `magpie/group/worker`、`magpie/group/fast`，`concurrency: 16`（默认 4，几十个会话同时压缩会排队超时），`budget` 为 `totalTimeoutMs: 360000`、`targetTimeoutMs: 180000`。摘要用的 `magpie` 命名服务商写 `api: openai`、`baseUrl: http://127.0.0.1:3425/v1`、`credentialRef: magpie`，凭据放在本机 `billion-context.json.summary-credentials.json`，不进仓库。
-- 摘要档位：worker 组加规则 `magpie group rule add worker use=group/auto-claude-sonnet-5-5 use-effort=low agents=billion-context`，摘要走 Sonnet low 档。
+- 摘要档位：worker 组加规则 `magpie group rule add worker use=group/auto-gpt-6-1-sol use-effort=low agents=billion-context`，摘要走 Sol low 档，由 Codex 订阅和 OpenAI 中转轮流承担，不占 Claude 订阅和 Kiro 的额度。
 
 ### 先用完某家中转的余额
 
