@@ -4,8 +4,8 @@
       "enabled": true,
       "concurrency": 16,
       "targets": [
-        "magpie/group/worker",
-        "magpie/group/fast"
+        "magpie/group/gpt-worker",
+        "magpie/group/worker"
       ],
       "budget": {
         "totalTimeoutMs": 360000,
@@ -17,8 +17,12 @@
     "http://127.0.0.1:3425": {
       "models": {
         "group/brain": { "context": 1000000, "output": 128000 },
-        "group/deep": { "context": 1000000, "output": 128000 },
         "group/worker": { "context": 1000000, "output": 128000 },
+        "group/gpt-brain": { "context": 922000, "output": 128000 },
+        "group/gpt-worker": { "context": 922000, "output": 128000 },
+        "group/grok-brain": { "context": 500000, "output": 128000 },
+        "group/grok-worker": { "context": 256000, "output": 64000 },
+        "group/deep": { "context": 1000000, "output": 128000 },
         "group/fast": { "context": 1000000, "output": 128000 },
         "auto/claude-opus-5-5": { "context": 1000000, "output": 128000 },
         "auto/claude-fable-5-2": { "context": 1000000, "output": 128000 }
@@ -29,7 +33,7 @@
       "baseUrl": "http://127.0.0.1:3425/v1",
       "credentialRef": "magpie",
       "models": {
-        "group/fast": {
+        "group/gpt-worker": {
           "contextWindow": 400000,
           "outputTokens": 16000
         },
