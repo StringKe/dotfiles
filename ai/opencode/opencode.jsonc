@@ -1,148 +1,28 @@
 {
     "agents": {
         "compaction": {
-            "model": "magpie/group/worker"
+            "model": "magpie/group/claude-worker"
         },
         "explore": {
-            "model": "magpie/group/worker"
+            "model": "magpie/group/claude-worker"
         },
         "general": {
-            "model": "magpie/group/worker"
+            "model": "magpie/group/claude-worker"
         },
         "summary": {
-            "model": "magpie/group/worker"
+            "model": "magpie/group/claude-worker"
         },
         "title": {
-            "model": "magpie/group/worker"
+            "model": "magpie/group/claude-worker"
         }
     },
-    "model": "magpie/group/brain",
+    "model": "magpie/group/claude-brain",
     "providers": {
         "magpie": {
             "compatibility": {
                 "supportsPromptCacheKey": true
             },
             "models": {
-                "group/worker": {
-                    "capabilities": {
-                        "input": [
-                            "text",
-                            "image",
-                            "pdf"
-                        ],
-                        "output": [
-                            "text"
-                        ],
-                        "tools": true
-                    },
-                    "cost": [
-                        {
-                            "cache": {
-                                "read": 0.1,
-                                "write": 2.5
-                            },
-                            "input": 2,
-                            "output": 10
-                        }
-                    ],
-                    "limit": {
-                        "context": 1000000,
-                        "output": 128000
-                    },
-                    "name": "Worker · routing group",
-                    "variants": [
-                        {
-                            "id": "low",
-                            "settings": {
-                                "reasoningEffort": "low"
-                            }
-                        },
-                        {
-                            "id": "medium",
-                            "settings": {
-                                "reasoningEffort": "medium"
-                            }
-                        },
-                        {
-                            "id": "high",
-                            "settings": {
-                                "reasoningEffort": "high"
-                            }
-                        },
-                        {
-                            "id": "xhigh",
-                            "settings": {
-                                "reasoningEffort": "xhigh"
-                            }
-                        },
-                        {
-                            "id": "max",
-                            "settings": {
-                                "reasoningEffort": "max"
-                            }
-                        }
-                    ]
-                },
-                "group/brain": {
-                    "capabilities": {
-                        "input": [
-                            "text",
-                            "image",
-                            "pdf"
-                        ],
-                        "output": [
-                            "text"
-                        ],
-                        "tools": true
-                    },
-                    "cost": [
-                        {
-                            "cache": {
-                                "read": 0.2,
-                                "write": 5
-                            },
-                            "input": 4,
-                            "output": 20
-                        }
-                    ],
-                    "limit": {
-                        "context": 1000000,
-                        "output": 128000
-                    },
-                    "name": "Brain · routing group",
-                    "variants": [
-                        {
-                            "id": "low",
-                            "settings": {
-                                "reasoningEffort": "low"
-                            }
-                        },
-                        {
-                            "id": "medium",
-                            "settings": {
-                                "reasoningEffort": "medium"
-                            }
-                        },
-                        {
-                            "id": "high",
-                            "settings": {
-                                "reasoningEffort": "high"
-                            }
-                        },
-                        {
-                            "id": "xhigh",
-                            "settings": {
-                                "reasoningEffort": "xhigh"
-                            }
-                        },
-                        {
-                            "id": "max",
-                            "settings": {
-                                "reasoningEffort": "max"
-                            }
-                        }
-                    ]
-                },
                 "group/gpt-worker": {
                     "capabilities": {
                         "input": [
@@ -354,6 +234,306 @@
                         "output": 500000
                     },
                     "name": "Grok Brain · routing group",
+                    "variants": [
+                        {
+                            "id": "low",
+                            "settings": {
+                                "reasoningEffort": "low"
+                            }
+                        },
+                        {
+                            "id": "medium",
+                            "settings": {
+                                "reasoningEffort": "medium"
+                            }
+                        },
+                        {
+                            "id": "high",
+                            "settings": {
+                                "reasoningEffort": "high"
+                            }
+                        },
+                        {
+                            "id": "xhigh",
+                            "settings": {
+                                "reasoningEffort": "xhigh"
+                            }
+                        }
+                    ]
+                },
+                "group/claude-worker": {
+                    "capabilities": {
+                        "input": [
+                            "text",
+                            "image",
+                            "pdf"
+                        ],
+                        "output": [
+                            "text"
+                        ],
+                        "tools": true
+                    },
+                    "cost": [
+                        {
+                            "cache": {
+                                "read": 0.1,
+                                "write": 2.5
+                            },
+                            "input": 2,
+                            "output": 10
+                        }
+                    ],
+                    "limit": {
+                        "context": 1000000,
+                        "output": 128000
+                    },
+                    "name": "Claude Worker · routing group",
+                    "variants": [
+                        {
+                            "id": "low",
+                            "settings": {
+                                "reasoningEffort": "low"
+                            }
+                        },
+                        {
+                            "id": "medium",
+                            "settings": {
+                                "reasoningEffort": "medium"
+                            }
+                        },
+                        {
+                            "id": "high",
+                            "settings": {
+                                "reasoningEffort": "high"
+                            }
+                        },
+                        {
+                            "id": "xhigh",
+                            "settings": {
+                                "reasoningEffort": "xhigh"
+                            }
+                        },
+                        {
+                            "id": "max",
+                            "settings": {
+                                "reasoningEffort": "max"
+                            }
+                        }
+                    ]
+                },
+                "group/claude-brain": {
+                    "capabilities": {
+                        "input": [
+                            "text",
+                            "image",
+                            "pdf"
+                        ],
+                        "output": [
+                            "text"
+                        ],
+                        "tools": true
+                    },
+                    "cost": [
+                        {
+                            "cache": {
+                                "read": 0.2,
+                                "write": 5
+                            },
+                            "input": 4,
+                            "output": 20
+                        }
+                    ],
+                    "limit": {
+                        "context": 1000000,
+                        "output": 128000
+                    },
+                    "name": "Claude Brain · routing group",
+                    "variants": [
+                        {
+                            "id": "low",
+                            "settings": {
+                                "reasoningEffort": "low"
+                            }
+                        },
+                        {
+                            "id": "medium",
+                            "settings": {
+                                "reasoningEffort": "medium"
+                            }
+                        },
+                        {
+                            "id": "high",
+                            "settings": {
+                                "reasoningEffort": "high"
+                            }
+                        },
+                        {
+                            "id": "xhigh",
+                            "settings": {
+                                "reasoningEffort": "xhigh"
+                            }
+                        },
+                        {
+                            "id": "max",
+                            "settings": {
+                                "reasoningEffort": "max"
+                            }
+                        }
+                    ]
+                },
+                "group/claude-deep": {
+                    "capabilities": {
+                        "input": [
+                            "text",
+                            "image",
+                            "pdf"
+                        ],
+                        "output": [
+                            "text"
+                        ],
+                        "tools": true
+                    },
+                    "cost": [
+                        {
+                            "cache": {
+                                "read": 0.2,
+                                "write": 10
+                            },
+                            "input": 8,
+                            "output": 40
+                        }
+                    ],
+                    "limit": {
+                        "context": 1000000,
+                        "output": 128000
+                    },
+                    "name": "Claude Deep · routing group",
+                    "variants": [
+                        {
+                            "id": "low",
+                            "settings": {
+                                "reasoningEffort": "low"
+                            }
+                        },
+                        {
+                            "id": "medium",
+                            "settings": {
+                                "reasoningEffort": "medium"
+                            }
+                        },
+                        {
+                            "id": "high",
+                            "settings": {
+                                "reasoningEffort": "high"
+                            }
+                        },
+                        {
+                            "id": "xhigh",
+                            "settings": {
+                                "reasoningEffort": "xhigh"
+                            }
+                        },
+                        {
+                            "id": "max",
+                            "settings": {
+                                "reasoningEffort": "max"
+                            }
+                        }
+                    ]
+                },
+                "group/gpt-deep": {
+                    "capabilities": {
+                        "input": [
+                            "text",
+                            "image",
+                            "pdf"
+                        ],
+                        "output": [
+                            "text"
+                        ],
+                        "tools": true
+                    },
+                    "cost": [
+                        {
+                            "cache": {
+                                "read": 1,
+                                "write": 12.5
+                            },
+                            "input": 10,
+                            "output": 50
+                        }
+                    ],
+                    "limit": {
+                        "context": 922000,
+                        "output": 128000
+                    },
+                    "name": "GPT Deep · routing group",
+                    "variants": [
+                        {
+                            "id": "low",
+                            "settings": {
+                                "reasoningEffort": "low"
+                            }
+                        },
+                        {
+                            "id": "medium",
+                            "settings": {
+                                "reasoningEffort": "medium"
+                            }
+                        },
+                        {
+                            "id": "high",
+                            "settings": {
+                                "reasoningEffort": "high"
+                            }
+                        },
+                        {
+                            "id": "xhigh",
+                            "settings": {
+                                "reasoningEffort": "xhigh"
+                            }
+                        },
+                        {
+                            "id": "max",
+                            "settings": {
+                                "reasoningEffort": "max"
+                            }
+                        },
+                        {
+                            "id": "ultra",
+                            "settings": {
+                                "reasoningEffort": "ultra"
+                            }
+                        }
+                    ]
+                },
+                "group/grok-deep": {
+                    "capabilities": {
+                        "input": [
+                            "text",
+                            "image",
+                            "pdf"
+                        ],
+                        "output": [
+                            "text"
+                        ],
+                        "tools": true
+                    },
+                    "cost": [
+                        {
+                            "cache": {
+                                "read": 0.1,
+                                "write": 2.5
+                            },
+                            "input": 2,
+                            "output": 10
+                        }
+                    ],
+                    "limit": {
+                        "context": 922000,
+                        "output": 500000
+                    },
+                    "name": "Grok Deep · routing group",
                     "variants": [
                         {
                             "id": "low",

@@ -5,7 +5,7 @@
       "concurrency": 16,
       "targets": [
         "magpie/group/gpt-worker",
-        "magpie/group/worker"
+        "magpie/group/claude-worker"
       ],
       "budget": {
         "totalTimeoutMs": 360000,
@@ -16,11 +16,16 @@
   "providers": {
     "http://127.0.0.1:3425": {
       "models": {
+        "group/claude-brain": { "context": 1000000, "output": 128000 },
+        "group/claude-worker": { "context": 1000000, "output": 128000 },
+        "group/claude-deep": { "context": 1000000, "output": 128000 },
         "group/brain": { "context": 1000000, "output": 128000 },
         "group/worker": { "context": 1000000, "output": 128000 },
         "group/gpt-brain": { "context": 922000, "output": 128000 },
         "group/gpt-worker": { "context": 922000, "output": 128000 },
+        "group/gpt-deep": { "context": 922000, "output": 128000 },
         "group/grok-brain": { "context": 500000, "output": 128000 },
+        "group/grok-deep": { "context": 500000, "output": 128000 },
         "group/grok-worker": { "context": 256000, "output": 64000 },
         "group/deep": { "context": 1000000, "output": 128000 },
         "group/fast": { "context": 1000000, "output": 128000 },
@@ -37,7 +42,7 @@
           "contextWindow": 400000,
           "outputTokens": 16000
         },
-        "group/worker": {
+        "group/claude-worker": {
           "contextWindow": 400000,
           "outputTokens": 16000
         }

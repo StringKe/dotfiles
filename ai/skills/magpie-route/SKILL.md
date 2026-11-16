@@ -5,7 +5,7 @@ description: 维护 magpie 的模型路由分组：Claude、GPT、Grok 三个系
 
 # magpie-route
 
-agent 只认角色组。每个模型系列各有大脑（brain）和干活（worker）两个组，一个组里只放同一系列的模型，不跨系列兜底。角色组里写模型，同一个模型由哪家供应商提供交给模型层处理。换供应商只动模型层，角色组和 agent 配置不变。
+agent 只认角色组。每个模型系列各有大脑（brain）、深度（deep）和干活（worker）三个组：日常用 brain，子代理和杂活用 worker，特别复杂的任务手动切到 deep。一个组里只放同一系列的模型，唯一例外是 Grok 没有更强的模型，`grok-deep` 用 GPT-6.1 Sol。角色组里写模型，同一个模型由哪家供应商提供交给模型层处理。换供应商只动模型层，角色组和 agent 配置不变。
 
 ## 目标状态
 
@@ -13,33 +13,36 @@ agent 只认角色组。每个模型系列各有大脑（brain）和干活（wor
 
 | 组 | 成员 | 用途 |
 | --- | --- | --- |
-| `group/brain` | 依次：Opus 5.5 -> `group/worker` | Claude 系列主对话，Claude Code 与 OpenCode 的默认模型 |
-| `group/worker` | 依次：Sonnet 5.5 -> Haiku 5.5 | Claude 系列的子代理、Explore、起标题、压缩上下文 |
+| `group/claude-brain` | 依次：Opus 5.5 -> `group/claude-worker` | Claude 系列主对话，Claude Code 与 OpenCode 的默认模型 |
+| `group/claude-deep` | 依次：Fable 5.2 -> Opus 5.5 -> `group/claude-worker` | Claude 系列的复杂任务 |
+| `group/claude-worker` | 依次：Sonnet 5.5 -> Haiku 5.5 | Claude 系列的子代理、Explore、起标题、压缩上下文 |
 | `group/gpt-brain` | 依次：GPT-6.1 Sol -> GPT-6 Astra -> `group/gpt-worker` | GPT 系列主对话 |
+| `group/gpt-deep` | 依次：GPT-6 Astra -> GPT-6.1 Sol -> `group/gpt-worker` | GPT 系列的复杂任务 |
 | `group/gpt-worker` | 依次：GPT-6.1 Terra -> GPT-6.1 Sol | GPT 系列的子代理；billion-context 的摘要 |
 | `group/grok-brain` | 依次：Grok 4.7 -> `group/grok-worker` | Grok 系列主对话 |
+| `group/grok-deep` | 依次：GPT-6.1 Sol -> Grok 4.7 -> `group/grok-worker` | Grok 系列的复杂任务 |
 | `group/grok-worker` | Grok 4.7 Fast | Grok 系列的子代理 |
 
-- 不设单独的 deep、fast 组。要 Fable 5.2 时用 Claude Code 的 fable 档或 `/model` 选 `auto-claude-fable-5-2`。改名或删组前还在运行的会话会继续请求旧组名，旧组改成只含一个成员的转发组（`fast` -> `group/worker`，`deep` -> `group/brain`），不放进 `visible`，见「调整步骤」第 7 条。
+- 旧组名 `brain`、`worker`、`deep`、`fast` 保留为只含一个成员的转发组（`brain` -> `group/claude-brain`，`worker`、`fast` -> `group/claude-worker`，`deep` -> `group/claude-deep`），给改名前就在运行的会话用，不放进 `visible`，见「调整步骤」第 7 条。运行中的 Claude Code 会话用 Rex 发 `/model group/claude-brain[1m]` 切过去，会弹「Switch model?」确认框，再发一次回车；正在回复的会话等它停下再发。
 - 所有角色组都用 `routing=order stays=turn`，成员写 `auto/<模型>`。角色组只决定用哪个模型，用哪家供应商由模型层轮流决定，模型层的 `stays=session` 让一个会话固定在一家，保住缓存。角色组不用 `stays=session`：第一位的模型暂时不可用时会话落到第二位，`session` 会让它一直留在第二位，额度恢复或新增供应商后也回不到第一位；`turn` 每次用户发言重新按顺序选。
-- 每个 brain 组两条规则，指向同系列的 worker：`use=group/<系列 worker> use-effort=high when=subagent`，`use=group/<系列 worker> compact`。规则的 `use=` 必须是组成员，所以 worker 组放在 brain 组的最后一位。
+- 每个 brain 组和 deep 组两条规则，指向同系列的 worker：`use=group/<系列>-worker use-effort=high when=subagent`，`use=group/<系列>-worker compact`。规则的 `use=` 必须是组成员，所以 worker 组放在最后一位。
 - 子代理用规则分流，不设 `magpie claude subagent`。那个字段会覆盖全部子代理，Explore 和自己写了 `model:` 的子代理也会被改掉。
 
 ### 不同的活怎么进不同的组
 
 模型看不到分组。走哪个组由两件事决定：会话选了哪个组，子代理请求的是哪个模型名。
 
-- 会话：在 `/model` 或 OpenCode 的模型列表里选组。日常用 `brain`，想用 GPT 或 Grok 时选对应系列的 brain 组。
+- 会话：在 `/model` 或 OpenCode 的模型列表里选组。日常用 `claude-brain`，复杂任务切 `claude-deep`，想用 GPT 或 Grok 时选对应系列的组。
 - Claude Code 的子代理按这个顺序取模型：派发时主模型传的 `model` 参数（`opus`、`fable`、`sonnet`、`haiku`），子代理定义里的 `model:` 字段，`CLAUDE_CODE_SUBAGENT_MODEL`，最后沿用主对话的模型。来源：https://code.claude.com/docs/en/sub-agents
 
 | 子代理怎么派 | 请求的模型 | 结果 |
 | --- | --- | --- |
-| 不指定，沿用主模型 | 主会话选的 brain 组 | 命中子代理规则 -> 同系列 worker，effort high |
+| 不指定，沿用主模型 | 主会话选的 brain 或 deep 组 | 命中子代理规则 -> 同系列 worker，effort high |
 | `opus` | `auto/claude-opus-5-5` | Opus 5.5 |
 | `fable` | `auto/claude-fable-5-2` | Fable 5.2，high |
-| `sonnet`、`haiku`，以及 Explore | `group/worker` | Sonnet 5.5 |
+| `sonnet`、`haiku`，以及 Explore | `group/claude-worker` | Sonnet 5.5 |
 
-- opus 档和 fable 档指向模型组，不指向 `brain`。指向角色组的话，子代理规则会把明确要 Opus 或 Fable 的子代理也改成 worker。
+- opus 档和 fable 档指向模型组，不指向 `claude-brain`、`claude-deep`。指向角色组的话，子代理规则会把明确要 Opus 或 Fable 的子代理也改成 worker。
 - 要让某类子代理固定用某个档位，在 `~/.claude/agents/<名>.md` 的 frontmatter 里写 `model: fable`，或在全局提示词里写明哪类任务派哪个档位。
 - OpenCode 不告诉 magpie 哪个请求来自子代理，没有单独配置的子代理跟主对话走同一个组。它的内置子代理已在 `agents` 里单独指定模型，见下面 agent 一节。
 - `opencode.jsonc` 是指向 dotfiles 的符号链接，改了链接目标后 OpenCode 不会察觉。改完执行 `touch -h ~/.config/opencode/opencode.jsonc`，再用 `opencode run` 测一次子代理。
@@ -83,12 +86,12 @@ agent 只认角色组。每个模型系列各有大脑（brain）和干活（wor
 
 | agent | 设置 |
 | --- | --- |
-| Claude Code | `magpie claude group/brain`，`opus auto/claude-opus-5-5`，`fable auto/claude-fable-5-2`，`sonnet group/worker`，`haiku group/worker`，`fable_effort high`，effort 保持 medium |
-| OpenCode | `magpie opencode group/brain`，`small group/worker`；`~/.config/opencode/opencode.jsonc` 的 `agents` 里 `general`、`compaction`、`explore`、`summary`、`title` 都写 `magpie/group/worker` |
+| Claude Code | `magpie claude group/claude-brain`，`opus auto/claude-opus-5-5`，`fable auto/claude-fable-5-2`，`sonnet group/claude-worker`，`haiku group/claude-worker`，`fable_effort high`，effort 保持 medium |
+| OpenCode | `magpie opencode group/claude-brain`，`small group/claude-worker`；`~/.config/opencode/opencode.jsonc` 的 `agents` 里 `general`、`compaction`、`explore`、`summary`、`title` 都写 `magpie/group/claude-worker` |
 | 其他 agent | 不接 magpie。Library 的 MCP 服务和 skill 只分发给 `claude`、`opencode`：`magpie library mcp agents <名> claude,opencode`，`magpie library skill agents <名> claude,opencode` |
 | Codex | 不接 magpie，走自己的 ChatGPT 登录 |
 
-- 收窄模型列表：OpenCode 用 `magpie visible opencode brain,worker,gpt-brain,gpt-worker,grok-brain,grok-worker`；Claude Code 用 `magpie visible claude brain,worker,gpt-brain,gpt-worker,grok-brain,grok-worker,auto-claude-opus-5-5,auto-claude-fable-5-2`，因为档位只能指向列表里可见的模型。按名字请求其他模型的老会话仍然能用。
+- 收窄模型列表：OpenCode 用 `magpie visible opencode claude-brain,claude-deep,claude-worker,gpt-brain,gpt-deep,gpt-worker,grok-brain,grok-deep,grok-worker`；Claude Code 在这串后面再加 `auto-claude-opus-5-5,auto-claude-fable-5-2`，因为档位只能指向列表里可见的模型。按名字请求其他模型的老会话仍然能用。
 - 顺序是先设 `visible`，再设档位。顺序反了，`magpie claude opus <模型>` 会报这个模型对 Claude Code 不可见。
 - 旧一代模型用 `magpie model disable '<glob>'` 停用，例如 `'*claude-opus-4*'`、`'*gpt-5.6-*'`。
 
@@ -96,8 +99,8 @@ agent 只认角色组。每个模型系列各有大脑（brain）和干活（wor
 
 Claude Code 的 `ANTHROPIC_BASE_URL` 是 `http://127.0.0.1:18788/bili/http://127.0.0.1:3425`：请求先经 billion-context 管上下文压缩，再到 magpie。它的配置是 dotfiles 的 `ai/billion-context/billion-context.json`（`~/.config/billion-context/billion-context.json` 链接到它），改完 `curl -X POST http://127.0.0.1:18787/__bili/config/reload` 和 18788 各一次，不用重启会话。必须有这三项：
 
-- 窗口声明：`providers` 下以上游地址 `http://127.0.0.1:3425` 作键，`models` 里给每个角色组、转发组和 `auto/claude-opus-5-5`、`auto/claude-fable-5-2` 各写一行，例如 `"group/brain": {"context": 1000000, "output": 128000}`，GPT 组是 922000，`grok-brain` 500000，`grok-worker` 256000，数值取 `curl -s http://127.0.0.1:3425/v1/models -H 'x-api-key: magpie'` 报的窗口。不写的话它不认识分组名，按 20 万窗口在约 15 万 token 就压缩。新增分组或档位指向新模型组时同步加一行。
-- 外部摘要：`compress.externalSummary` 设 `enabled: true`，`targets` 为 `magpie/group/gpt-worker`、`magpie/group/worker`（摘要先走 GPT-6.1 Terra，快且不占 Claude 订阅和 Kiro 的额度），`concurrency: 16`（默认 4，几十个会话同时压缩会排队超时），`budget` 为 `totalTimeoutMs: 360000`、`targetTimeoutMs: 180000`。摘要用的 `magpie` 命名服务商写 `api: openai`、`baseUrl: http://127.0.0.1:3425/v1`、`credentialRef: magpie`，凭据放在本机 `billion-context.json.summary-credentials.json`，不进仓库。
+- 窗口声明：`providers` 下以上游地址 `http://127.0.0.1:3425` 作键，`models` 里给每个角色组、转发组和 `auto/claude-opus-5-5`、`auto/claude-fable-5-2` 各写一行，例如 `"group/claude-brain": {"context": 1000000, "output": 128000}`，GPT 组是 922000，`grok-brain`、`grok-deep` 500000（取组内最小的窗口），`grok-worker` 256000，数值取 `curl -s http://127.0.0.1:3425/v1/models -H 'x-api-key: magpie'` 报的窗口。不写的话它不认识分组名，按 20 万窗口在约 15 万 token 就压缩。新增分组或档位指向新模型组时同步加一行。
+- 外部摘要：`compress.externalSummary` 设 `enabled: true`，`targets` 为 `magpie/group/gpt-worker`、`magpie/group/claude-worker`（摘要先走 GPT-6.1 Terra，快且不占 Claude 订阅和 Kiro 的额度），`concurrency: 16`（默认 4，几十个会话同时压缩会排队超时），`budget` 为 `totalTimeoutMs: 360000`、`targetTimeoutMs: 180000`。摘要用的 `magpie` 命名服务商写 `api: openai`、`baseUrl: http://127.0.0.1:3425/v1`、`credentialRef: magpie`，凭据放在本机 `billion-context.json.summary-credentials.json`，不进仓库。
 
 ### 先用完某家中转的余额
 
@@ -122,14 +125,14 @@ Claude Code 的 `ANTHROPIC_BASE_URL` 是 `http://127.0.0.1:18788/bili/http://127
    - 某模型变成两家以上：出现 `auto/<模型>` 组，按上面的写法排序，再把角色组里的 `provider/model` 换成 `auto/<模型>`。
    - 某模型只剩一家：`auto/<模型>` 组消失，角色组里换成 `provider/model`。
 6. 新一代模型：直接替换角色组里对应的位置，再停用上一代。
-7. 删组之前查最近有没有会话还在请求它：`jq -r 'select(.t > "<时刻>") | .req' ~/.config/magpie/usage.jsonl | sort | uniq -c`。还有请求就先保留，或者用同一个 id 建一个只含 `group/brain` 的转发组。直接删会让这些会话收到 404。
+7. 删组之前查最近有没有会话还在请求它：`jq -r 'select(.t > "<时刻>") | .req' ~/.config/magpie/usage.jsonl | sort | uniq -c`。还有请求就先保留，或者用同一个 id 建一个只含新组的转发组。直接删会让这些会话收到 404。
 
 ## 验证
 
 每次请求的记录在 `~/.config/magpie/usage.jsonl`：`req` 是请求的模型，`provider/served` 是实际服务的模型。
 
 ```sh
-for g in brain worker gpt-brain gpt-worker grok-brain grok-worker; do curl -s http://127.0.0.1:3425/v1/messages -H 'x-api-key: magpie' -H 'anthropic-version: 2023-06-01' -H 'content-type: application/json' -d "{\"model\":\"group/$g\",\"max_tokens\":16,\"messages\":[{\"role\":\"user\",\"content\":\"reply ok\"}]}" >/dev/null; done
+for g in claude-brain claude-deep claude-worker gpt-brain gpt-deep gpt-worker grok-brain grok-deep grok-worker; do curl -s http://127.0.0.1:3425/v1/messages -H 'x-api-key: magpie' -H 'anthropic-version: 2023-06-01' -H 'content-type: application/json' -d "{\"model\":\"group/$g\",\"max_tokens\":16,\"messages\":[{\"role\":\"user\",\"content\":\"reply ok\"}]}" >/dev/null; done
 claude -p 'Launch five general-purpose subagents with the Agent tool, each with the prompt "reply sub ok": no model parameter, then model "opus", "fable", "sonnet", "haiku". Then launch an Explore subagent that lists files here. Then reply done.' --max-turns 16 --allowedTools='Task,Agent,Read,Glob,Bash(ls:*)'
 opencode run 'reply ok'
 jq -r 'select(.t > "<开始时刻>") | "\(.agent) \(.req) -> \(.provider)/\(.served) \(.status)"' ~/.config/magpie/usage.jsonl | sort | uniq -c
@@ -137,7 +140,7 @@ jq -r 'select(.t > "<开始时刻>") | "\(.agent) \(.req) -> \(.provider)/\(.ser
 
 通过的标准：
 
-- 主对话：`group/brain -> claude/claude-opus-5-5`。
+- 主对话：`group/claude-brain` 落到 Opus 5.5，`group/claude-deep` 落到 Fable 5.2，`group/gpt-deep` 落到 GPT-6 Astra，`group/grok-deep` 落到 GPT-6.1 Sol。
 - 子代理与「不同的活怎么进不同的组」一节的表格一致：不指定模型、`sonnet`、`haiku` 和 Explore -> Sonnet 5.5；`opus` -> Opus 5.5；`fable` -> Fable 5.2。主对话不出现 GPT、Grok 的模型。
 - 对同一个模型组发几条内容不同的请求，`provider` 依次换成订阅和各家中转。
 - 非 claude agent：请求不会落到只认 Claude Code 的中转上。
