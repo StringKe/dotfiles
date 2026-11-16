@@ -23,7 +23,7 @@ agent 只认角色组。每个模型系列各有大脑（brain）、深度（dee
 | `group/grok-deep` | 依次：GPT-6.1 Sol -> Grok 4.7 -> `group/grok-worker` | Grok 系列的复杂任务 |
 | `group/grok-worker` | Grok 4.7 Fast | Grok 系列的子代理 |
 
-- 旧组名 `brain`、`worker`、`deep`、`fast` 保留为只含一个成员的转发组（`brain` -> `group/claude-brain`，`worker`、`fast` -> `group/claude-worker`，`deep` -> `group/claude-deep`），给改名前就在运行的会话用，不放进 `visible`，见「调整步骤」第 7 条。运行中的 Claude Code 会话用 Rex 发 `/model group/claude-brain[1m]` 切过去，会弹「Switch model?」确认框，再发一次回车；正在回复的会话等它停下再发。
+- 给组改名时，运行中的 Claude Code 会话用 Rex 发 `/model group/<新组>[1m]` 切过去，会弹「Switch model?」确认框，再发一次回车；正在回复的会话等它停下再发。全部切完、旧名不再有请求后删掉旧组，见「调整步骤」第 7 条。
 - 所有角色组都用 `routing=order stays=turn`，成员写 `auto/<模型>`。角色组只决定用哪个模型，用哪家供应商由模型层轮流决定，模型层的 `stays=session` 让一个会话固定在一家，保住缓存。角色组不用 `stays=session`：第一位的模型暂时不可用时会话落到第二位，`session` 会让它一直留在第二位，额度恢复或新增供应商后也回不到第一位；`turn` 每次用户发言重新按顺序选。
 - 每个 brain 组和 deep 组两条规则，指向同系列的 worker：`use=group/<系列>-worker use-effort=high when=subagent`，`use=group/<系列>-worker compact`。规则的 `use=` 必须是组成员，所以 worker 组放在最后一位。
 - 子代理用规则分流，不设 `magpie claude subagent`。那个字段会覆盖全部子代理，Explore 和自己写了 `model:` 的子代理也会被改掉。
@@ -99,7 +99,7 @@ agent 只认角色组。每个模型系列各有大脑（brain）、深度（dee
 
 Claude Code 的 `ANTHROPIC_BASE_URL` 是 `http://127.0.0.1:18788/bili/http://127.0.0.1:3425`：请求先经 billion-context 管上下文压缩，再到 magpie。它的配置是 dotfiles 的 `ai/billion-context/billion-context.json`（`~/.config/billion-context/billion-context.json` 链接到它），改完 `curl -X POST http://127.0.0.1:18787/__bili/config/reload` 和 18788 各一次，不用重启会话。必须有这三项：
 
-- 窗口声明：`providers` 下以上游地址 `http://127.0.0.1:3425` 作键，`models` 里给每个角色组、转发组和 `auto/claude-opus-5-5`、`auto/claude-fable-5-2` 各写一行，例如 `"group/claude-brain": {"context": 1000000, "output": 128000}`，GPT 组是 922000，`grok-brain`、`grok-deep` 500000（取组内最小的窗口），`grok-worker` 256000，数值取 `curl -s http://127.0.0.1:3425/v1/models -H 'x-api-key: magpie'` 报的窗口。不写的话它不认识分组名，按 20 万窗口在约 15 万 token 就压缩。新增分组或档位指向新模型组时同步加一行。
+- 窗口声明：`providers` 下以上游地址 `http://127.0.0.1:3425` 作键，`models` 里给每个角色组和 `auto/claude-opus-5-5`、`auto/claude-fable-5-2` 各写一行，例如 `"group/claude-brain": {"context": 1000000, "output": 128000}`，GPT 组是 922000，`grok-brain`、`grok-deep` 500000（取组内最小的窗口），`grok-worker` 256000，数值取 `curl -s http://127.0.0.1:3425/v1/models -H 'x-api-key: magpie'` 报的窗口。不写的话它不认识分组名，按 20 万窗口在约 15 万 token 就压缩。新增分组或档位指向新模型组时同步加一行。
 - 外部摘要：`compress.externalSummary` 设 `enabled: true`，`targets` 为 `magpie/group/gpt-worker`、`magpie/group/claude-worker`（摘要先走 GPT-6.1 Terra，快且不占 Claude 订阅和 Kiro 的额度），`concurrency: 16`（默认 4，几十个会话同时压缩会排队超时），`budget` 为 `totalTimeoutMs: 360000`、`targetTimeoutMs: 180000`。摘要用的 `magpie` 命名服务商写 `api: openai`、`baseUrl: http://127.0.0.1:3425/v1`、`credentialRef: magpie`，凭据放在本机 `billion-context.json.summary-credentials.json`，不进仓库。
 
 ### 先用完某家中转的余额

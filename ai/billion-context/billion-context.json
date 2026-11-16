@@ -19,16 +19,12 @@
         "group/claude-brain": { "context": 1000000, "output": 128000 },
         "group/claude-worker": { "context": 1000000, "output": 128000 },
         "group/claude-deep": { "context": 1000000, "output": 128000 },
-        "group/brain": { "context": 1000000, "output": 128000 },
-        "group/worker": { "context": 1000000, "output": 128000 },
         "group/gpt-brain": { "context": 922000, "output": 128000 },
         "group/gpt-worker": { "context": 922000, "output": 128000 },
         "group/gpt-deep": { "context": 922000, "output": 128000 },
         "group/grok-brain": { "context": 500000, "output": 128000 },
         "group/grok-deep": { "context": 500000, "output": 128000 },
         "group/grok-worker": { "context": 256000, "output": 64000 },
-        "group/deep": { "context": 1000000, "output": 128000 },
-        "group/fast": { "context": 1000000, "output": 128000 },
         "auto/claude-opus-5-5": { "context": 1000000, "output": 128000 },
         "auto/claude-fable-5-2": { "context": 1000000, "output": 128000 }
       }
