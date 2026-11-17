@@ -44,7 +44,8 @@ merge_claude_settings() {
         return
     fi
     local tmp="$dst.tmp.$$"
-    if ! jq -s '(.[0] // {}) * (.[1] // {})' "$dst" "$src" > "$tmp"; then
+    # hooks 的数组按条目合并：bili、rex 等工具自己加的 hook 留着，`*` 会整组替换掉它们
+    if ! jq -s '(.[0] // {}) as $l | (.[1] // {}) as $r | ($l * $r) | .hooks = (($l.hooks // {}) as $lh | ($r.hooks // {}) as $rh | reduce (($lh + $rh) | keys[]) as $k ({}; .[$k] = (($rh[$k] // []) + (($lh[$k] // []) - ($rh[$k] // []))))) | if .hooks == {} then del(.hooks) else . end' "$dst" "$src" > "$tmp"; then
         rm -f "$tmp"
         log "error   $dst 不是合法 JSON，修正后重跑"
         return 1
