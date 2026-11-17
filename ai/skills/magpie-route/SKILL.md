@@ -15,7 +15,7 @@ agent 只认角色组。每个模型系列各有大脑（brain）、深度（dee
 | --- | --- | --- |
 | `group/claude-brain` | 依次：Opus 5.5 -> `group/claude-worker` | Claude 系列主对话，Claude Code 与 OpenCode 的默认模型 |
 | `group/claude-deep` | 依次：Fable 5.2 -> Opus 5.5 -> `group/claude-worker` | Claude 系列的复杂任务 |
-| `group/claude-worker` | 依次：Sonnet 5.5 -> Haiku 5.5 | Claude 系列的子代理、Explore、起标题、压缩上下文 |
+| `group/claude-worker` | Sonnet 5.5 | Claude 系列的子代理、Explore、起标题、压缩上下文 |
 | `group/gpt-brain` | 依次：GPT-6.1 Sol -> GPT-6 Astra -> `group/gpt-worker` | GPT 系列主对话 |
 | `group/gpt-deep` | 依次：GPT-6 Astra -> GPT-6.1 Sol -> `group/gpt-worker` | GPT 系列的复杂任务 |
 | `group/gpt-worker` | 依次：GPT-6.1 Terra -> GPT-6.1 Sol | GPT 系列的子代理 |
@@ -23,6 +23,7 @@ agent 只认角色组。每个模型系列各有大脑（brain）、深度（dee
 | `group/grok-deep` | 依次：GPT-6.1 Sol -> Grok 4.7 -> `group/grok-worker` | Grok 系列的复杂任务 |
 | `group/grok-worker` | Grok 4.7 Fast | Grok 系列的子代理 |
 
+- 任何组都不放小模型，Claude 最低是 Sonnet：Haiku 不进任何组，并用 `magpie model disable '*claude-haiku*'` 停用，Claude Code 的 haiku 档指向 `group/claude-worker`；GPT 的 Luna 同样不用。GPT-6.1 Terra 不算小模型，智能指数 51.3，Sol 是 54.6（来源：https://genmagic.co/compare/openai-gpt-6-1-sol-vs-openai-gpt-6-1-terra ）；Grok 4.7 Fast 和 Grok 4.7 是同一个模型，只是部署更快（来源：https://docs.x.ai/developers/grok-4-7 ）。新一代模型进组前先查它是不是该厂商的小模型档。
 - 给组改名时，运行中的 Claude Code 会话用 Rex 发 `/model group/<新组>[1m]` 切过去，会弹「Switch model?」确认框，再发一次回车；正在回复的会话等它停下再发。全部切完、旧名不再有请求后删掉旧组，见「调整步骤」第 7 条。
 - 所有角色组都用 `routing=order stays=turn`，成员写 `auto/<模型>`。角色组只决定用哪个模型，用哪家供应商由模型层轮流决定，模型层的 `stays=session` 让一个会话固定在一家，保住缓存。角色组不用 `stays=session`：第一位的模型暂时不可用时会话落到第二位，`session` 会让它一直留在第二位，额度恢复或新增供应商后也回不到第一位；`turn` 每次用户发言重新按顺序选。
 - 每个 brain 组和 deep 组两条规则，指向同系列的 worker：`use=group/<系列>-worker use-effort=high when=subagent`，`use=group/<系列>-worker compact`。规则的 `use=` 必须是组成员，所以 worker 组放在最后一位。

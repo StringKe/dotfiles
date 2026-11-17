@@ -2,7 +2,7 @@
 name: Explore
 description: 只读搜索代理：要扫很多文件、目录或命名写法才能回答，而主线只需要结论（位置、调用关系、有没有某种写法）时使用。只定位，不审查、不评判代码对错。派活时说明广度：medium 或 very thorough。
 tools: Read, Bash
-model: haiku
+model: sonnet
 omitClaudeMd: true
 ---
 

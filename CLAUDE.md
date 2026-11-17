@@ -141,7 +141,7 @@ agent 的每条命令都是新进程，经 1Password 签名会每次弹授权。
 - 个人 skill 放 `ai/skills/<名>/`，个人插件放 `ai/plugins/<名>/`。Library 里每个个人 skill 的来源是仓库里的文件夹，改文件即生效。
 - `ai/claude/` 只给 claude-code：`settings.json`（权限、hooks 登记、`skillOverrides`、压缩与缓存）、`hooks/`、`agents/`、`statusline-command.sh`。主模型与各档模型由 magpie 写进 `~/.claude/settings.json`，仓库的 `settings.json` 不设 `model`。`ai/opencode/` 只给 opencode：`opencode.jsonc`（权限、图片压缩、内置子代理的模型；`mcp` 段只有 magpie 的入口，模型列表由 magpie 写）和 `tui.json`。上下文压缩用两个 agent 自带的，不装 billion-context，见 skill `magpie-route`。
 - hook 脚本的头注释写明它挂在哪个事件、拦什么。新增 hook 要在 `ai/claude/settings.json` 的 `hooks` 里登记，再跑 `bin/setup-ai.sh` 建链接。
-- 自定义子代理两个：`Explore`（haiku，只读搜索）和 `researcher`（sonnet medium，读外部资料与大日志），都不带 CLAUDE.md。
+- 自定义子代理两个：`Explore`（sonnet，只读搜索）和 `researcher`（sonnet medium，读外部资料与大日志），都不带 CLAUDE.md。
 - `skillOverrides` 把很少用的 skill 设成 `name-only`：列表里只留名字，不带描述。第三方 skill 也在这里设。
 - MCP 定义在 magpie Library：context7、exa、gh_grep、openseo、truewatch、fingerprint、paper、slack、rea、pencil，以及 magpie 自带的 calc、image、vision、memory。MCP 汇总入口开着，每个 agent 只有一个 `magpie` 服务，按需加载各服务的工具。新增用 `magpie library mcp add <名> agents=claude,opencode …`。
 - MCP 一律用 API key / token，不走 OAuth，也不装同名插件：多个会话同时刷新 OAuth token 时容易失效，导致反复要求登录。truewatch 用 `Authorization: Bearer <API Key>`；fingerprint 的托管端点只支持 OAuth，改用 mise 安装的本地 `fingerprint-mcp-server`（private 模式，`--region ap`）。slack 不用 claude.ai 的 Slack 连接器，用 mise 安装的本地 `slack-mcp-server`（korotovsky），以自建应用的 User OAuth Token（xoxp）按本人身份读写，发消息工具经 `SLACK_MCP_ADD_MESSAGE_TOOL` 打开。
