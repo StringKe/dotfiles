@@ -18,7 +18,7 @@ agent 只认角色组。每个模型系列各有大脑（brain）、深度（dee
 | `group/claude-worker` | 依次：Sonnet 5.5 -> Haiku 5.5 | Claude 系列的子代理、Explore、起标题、压缩上下文 |
 | `group/gpt-brain` | 依次：GPT-6.1 Sol -> GPT-6 Astra -> `group/gpt-worker` | GPT 系列主对话 |
 | `group/gpt-deep` | 依次：GPT-6 Astra -> GPT-6.1 Sol -> `group/gpt-worker` | GPT 系列的复杂任务 |
-| `group/gpt-worker` | 依次：GPT-6.1 Terra -> GPT-6.1 Sol | GPT 系列的子代理；billion-context 的摘要 |
+| `group/gpt-worker` | 依次：GPT-6.1 Terra -> GPT-6.1 Sol | GPT 系列的子代理 |
 | `group/grok-brain` | 依次：Grok 4.7 -> `group/grok-worker` | Grok 系列主对话 |
 | `group/grok-deep` | 依次：GPT-6.1 Sol -> Grok 4.7 -> `group/grok-worker` | Grok 系列的复杂任务 |
 | `group/grok-worker` | Grok 4.7 Fast | Grok 系列的子代理 |
@@ -62,7 +62,7 @@ agent 只认角色组。每个模型系列各有大脑（brain）、深度（dee
 - 只有一家的模型，角色组里直接写 `provider/model`，比如 `grok/grok-4.7`。
 - 只接受 Claude Code 请求的中转 key，在对应的模型组里加 `pause=<relay>/<model> when="agent is not claude"`。不加的话，其他 agent 的请求被 403 拒绝后，magpie 会让这家暂时休息，Claude Code 也跟着被挤到下一家。
 - 裸模型名的请求（比如老会话发的 `claude-opus-5-5`）也走 `auto/<模型>` 组。
-- Claude 中转的 key 可以给 Claude Code 用，不加 pause。唯一的例外是以 assistant 消息结尾（prefill）的请求：Claude 4.6 及以后的模型在 Anthropic API 上一律拒绝，报 `This model does not support assistant message prefill. The conversation must end with a user message.`（来源：https://platform.claude.com/docs/en/api/errors ），用官方 API key 的中转都会原样转回这个 400，与 key 是否正确无关。Claude 订阅和 Kiro 不经 Anthropic API，接受这种请求。Claude Code 自己的正常请求以 user 消息结尾，不受影响；这种请求来自 billion-context 的压缩失败轮：它丢掉失败的工具调用后带着 assistant 收据重发，显示为 `upstream stream truncated (no completion event; round 2 …)` 或直接报上面的 400。magpie 只给 OpenAI 格式（Chat、Responses）的客户端补一条 user 消息重试；Anthropic 格式的客户端原样收到 400，不换下一家，这个会话要发一次「继续」。Claude 模型组用 `expiring`，按量付费的中转排在订阅和 Kiro 之后，只在两者都用完时接手，碰到这种 400 的机会很少。停用或删除供应商后，引用它的规则要一起删：`magpie group set <组> models-=<provider/model>` 会连带删掉指向它的规则；成员已不在组里的规则会让 `magpie group rule rm` 对其他编号报错，先删这一条。新中转用 `claude -p` 或带 Claude Code UA 的 curl 测一次正常请求即可。
+- Claude 中转的 key 可以给 Claude Code 用，不加 pause。唯一的例外是以 assistant 消息结尾（prefill）的请求：Claude 4.6 及以后的模型在 Anthropic API 上一律拒绝，报 `This model does not support assistant message prefill. The conversation must end with a user message.`（来源：https://platform.claude.com/docs/en/api/errors ），用官方 API key 的中转都会原样转回这个 400，与 key 是否正确无关。Claude 订阅和 Kiro 不经 Anthropic API，接受这种请求。Claude Code 自己的请求以 user 消息结尾，不受影响。magpie 只给 OpenAI 格式（Chat、Responses）的客户端补一条 user 消息重试；Anthropic 格式的客户端原样收到 400，不换下一家，这个会话要发一次「继续」。Claude 模型组用 `expiring`，按量付费的中转排在订阅和 Kiro 之后，只在两者都用完时接手，碰到这种 400 的机会很少。停用或删除供应商后，引用它的规则要一起删：`magpie group set <组> models-=<provider/model>` 会连带删掉指向它的规则；成员已不在组里的规则会让 `magpie group rule rm` 对其他编号报错，先删这一条。新中转用 `claude -p` 或带 Claude Code UA 的 curl 测一次正常请求即可。
 - 中转只接 Claude 的 key 和只接 OpenAI 的 key 在 magpie 里是两个服务商，比如「鱼鱼连线 Claude」和「鱼鱼连线 OpenAI」。
 - 中转按协议放行模型：GPT 走 `/v1/messages` 常被拒（`This group does not allow /v1/messages dispatch`、「当前分组不允许调度模型」），Gemini 报「不支持当前入口协议」。GPT 用 `magpie model api <provider/model…> responses`；Gemini 先 `magpie provider set <id> gemini=<中转根地址>`，再 `magpie model api <provider/model…> gemini`。换协议后再测，不要按第一次的报错判定这家不支持。
 - GPT、Grok 的模型组同样用正则收进中转：`magpie group set auto-gpt-6-1-sol models='codex/gpt-6.1-sol,re:.*/gpt-6\.1-sol' routing=rotate stays=session`。手工改过成员的组不会自动收进新供应商，要写正则。组里只把订阅写成明确成员，中转和 Kiro 一律靠正则收进来：正则匹配的是 `magpie models` 当前的列表，新供应商暴露了同名模型就自动加入，供应商删掉或不再暴露就自动退出；明确写出的成员在供应商删掉后会留下 `not served` 的残项，要手动 `models-=`。所以「自动创建路由组」不用打开，打开后会给每个有两家以上的模型各建一个组，列表又变乱。
@@ -95,22 +95,20 @@ agent 只认角色组。每个模型系列各有大脑（brain）、深度（dee
 - 顺序是先设 `visible`，再设档位。顺序反了，`magpie claude opus <模型>` 会报这个模型对 Claude Code 不可见。
 - 旧一代模型用 `magpie model disable '<glob>'` 停用，例如 `'*claude-opus-4*'`、`'*gpt-5.6-*'`。
 
-### billion-context
+### 上下文压缩与命令输出
 
-Claude Code 的 `ANTHROPIC_BASE_URL` 是 `http://127.0.0.1:<端口>/bili/http://127.0.0.1:3425`：请求先经 billion-context 管上下文压缩，再到 magpie。端口由 bili 自己管，默认 18788，被占时换下一个并改写这一项（`~/.local/state/billion-context/port-zone.json` 的 `lanes.claude`）。Claude Code 这条通道由 magpie「Library -> billion-context -> Claude Code」安装，实际执行 `bili plugin install claude`，写进两样东西：settings.json 的 SessionStart hook `claude-native-bootstrap.js`（每个会话启动时拉起代理并登记自己）和 `~/.claude.json` 的 MCP `bili`（`BILI_MCP_PROXY` 指向本通道）。代理在登记过的会话全部退出后自己关闭，所以这两样缺一样，新会话就不会登记，最后一个老会话退出时全部 Claude Code 报 `ECONNREFUSED`。`bili plugin list` 里 claude 必须是 `installed (managed settings block + MCP)`，显示 `MCP face missing` 或 hook 不在就重新安装。magpie Library 的 MCP 列表里不要再给 claude 发 `bili`（那一条写死 OpenCode 的 18787），`magpie library mcp agents bili none`。配置是 dotfiles 的 `ai/billion-context/billion-context.json`（`~/.config/billion-context/billion-context.json` 链接到它），改完对 `bili doctor` 列出的每个代理端口 `curl -X POST http://127.0.0.1:<端口>/__bili/config/reload` 一次，不用重启会话。必须有这三项：
+- 上下文压缩用 agent 自带的：Claude Code 按 `ai/claude/settings.json` 的 `autoCompactWindow`，OpenCode 用 `agents.compaction` 指定的 `group/claude-worker`。billion-context 在 magpie「Library -> billion-context」里对所有 agent 都关闭，`bili plugin list` 应全部是 `not installed`。原因：Claude Code 只能经它的本地代理接入（`ANTHROPIC_BASE_URL=http://127.0.0.1:<端口>/bili/...`），代理在登记过的会话全部退出后自己关闭，所有 Claude Code 会话会同时报 `ECONNREFUSED`；它的压缩失败轮还会发出以 assistant 结尾的请求，中转报 prefill 400。
+- Claude Code 的 `~/.claude/settings.json` 里 `env.ANTHROPIC_BASE_URL` 必须是 `http://127.0.0.1:3425`。关掉 billion-context 时 bili 的卸载会把这一项整个删掉，新会话改连 Anthropic 官方接口，报 `401 Invalid bearer token`。用 `jq '.env.ANTHROPIC_BASE_URL="http://127.0.0.1:3425"'` 补回；不要用 `magpie claude <模型>` 重设，它会把 opus、sonnet、haiku 档位一起改成主模型。补回后 `claude -p 'reply ok'` 应回 `ok`。运行中的会话会重新读取这个地址，不用重开。
+- RTK（https://www.rtk-ai.app ）把 agent 的 shell 命令改写成 `rtk <命令>` 并压缩输出，用 `magpie library rtk` 查看和开关，Claude Code、OpenCode 都开着。`rtk gain` 看省下的 token 和每条命令的压缩比例。它主要压缩 `rg` 的输出，模型不知道输出被删减过。出现模型没读到关键输出、反复重跑同一命令时，先用 `magpie library rtk off claude`、`magpie library rtk off opencode` 关掉再对比。
 
-- 窗口声明：`providers` 下以上游地址 `http://127.0.0.1:3425` 作键，`models` 里给每个角色组和 `auto/claude-opus-5-5`、`auto/claude-fable-5-2` 各写一行，例如 `"group/claude-brain": {"context": 1000000, "output": 128000}`，GPT 组是 922000，`grok-brain`、`grok-deep` 500000（取组内最小的窗口），`grok-worker` 256000，数值取 `curl -s http://127.0.0.1:3425/v1/models -H 'x-api-key: magpie'` 报的窗口。不写的话它不认识分组名，按 20 万窗口在约 15 万 token 就压缩。新增分组或档位指向新模型组时同步加一行。
-- 外部摘要：`compress.externalSummary` 设 `enabled: true`，`targets` 为 `magpie/group/gpt-worker`、`magpie/group/claude-worker`（摘要先走 GPT-6.1 Terra，快且不占 Claude 订阅和 Kiro 的额度），`concurrency: 16`（默认 4，几十个会话同时压缩会排队超时），`budget` 为 `totalTimeoutMs: 360000`、`targetTimeoutMs: 180000`。摘要用的 `magpie` 命名服务商写 `api: openai`、`baseUrl: http://127.0.0.1:3425/v1`、`credentialRef: magpie`，凭据放在本机 `billion-context.json.summary-credentials.json`，不进仓库。
 
 ### 先用完某家中转的余额
 
 要让一家按量付费的中转（例如 WandAPI）先用完：
 - 余额接进 magpie：`magpie provider set <id> balance=<余额接口> balance.path=<字段>`。WandAPI 是 `balance=https://api.wandapi.ai/v1/usage balance.path='$remaining'`，用 `magpie quota <id>` 核对。
-- GPT、Grok 模型组加 `use=<中转>/<模型>,<订阅>/<模型> agents=claude,opencode,billion-context,memory`：中转排第一，订阅第二，别的中转只在两者都不行时接手。余额用完后 magpie 按欠费跳过它，不用回头改规则。
-- Claude 模型组只对 Chat 格式的 agent 加 `use=<中转>/<模型> agents=opencode,billion-context,memory`，Claude Code 仍按 prefill 那条暂停。
+- GPT、Grok 模型组加 `use=<中转>/<模型>,<订阅>/<模型> agents=claude,opencode,memory`：中转排第一，订阅第二，别的中转只在两者都不行时接手。余额用完后 magpie 按欠费跳过它，不用回头改规则。
+- Claude 模型组只对 Chat 格式的 agent 加 `use=<中转>/<模型> agents=opencode,memory`，Claude Code 仍按 prefill 那条暂停。
 - 消耗速度：`jq -s '[.[] | select(.provider=="<id>" and .t > "<时刻>")] | group_by(.served) | map({m:.[0].served, n:length, in:(map(.in)|add)})' ~/.config/magpie/usage.jsonl`，余额看 `magpie quota <id>`。
-
-核对：`rg '\[window\] model=group' ~/.local/state/billion-context/bili.log` 不应出现 `source=default`；`nudge` 行里分组的分母应是 872000（1M 减输出）；`rg 'external-summary\] completed'` 统计 `result=`，`deadline` 应接近 0。
 
 ## 调整步骤
 
@@ -152,19 +150,16 @@ jq -r 'select(.t > "<开始时刻>") | "\(.agent) \(.req) -> \(.provider)/\(.ser
 
 先扫一遍开着的会话：`rex ls --json` 取 `.sessions[].session_id`，`rex block ls -s <session> --json` 取 `.blocks[].block_id`，跳过自己的 `$REX_BLOCK`，`rex capture -s <session> -b <block> --trim --unwrap` 看最后 25 行。报错行可能是旧的，以最后几行是否在运行（有计时、`esc to interrupt`）为准。停住的会话发 `rex send -s <session> -b <block> '继续'` 再 `rex send-key -s <session> -b <block> enter`；正在运行的不发。
 
-很多会话出过压缩失败时，上下文可能已经不完整，不由本会话逐个重启，而是通知各项目的总控（每个项目统管子会话的那个标签，看子会话收到的 `Message from @<名>` 就能认出）：说明原因和已做的修复，列出出错的子会话，让总控逐个核对理解，偏离的先写交接再关掉重开。会话与名字的对应：bili.log 里的 `sess=<前 8 位>` 对应 `~/.claude/projects/*/<id>.jsonl`，文件里的 `agentName` 就是标签名；每个会话压缩失败的次数用 `rg 'external-summary\] completed' ~/.local/state/billion-context/bili.log` 按 `sess=` 和 `result=` 统计。
+很多会话同时出错时，不由本会话逐个重启，而是通知各项目的总控（每个项目统管子会话的那个标签，看子会话收到的 `Message from @<名>` 就能认出）：说明原因和已做的修复，列出出错的子会话，让总控逐个核对，偏离的先写交接再关掉重开。
 
-再按报错对照 `~/.config/magpie/usage.jsonl`（`jq -r 'select(.t > "<时刻>" and .status != 200) | "\(.agent) \(.req) -> \(.provider) \(.status)"' | sort | uniq -c`）和 billion-context 的日志 `~/.local/state/billion-context/bili.log`：
+再按报错对照 `~/.config/magpie/usage.jsonl`（`jq -r 'select(.t > "<时刻>" and .status != 200) | "\(.agent) \(.req) -> \(.provider) \(.status)"' | sort | uniq -c`）：
 
 | 报错 | 原因 | 处理 |
 | --- | --- | --- |
-| `does not support assistant message prefill`、`final assistant content cannot end with trailing whitespace` | billion-context 压缩失败后重发的请求以 assistant 结尾，走 Anthropic API 的中转拒绝 | 见「模型层」的 prefill 一条；单次出现发「继续」，同一时段多个会话连续出现再查 billion-context 的压缩失败原因 |
-| `upstream stream truncated (no completion event; round 2 …)` | billion-context 内部重发的那一轮上游没给完成事件，多数是上一条的 prefill 400 | 同上；单次出现发「继续」 |
-| `Compression FAILED: all configured external summary candidates failed …`，日志里 `batch-deadline`、`attempt 1/3 failed before response` 的 `elapsed` 远小于 360000ms | 外部摘要排队：`compress.externalSummary.concurrency` 默认 4，几十个会话同时压缩时排队时间算进 360 秒总预算 | `ai/billion-context/billion-context.json` 里 `concurrency` 设 16（上限 32），对 `bili doctor` 列出的每个代理端口热加载一次；摘要的第一个 target 用快的模型（`group/gpt-worker`） |
-| `Prompt is too long · automatic compaction failed: ... exceeds the model window 150000 (model=group/deep)`，或日志里 `[window] model=group/... source=default` | billion-context 不认识分组名，按默认 200k 窗口算，约 15 万 token 就强制压缩；压缩再失败，上下文涨过窗口后直接拒绝 | `billion-context.json` 的 `providers` 里用上游地址 `http://127.0.0.1:3425` 作键，给每个分组和 Claude Code 档位用到的 `auto/<模型>` 写 `{"context": 1000000, "output": 128000}`（与 `curl http://127.0.0.1:3425/v1/models` 报的窗口一致），热加载；新增分组时同步加一行。日志里分组的窗口应显示为 872000（1M 减输出） |
-| usage 里 `billion-context ... 499` | 摘要请求被 billion-context 超时取消，不是供应商故障 | 看 `Compression FAILED` 一行的排队问题 |
-| `CoreCode OpenAI: The upstream service could not process the request` | 中转偶发 400，magpie 对 400 不换家 | 零星出现发「继续」；同一会话连续出现再给这家加 pause |
-| 某个会话摘要总是 `result=failed reason=exhausted attempts=[t0:error,t1:error]`，几秒内结束 | 两个候选都没给出可用的摘要（拒写或超长），与路由无关 | 不改路由；让该会话自己少压一点或手动 `/compact` |
+| 所有 Claude Code 会话 `ECONNREFUSED` | `ANTHROPIC_BASE_URL` 指向的本地地址没有进程在听，多数是还指向已关掉的 billion-context 代理（`/bili/`） | 按「上下文压缩与命令输出」一节把地址改成 `http://127.0.0.1:3425`，给停住的会话发「继续」 |
+| 新开的 Claude Code 报 `401 Invalid bearer token` | `env.ANTHROPIC_BASE_URL` 被删，请求去了 Anthropic 官方接口 | 同上，补回地址 |
+| `does not support assistant message prefill`、`final assistant content cannot end with trailing whitespace` | 请求以 assistant 结尾，走 Anthropic API 的中转拒绝 | 见「模型层」的 prefill 一条；单次出现发「继续」 |
+| `The upstream service could not process the request` | 中转偶发 400，magpie 对 400 不换家 | 零星出现发「继续」；同一会话连续出现再给这家加 pause |
 
 ## 易错点
 

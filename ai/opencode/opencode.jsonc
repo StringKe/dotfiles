@@ -587,11 +587,5 @@
             "url": "http://127.0.0.1:3425/mcp/magpie/hub/opencode",
             "enabled": true
         }
-    },
-    "plugins": [
-      "billion-context"
-    ],
-    "compaction": {
-      "auto": false
     }
 }
